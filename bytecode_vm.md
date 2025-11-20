@@ -9,7 +9,10 @@ change var_buf to 32 bit
 32 bit PUSHC:
 push MSB, left shift, push LSB
 
+THEN
 
+implement function arguments and return values
+ideally supporting nested and recursive calls with stack pointer and frame pointer
 
 -----------------
 
