@@ -10,7 +10,7 @@
 |`FD80`<br>`FDFF`|NV<br>Global<br>Variables|128 Bytes<br>4 Bytes Per Entry<br>32 Entries|
 |`FE00`<br>`FFFF`|Reserved<br>Variables|512 Bytes<br>4 Bytes Per Entry<br>128 Entries|
 
-
+New entries all **grow towards larger address**.
 
 ## Changelog
 

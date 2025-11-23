@@ -120,11 +120,6 @@ zero = 0
 endianness = 'little'
 var_boundary = 0x1f
 
-INSTRUCTION_SIZE_BYTES = 3
-USER_VAR_START_ADDRESS = 0xFA00
-USER_VAR_BYTE_WIDTH = 4
-USER_VAR_END_ADDRESS_INCLUSIVE = 0xFBFF
-
 if_skip_table = None
 if_info_list = None
 while_lookup = None
