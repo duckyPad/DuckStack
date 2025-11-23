@@ -1,5 +1,4 @@
-FUNCTION test(a, b)
-
+FUNCTION test(      hhh45g, df )
 END_FUNCTION
 
 test()

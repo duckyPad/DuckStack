@@ -16,7 +16,7 @@ def get_default_var_table():
 
 # name : value
 var_table = get_default_var_table()
-# name : (start line number, end line number)
+# name :  {"fun_start":int, 'fun_end':int}
 func_table = {}
 if_take_table = {}
 if_skip_table = {}
@@ -157,18 +157,27 @@ def new_func_check(pgm_line, lnum, fss, fdict):
     if len(fss) != 0:
         return PARSE_ERROR, "unmatched END_FUNCTION"
     if pgm_line.endswith(")") is False:
-        return PARSE_ERROR, "invalid declaration"
+        return PARSE_ERROR, "missing ("
     try:
         fun_name = pgm_line.split()[1].split('(')[0]
     except Exception:
-        return PARSE_ERROR, "invalid declaration"
+        return PARSE_ERROR, "invalid func name"
     if_valid_vn, vn_comment = is_valid_var_name(fun_name)
     if if_valid_vn is False:
         return PARSE_ERROR, vn_comment
     if fun_name in fdict:
         return PARSE_ERROR, "function already exists"
+    try:
+        all_args = pgm_line.split("(", 1)[-1].rsplit(")", 1)[0]
+        arg_list = [x.strip() for x in all_args.split(",")]
+    except Exception:
+        return PARSE_ERROR, "Arg parse error"
+    for arg in arg_list:
+        is_valid, vn_comment = is_valid_var_name(arg)
+        if is_valid is False:
+            return PARSE_ERROR, vn_comment
     fss.append(fun_name)
-    fdict[fun_name] = {"fun_start":lnum, 'fun_end':None}
+    fdict[fun_name] = {"fun_start":lnum, 'fun_end':None, 'args':arg_list}
     return PARSE_OK, ''
 
 def rem_block_end_check(pgm_line, lnum, rbss, rbdict):
