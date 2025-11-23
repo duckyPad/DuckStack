@@ -1,4 +1,5 @@
-$_RTC_UTC_OFFSET = 60
+// $_RTC_UTC_OFFSET = 60
 // $_GV1 = 255
-// VAR $foo = 35
+VAR $foo = 0x1234abcd
+$foo = $foo + 0x10000
 // VAR $bar = $foo * 30

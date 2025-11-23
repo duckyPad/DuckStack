@@ -1,4 +1,4 @@
-# DuckStack
+# DuckStack Bytecode Stack Machine
 
 ## Architecture
 
@@ -42,6 +42,43 @@ All reference to **"stack"** refers to **Data Stack**. Unless noted otherwise.
 | `RET` |7|0x7 |Return from Subroutine<br>Pop one item off **call stack**<br>Set PC to its value | | |
 | `HALT`|8|0x8 |Stop execution| | |
 | `VMVER`|255|0xFF| VM Version Check<br>Abort if mismath |VM VER||
+
+## Binary Operator Instructions
+
+Binary as in **involving two operands**.
+
+All instructions here:
+
+* Pop TWO items off arithmetic stack
+
+* Topmost item is right-hand-side, lower item is left-hand-side.
+
+* Perform operation
+
+* Push result back on stack.
+
+| Opcode<br>Name| Byte 0<br>Decimal | Byte 0<br>Hex |Comment |
+|:--:|:--:|:--:|:--:|
+|EQ |9|0x9 | Equal|
+|NOTEQ|10 |0xa | Not equal|
+|LT |11 |0xb | Less than|
+| LTE |12 |0xc |Less than or equal|
+|GT |13 |0xd | Greater than |
+| GTE |14 |0xe | Greater than or equal|
+| ADD |15 |0xf |Add |
+| SUB |16 | 0x10 | Subtract |
+| MULT|17 | 0x11 | Multiply |
+| DIV |18 | 0x12 | Integer division |
+| MOD |19 | 0x13 | Modulus |
+| POW |20 | 0x14 | Power of |
+|LSHIFT |21 | 0x15 |Logical left shift|
+|RSHIFT |22 | 0x16 |Logical right shift |
+|BITOR|23 | 0x17 |Bitwise OR|
+|BITAND |24 | 0x18 |Bitwise AND |
+| LOGIAND |25 | 0x19 |Logical AND |
+|LOGIOR |26 | 0x1a |Logical OR|
+| BITXOR | 51 | 0x33 | Bitwise XOR |
+
 
 ## TODO
 

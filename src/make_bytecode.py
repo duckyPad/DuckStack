@@ -27,9 +27,9 @@ DS_VM_VERSION = 2
 
 # CPU instructions
 OP_NOP = ("NOP", 0)
-OP_PUSHC = ("PUSHC", 1)
-OP_PUSHI = ("PUSHI", 2)
-OP_POP = ("POP", 3)
+OP_PUSHC16 = ("PUSHC16", 1)
+OP_PUSHI32 = ("PUSHI32", 2)
+OP_POP32 = ("POP32", 3)
 OP_BRZ = ("BRZ", 4)
 OP_JMP = ("JMP", 5)
 OP_CALL = ("CALL", 6)
@@ -166,19 +166,41 @@ def print_asslist(lll):
         print_instruction(item)
     print()
 
+def make_instruction_pushc32(value):
+    node_value_high = (int(value) & 0xffff0000) >> 16
+    node_value_low = int(value) & 0xffff
+    inst_list = []
+    this_instruction = get_empty_instruction()
+    this_instruction['opcode'] = OP_PUSHC16
+    this_instruction['oparg'] = node_value_low
+    inst_list.append(this_instruction)
+    if node_value_high:
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = node_value_high
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = 16
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_LSHIFT
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_BITOR
+        inst_list.append(this_instruction)
+    return inst_list
+
 def visit_node(node, instruction_list):
     # print(node.__dict__)
     # a node can be Name, Constant, and operations such as ADD, SUB, COMPARE, etc
     if isinstance(node, ast.Name):
         this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHI
+        this_instruction['opcode'] = OP_PUSHI32
         this_instruction['oparg'] = str(node.id)
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Constant):
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHC
-        this_instruction['oparg'] = int(node.value) & 0xffff
-        instruction_list.append(this_instruction)
+        instruction_list += make_instruction_pushc32(node.value)
     elif isinstance(node, ast.Compare):
         op_name = node.ops[0].__class__.__name__
         if op_name not in arith_lookup:
@@ -220,13 +242,10 @@ def evaluate_expr(expr):
     if myast.is_walkable(root):
         myast.postorder_walk(root, visit_node, instruction_list, expr)
     elif isinstance(root, ast.Constant):
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHC
-        this_instruction['oparg'] = root.value
-        instruction_list.append(this_instruction)
+        instruction_list += make_instruction_pushc32(root.value)
     elif isinstance(root, ast.Name):
         this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHI
+        this_instruction['opcode'] = OP_PUSHI32
         this_instruction['oparg'] = str(root.id)
         instruction_list.append(this_instruction)
     else:
@@ -243,7 +262,7 @@ def assign_var(var_keyword, pgm_line):
     rvalue = replace_operators(rvalue)
     ins_list = evaluate_expr(rvalue)
     this_instruction = get_empty_instruction()
-    this_instruction['opcode'] = OP_POP
+    this_instruction['opcode'] = OP_POP32
     this_instruction['oparg'] = lvalue
     ins_list.append(this_instruction)
     for item in ins_list:
@@ -377,7 +396,7 @@ def replace_var_in_str(msg, vad):
 
 def push_1_constant_on_stack(value, comment=None):
     this_instruction = get_empty_instruction()
-    this_instruction['opcode'] = OP_PUSHC
+    this_instruction['opcode'] = OP_PUSHC16
     this_instruction['oparg'] = value & 0xffff
     if comment is not None:
         this_instruction['comment'] = comment
