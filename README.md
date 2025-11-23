@@ -12,3 +12,7 @@
 
 
 
+## Changelog
+
+* `VMVER` instruction: version number now on byte 1 (LSB)
+

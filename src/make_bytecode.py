@@ -16,9 +16,14 @@ Done:
 Added VMVER to aid version checking
 mouse move and mouse scroll arguments on stack
 more changes at the end of bytecode_vm.md
+
+Version 2:
+2025-11-23
+New flat memory map
+
 """
 
-DS_VM_VERSION = 1
+DS_VM_VERSION = 2
 
 # CPU instructions
 OP_NOP = ("NOP", 0)
@@ -114,7 +119,11 @@ arith_lookup = {
 zero = 0
 endianness = 'little'
 var_boundary = 0x1f
+
 INSTRUCTION_SIZE_BYTES = 3
+USER_VAR_START_ADDRESS = 0xFA00
+USER_VAR_BYTE_WIDTH = 4
+USER_VAR_END_ADDRESS_INCLUSIVE = 0xFBFF
 
 if_skip_table = None
 if_info_list = None
@@ -432,7 +441,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
 
     first_instruction = get_empty_instruction()
     first_instruction['opcode'] = OP_VMINFO
-    first_instruction['oparg'] = ((DS_VM_VERSION % 0xf) << 8)
+    first_instruction['oparg'] = DS_VM_VERSION & 0xff
     assembly_listing.append(first_instruction)
 
     for line_obj in compact_program_listing:
@@ -644,7 +653,6 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     for index, item in enumerate(assembly_listing):
         item['addr'] = index * INSTRUCTION_SIZE_BYTES
 
-    VAR_SIZE_BYTES = 2
     var_addr_dict = {}
     var_count = 0
     # assign address to all variables
@@ -652,7 +660,9 @@ def make_dsb_with_exception(program_listing, profile_list=None):
         if item in reserved_variable_dict:
             var_addr_dict[item] = reserved_variable_dict[item]
         else:
-            var_addr_dict[item] = var_count * VAR_SIZE_BYTES
+            var_addr_dict[item] = USER_VAR_START_ADDRESS + var_count * USER_VAR_BYTE_WIDTH
+            if var_addr_dict[item] > USER_VAR_END_ADDRESS_INCLUSIVE:
+                raise ValueError("Too Many User-defined Variables")
             var_count += 1
 
     for item in assembly_listing:
@@ -661,9 +671,6 @@ def make_dsb_with_exception(program_listing, profile_list=None):
 
     for item in reserved_variable_dict:
         var_lookup.pop(item, None)
-
-    if len(var_lookup) > MAX_NUMBER_OF_VARIABLES:
-        raise ValueError("Too many variables")
 
     str_list = []
     for item in str_lookup:
@@ -743,9 +750,9 @@ def make_dsb_no_exception(program_listing, profile_list=None):
         return {'comments':str(e), 'error_line_str':current_line_content, 'error_line_number_starting_from_1':current_line_number_sf1}, None
 
 if __name__ == "__main__":
-
-    if len(sys.argv) <= 2:
-        print(__file__, "ds3_script output")
+    # Require at least input and output arguments
+    if len(sys.argv) < 2:
+        print(f"Usage: {__file__} <ds3_script> [output]")
         exit()
 
     text_file = open(sys.argv[1])
@@ -754,7 +761,7 @@ if __name__ == "__main__":
 
     program_listing = []
     for index, item in enumerate(text_listing):
-        program_listing.append(ds_line(item, index+1))
+        program_listing.append(ds_line(item, index + 1))
 
     status_dict, bin_arr = make_dsb_no_exception(program_listing)
 
@@ -764,7 +771,7 @@ if __name__ == "__main__":
             print(f'{key}: {status_dict[key]}')
         exit()
 
-    bin_out = open(sys.argv[2], 'wb')
-    bin_out.write(bin_arr)
-    bin_out.close()
-
+    # Only write binary if output file argument provided
+    if len(sys.argv) >= 3:
+        with open(sys.argv[2], 'wb') as bin_out:
+            bin_out.write(bin_arr)

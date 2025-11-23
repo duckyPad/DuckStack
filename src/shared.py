@@ -406,8 +406,6 @@ cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
 cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
-GV_OFFSET = 64
-
 internal_variable_dict = {
     '_DEFAULTDELAY': (0xffff - 0),
     '_DEFAULTCHARDELAY': (0xffff - 1),
@@ -442,6 +440,12 @@ internal_variable_dict = {
     "_STR_PRINT_FORMAT": (0xffff - 30),
     "_STR_PRINT_PADDING": (0xffff - 31),
 }
+
+PGV_START_ADDRESS = 0xFD80
+PGV_BYTE_WIDTH = 4
+PGV_END_ADDRESS_INCLUSIVE = 0xFDFF
+
+GV_OFFSET = 64
 
 global_variable_dict = {
     "_GV0": (0xffff - GV_OFFSET - 0),
