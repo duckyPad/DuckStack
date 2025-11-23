@@ -18,7 +18,7 @@ Flat memory map
 |:---:|:---:|:---:|
 |`0000`<br>`EFFF`|Binary<br>Executable|60K Bytes|
 |`F000`<br>`F7FF`|Data<br>Stack|2048 Bytes<br>4 Bytes Per Entry<br>512 Entries|
-|`F800`<br>`F9FF`|Call<br>Stack|512 Bytes<br>2 Bytes Per Entry<br>256 Entries|
+|`F800`<br>`F9FF`|Call<br>Stack|512 Bytes<br>4 Bytes Per Entry<br>128 Entries|
 |`FA00`<br>`FBFF`|User-defined<br>Variables|512 Bytes<br>4 Bytes Per Entry<br>128 Entries|
 |`FC00`<br>`FD7F`|Unused|384 Bytes|
 |`FD80`<br>`FDFF`|Persistent<br>Global<br>Variables|128 Bytes<br>4 Bytes Per Entry<br>32 Entries|
@@ -95,3 +95,5 @@ All instructions here:
 	* PGVs
 	* Reserved Variables
 
+* Added 32-bit push constant
+	* By combining `PUSH16`, `LSHIFT`, and `BITOR.

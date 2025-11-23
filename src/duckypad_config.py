@@ -176,14 +176,21 @@ Added Bitwise XOR support
     XOR is ^
     Power-of is now **
 Added RTC Sync
+
+3.5.0
+2025 11 23
+DSVM Version 2
+32 Bit Support
+Flat memory map
+adjusted base addresses for working memory
 """
 
-THIS_VERSION_NUMBER = '3.4.0'
+THIS_VERSION_NUMBER = '3.5.0'
 
 THIS_DUCKYPAD = dp_type()
 
-MIN_DUCKYPAD_PRO_FIRMWARE_VERSION = "2.0.0"
-MAX_DUCKYPAD_PRO_FIRMWARE_VERSION = "2.5.0"
+MIN_DUCKYPAD_PRO_FIRMWARE_VERSION = "2.6.0"
+MAX_DUCKYPAD_PRO_FIRMWARE_VERSION = "2.9.0"
 MIN_DUCKYPAD_2020_FIRMWARE_VERSION = "2.0.0"
 MAX_DUCKYPAD_2020_FIRMWARE_VERSION = "2.5.0"
 
