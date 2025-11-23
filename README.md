@@ -2,13 +2,18 @@
 
 ## Architecture
 
-* **Data Stack**: 32 Bit wide
+All 32 bit
 
-* **Call Stack**: 16 Bit wide
+* **Data Stack**
 
-* PC: 32 bit
+* **Call Stack**
 
-* Frame Pointer: 32 bit, points to an address on data stack
+* PC
+
+* Frame Pointer
+	* Points to the **memory address** of the **first pushed argument** on **data stack**?
+	* When not in function call, points to **memory address** of **base of data stack**
+	* Used to reference function arguments via an offset
 
 ## Memory Map
 
@@ -82,9 +87,6 @@ All instructions here:
 
 ## TODO
 
-* Endianness of PUSHI32 and POP32
-
-* Consistent Endianness
 
 ## Changelog
 

@@ -156,10 +156,10 @@ def new_string_block_check(pgm_line, lnum, sbss, sbdict):
 def new_func_check(pgm_line, lnum, fss, fdict):
     if len(fss) != 0:
         return PARSE_ERROR, "unmatched END_FUNCTION"
-    if pgm_line.endswith("()") is False:
+    if pgm_line.endswith(")") is False:
         return PARSE_ERROR, "invalid declaration"
     try:
-        fun_name = pgm_line.split()[1].split('()')[0]
+        fun_name = pgm_line.split()[1].split('(')[0]
     except Exception:
         return PARSE_ERROR, "invalid declaration"
     if_valid_vn, vn_comment = is_valid_var_name(fun_name)
