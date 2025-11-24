@@ -557,7 +557,6 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             this_instruction['comment'] = this_line
             this_instruction['label'] = label_dict[lnum]
             assembly_listing.append(this_instruction)
-
         elif is_func_call(this_line, func_lookup):
             inst_list = parse_exp_one_item(this_line, this_line)
             assembly_listing += inst_list
@@ -737,7 +736,8 @@ def make_dsb_with_exception(program_listing, profile_list=None):
         else:
             item['addr'] = str_list[index-1]['addr'] + len(str_list[index-1]['bytes'])
 
-    print(var_addr_dict)
+    for instruction in assembly_listing:
+        print(instruction)
     exit()
 
     # replace lables with real memory address

@@ -459,6 +459,8 @@ global_variable_dict = {}
 for i in range(PGV_COUNT):
     global_variable_dict[f"_GV{i}"] = PGV_START_ADDRESS + i * PGV_BYTE_WIDTH
 
+FUNC_NAME_MANGLE_PREFIX = "_FUNC_ARG_"
+
 reserved_variable_dict = internal_variable_dict | global_variable_dict
 
 class ds_line:

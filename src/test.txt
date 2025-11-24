@@ -1,7 +1,6 @@
 FUNCTION myadd(a, b)
-	RETURN  a+b
+	VAR $test = a + 2
 END_FUNCTION
-
 
 myadd(6, 9)
 

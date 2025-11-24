@@ -169,7 +169,7 @@ def new_func_check(pgm_line, lnum, fss, fdict):
         return PARSE_ERROR, "function already exists"
     try:
         all_args = pgm_line.split("(", 1)[-1].rsplit(")", 1)[0]
-        arg_list = [f"{fun_name}_{x.strip()}" for x in all_args.split(",")]
+        arg_list = [f"{FUNC_NAME_MANGLE_PREFIX}{fun_name}_{x.strip()}" for x in all_args.split(",")]
     except Exception:
         return PARSE_ERROR, "Arg parse error"
     for arg in arg_list:
