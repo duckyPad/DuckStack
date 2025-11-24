@@ -1,4 +1,4 @@
-FUNCTION test(      hhh45g, df )
+FUNCTION myadd(a, b)
 END_FUNCTION
 
-test()
+myadd(7+5, 3, myadd(1,2))

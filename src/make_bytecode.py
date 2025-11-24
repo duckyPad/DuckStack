@@ -228,6 +228,14 @@ def visit_node(node, instruction_list):
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = OP_MULT
         instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Call):
+        fun_name = node.func.id
+        if fun_name not in func_lookup:
+            raise ValueError("unknown function name")
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_CALL
+        this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
+        instruction_list.append(this_instruction)
     else:
         raise ValueError("Unimplemented AST operation")
 
@@ -501,7 +509,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             this_instruction['label'] = label_dict[lnum]
             assembly_listing.append(this_instruction)
         elif first_word == cmd_FUNCTION:
-            fun_name = this_line.split()[1].split('()')[0]
+            fun_name = this_line.split()[1].split('(', 1)[0]
             this_instruction['opcode'] = OP_JMP
             fun_end_lnum = func_lookup[fun_name]['fun_end']
             fun_end_label = f"FEND_{fun_name}@{fun_end_lnum}"
@@ -524,11 +532,16 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             this_instruction['comment'] = this_line
             this_instruction['label'] = label_dict[lnum]
             assembly_listing.append(this_instruction)
-        elif first_word.endswith('()'):
-            fun_name = this_line.split('()')[0]
-            this_instruction['opcode'] = OP_CALL
-            this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
-            assembly_listing.append(this_instruction)
+        elif is_func_call(this_line, func_lookup):
+            print("!!!!!!!!!")
+            inst_list = parse_exp_one_item(this_line, this_line)
+            assembly_listing += inst_list
+            print(inst_list)
+            # exit()
+            # fun_name = this_line.split('()')[0]
+            # this_instruction['opcode'] = OP_CALL
+            # this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
+            # assembly_listing.append(this_instruction)
         elif this_line.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT:
             str_content = this_line.split(' ', 1)[-1]
             if str_content not in str_lookup:

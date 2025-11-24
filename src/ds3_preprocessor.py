@@ -593,12 +593,9 @@ def run_once(program_listing):
         elif first_word in [cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT]:
             presult = PARSE_OK
             pcomment = ''
-        elif this_line.endswith("()"):
-            fun_name = this_line[0:len(this_line)-2]
-            if fun_name in func_table:
-                presult = PARSE_OK
-            else:
-                pcomment = f"Unknown function"
+        # elif this_line.endswith("()"):
+        elif is_func_call(this_line, func_table):
+            presult, pcomment = PARSE_OK, ''
         else:
             presult, pcomment = ds_syntax_check.parse_line(this_line)
         

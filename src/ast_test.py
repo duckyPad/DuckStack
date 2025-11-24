@@ -1,12 +1,14 @@
 import ast
 
 source = """
-def add(a, b):
-	return a+b
+def draw_ball():
+FUNCTION add(a, b)
+END_FUNCTION
 
-foo = 3
-bar = 5
-add(foo, bar)
+FUNCTION sub(a, b)
+END_FUNCTION
+
+add(2, 3)
 """
 
 tree = ast.parse(source, mode="exec")

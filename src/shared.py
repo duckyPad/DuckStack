@@ -713,4 +713,10 @@ def get_profile_dir(dir_path):
             return full_path
     return None
 
+def is_func_call(pgm_line, func_dict):
+    for key in func_dict:
+        if pgm_line.startswith(key+"("):
+            return True
+    return False
+
 # unzip_to_own_directory("duckyPad_Profile_Photoshop.zip", "output")
