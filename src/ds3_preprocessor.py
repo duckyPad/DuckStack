@@ -157,7 +157,7 @@ def new_func_check(pgm_line, lnum, fss, fdict):
     if len(fss) != 0:
         return PARSE_ERROR, "unmatched END_FUNCTION"
     if pgm_line.endswith(")") is False:
-        return PARSE_ERROR, "missing ("
+        return PARSE_ERROR, "missing )"
     try:
         fun_name = pgm_line.split()[1].split('(')[0]
     except Exception:
@@ -169,13 +169,15 @@ def new_func_check(pgm_line, lnum, fss, fdict):
         return PARSE_ERROR, "function already exists"
     try:
         all_args = pgm_line.split("(", 1)[-1].rsplit(")", 1)[0]
-        arg_list = [x.strip() for x in all_args.split(",")]
+        arg_list = [f"{fun_name}_{x.strip()}" for x in all_args.split(",")]
     except Exception:
         return PARSE_ERROR, "Arg parse error"
     for arg in arg_list:
         is_valid, vn_comment = is_valid_var_name(arg)
         if is_valid is False:
             return PARSE_ERROR, vn_comment
+    if len(arg_list) != len(set(arg_list)):
+        return PARSE_ERROR, "Duplicate arg name"
     fss.append(fun_name)
     fdict[fun_name] = {"fun_start":lnum, 'fun_end':None, 'args':arg_list}
     return PARSE_OK, ''

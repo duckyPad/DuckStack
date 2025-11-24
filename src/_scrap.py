@@ -26,10 +26,10 @@ elif first_word == cmd_END_FUNCTION:
             inst_list = parse_multi_expression(1, this_line)
             print(inst_list)
             exit()
-            # this_instruction['opcode'] = OP_RET
-            # this_instruction['comment'] = None
-            # assembly_listing.append(this_instruction)
-            # this_instruction = get_empty_instruction()
-            # this_instruction['comment'] = this_line
-            # this_instruction['label'] = label_dict[lnum]
-            # assembly_listing.append(this_instruction)
+            this_instruction['opcode'] = OP_RET
+            this_instruction['comment'] = None
+            assembly_listing.append(this_instruction)
+            this_instruction = get_empty_instruction()
+            this_instruction['comment'] = this_line
+            this_instruction['label'] = label_dict[lnum]
+            assembly_listing.append(this_instruction)

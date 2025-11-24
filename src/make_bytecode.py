@@ -123,7 +123,8 @@ var_boundary = 0x1f
 if_skip_table = None
 if_info_list = None
 while_lookup = None
-var_lookup = None
+user_var_lookup = None
+func_arg_order_lookup = None
 compact_program_listing = None
 label_dict = None
 func_lookup = None
@@ -433,13 +434,14 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     global if_skip_table
     global if_info_list
     global while_lookup
-    global var_lookup
+    global user_var_lookup
     global compact_program_listing
     global label_dict
     global func_lookup
     global str_lookup
     global current_line_content
     global current_line_number_sf1
+    global func_arg_order_lookup
 
     current_line_number_sf1 = 0
     current_line_content = ''
@@ -456,13 +458,23 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     if_skip_table = result_dict['if_skip_table']
     if_info_list = result_dict["if_info"]
     while_lookup = result_dict['while_table_bidirectional']
-    var_lookup = result_dict['var_table']
+    user_var_lookup = result_dict['var_table']
     compact_program_listing = result_dict['compact_listing']
     label_dict = {}
     func_lookup = result_dict['func_table']
     str_lookup = {}
     break_dict = result_dict['break_dict']
     continue_dict = result_dict['continue_dict']
+    func_arg_order_lookup = {}
+
+    for fun_name in func_lookup:
+        arg_list = func_lookup[fun_name]['args']
+        if arg_list is None or len(arg_list) == 0:
+            continue
+        for index, this_arg in enumerate(arg_list):
+            if this_arg in func_arg_order_lookup:
+                raise ValueError("Duplicate function arguments")
+            func_arg_order_lookup[this_arg] = index
 
     print("--------- Program Listing After Preprocessing: ---------")
 
@@ -691,8 +703,8 @@ def make_dsb_with_exception(program_listing, profile_list=None):
 
     var_addr_dict = {}
     var_count = 0
-    # assign address to all variables
-    for item in var_lookup:
+    # assign address to all user-defined variables
+    for item in user_var_lookup:
         if item in reserved_variable_dict:
             var_addr_dict[item] = reserved_variable_dict[item]
         else:
@@ -706,7 +718,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             item['oparg'] = var_addr_dict[item['oparg']]
 
     for item in reserved_variable_dict:
-        var_lookup.pop(item, None)
+        user_var_lookup.pop(item, None)
 
     str_list = []
     for item in str_lookup:
@@ -724,6 +736,9 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             item['addr'] = str_bin_start
         else:
             item['addr'] = str_list[index-1]['addr'] + len(str_list[index-1]['bytes'])
+
+    print(var_addr_dict)
+    exit()
 
     # replace lables with real memory address
     label_to_addr_dict = {}
@@ -772,7 +787,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     print('\n')
     # print("label_to_addr_dict:", label_to_addr_dict)  
     # print("var_addr_dict:", var_addr_dict)
-    # print('var_lookup:', var_lookup)
+    # print('user_var_lookup:', user_var_lookup)
     # print("str_bin_start:", str_bin_start)
     # print("str_list:", str_list)
     print(f'Binary Size: {len(output_bin_array)} Bytes')
