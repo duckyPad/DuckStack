@@ -232,6 +232,8 @@ def visit_node(node, instruction_list):
         fun_name = node.func.id
         if fun_name not in func_lookup:
             raise ValueError("unknown function name")
+        if len(node.args) != len(func_lookup[fun_name]['args']):
+            raise ValueError("Wrong number of arguments")
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = OP_CALL
         this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
@@ -342,6 +344,16 @@ def make_delay_instruction(comment):
     this_instruction['opcode'] = OP_DELAY
     this_instruction['comment'] = comment
     return this_instruction
+
+def parse_return_value(whole_line, ret_cmd):
+    return_arg = whole_line[len(ret_cmd):].strip()
+    if len(return_arg) == 0:
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = 0
+        this_instruction['comment'] = whole_line
+        return [this_instruction]
+    return parse_exp_one_item(return_arg, whole_line)
 
 def parse_exp_one_item(token, pgm_line):
     expression = replace_operators(token)
@@ -525,23 +537,18 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             assembly_listing.append(this_instruction)
         elif first_word == cmd_END_FUNCTION:
             # RET, then NOP
+            assembly_listing += parse_return_value(this_line, cmd_END_FUNCTION)
             this_instruction['opcode'] = OP_RET
-            this_instruction['comment'] = None
+            this_instruction['comment'] = this_line
             assembly_listing.append(this_instruction)
             this_instruction = get_empty_instruction()
             this_instruction['comment'] = this_line
             this_instruction['label'] = label_dict[lnum]
             assembly_listing.append(this_instruction)
+
         elif is_func_call(this_line, func_lookup):
-            print("!!!!!!!!!")
             inst_list = parse_exp_one_item(this_line, this_line)
             assembly_listing += inst_list
-            print(inst_list)
-            # exit()
-            # fun_name = this_line.split('()')[0]
-            # this_instruction['opcode'] = OP_CALL
-            # this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
-            # assembly_listing.append(this_instruction)
         elif this_line.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT:
             str_content = this_line.split(' ', 1)[-1]
             if str_content not in str_lookup:
@@ -570,7 +577,9 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             this_instruction['comment'] = this_line
             assembly_listing.append(this_instruction)
         elif first_word == cmd_RETURN:
+            assembly_listing += parse_return_value(this_line, cmd_RETURN)
             this_instruction['opcode'] = OP_RET
+            this_instruction['comment'] = this_line
             assembly_listing.append(this_instruction)
         elif first_word == cmd_HALT:
             this_instruction['opcode'] = OP_HALT

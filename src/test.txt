@@ -1,4 +1,6 @@
 FUNCTION myadd(a, b)
+	RETURN  a+b
 END_FUNCTION
 
-myadd(7+5, 3, myadd(1,2))
+myadd(6, 9)
+

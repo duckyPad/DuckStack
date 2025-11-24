@@ -539,7 +539,7 @@ def run_once(program_listing):
             presult, pcomment = new_stringln_block_check(this_line, line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
         elif first_word == cmd_STRING_BLOCK:
             presult, pcomment = new_string_block_check(this_line, line_number_starting_from_1, str_block_search_stack, str_block_table)
-        elif this_line == cmd_RETURN:
+        elif first_word == cmd_RETURN:
             if len(func_search_stack) == 0:
                 presult = PARSE_ERROR
                 pcomment = f"RETURN outside function"
