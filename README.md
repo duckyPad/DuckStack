@@ -2,68 +2,51 @@
 
 ## Architecture
 
-16-bit addressing, 64KB max.
+**32-bit** variables and arithmetics.
 
-32-bit variables and arithmetics.
+**16-bit** addressing, 64KB max.
 
-* **Data Stack**
-* **Call Stack**
-* PC
-* Frame Pointer
+* Single **Data Stack**
+* Program Counter (PC)
+* Stack Pointer (SP)
+* Frame Pointer (FP)
 
 ## Memory Map
 
 Flat memory map
 
-|Addr|Purpose|Comment|
-|:---:|:---:|:---:|
-|`0000`<br>`EFFF`|Binary<br>Executable|60K Bytes|
-|`F000`<br>`F7FF`|Data<br>Stack|2048 Bytes<br>4 Bytes Per Entry<br>512 Entries|
-|`F800`<br>`F9FF`|Call<br>Stack|512 Bytes<br>4 Bytes Per Entry<br>128 Entries|
-|`FA00`<br>`FBFF`|User-defined<br>Variables|512 Bytes<br>4 Bytes Per Entry<br>128 Entries|
-|`FC00`<br>`FD7F`|Unused|384 Bytes|
-|`FD80`<br>`FDFF`|Persistent<br>Global<br>Variables|128 Bytes<br>4 Bytes Per Entry<br>32 Entries|
-|`FE00`<br>`FFFF`|Reserved<br>Variables|512 Bytes<br>4 Bytes Per Entry<br>128 Entries|
+|Address|Purpose |Comment |
+|:-:|:--:|:--:|
+|`0000`<br>`EFFF` |Binary<br>Executable|60K Bytes  |
+|`F000`<br>`F7FF` |Data Stack|2048 Bytes<br>4 Bytes/Entry<br>512 Entries|
+|`F800`<br>`F9FF` |User-defined<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
+|`FA00`<br>`FCFF` |Unused|768 Bytes  |
+|`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |
+|`FE00`<br>`FFFF` |Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
 
-New entries **grow towards larger address**.
+* New entries **grow towards larger address**.
+* All user-defined variables are global scope
 
 ## Calling Convention
 
 * Multiple arguments, one return value.
 * Supports nested and recursive calls
+* **TOS** grows towards **larger address**
 
 ### Stack Set-up
 
-When not in function calls, FP points to **bottom of data stack.**
+Outside function calls, FP points to **bottom of stack.**
 
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
-
-|||
-|:--:|:--:|
 ||...|
+|:--:|:--:|
 ||`32-bit data`|
 ||...|
 |`FP ->`|Bottom (`F000`)|
 
-</td><td>
-
-||
-|:--:|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
-
 When calling a function: **`foo(a, b, c)`**
 
-* Caller pushes 32-bit arguments **right to left** onto **data stack**
+* **Caller** pushes 32-bit arguments **right to left** to stack
 	* If no arguments, push one dummy value?
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
 
 |||
 |:--:|:--:|
@@ -73,169 +56,89 @@ When calling a function: **`foo(a, b, c)`**
 ||...|
 |`FP ->`|Bottom (`F000`)|
 
-</td><td>
-
-||
-|:--:|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
-
 Caller then executes `CALL` instruction, which:
 
-* Pushes **current FP** to **call stack**
-* Pushes **next instruction (PC+3)** to **call stack**
-* Sets **FP** to **top of data stack**
+* Constructs a 32b value `frame_info`
+	* Top 16b: `current_FP`
+	* Bottom 16b: `return_address`
+* Pushes `frame_info` to TOS
+* Sets **FP** to TOS
 * Jumps to the function address
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
 
 |||
 |:--:|:--:|
-|`FP ->`|`a`|
+|`FP ->`|`Prev_FP \| Return_addr`|
+||`a`|
 ||`b`|
 ||`c`|
 ||...|
 ||Bottom (`F000`)|
 
-</td><td>
-
-||
-|:--:|
-|`Return_Addr = PC+3`|
-|`Prev_FP = 0xF000`|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
-
-### Arguments and Local Variables
+### Function Arguments
 
 Once in function, callee does required calculations.
 
-To reference arguments (and local variables in the future?), **FP + Byte_Offset** is used.
+To reference arguments, **FP + Byte_Offset** is used.
 
-* Positive offset towards top of stack.
-* Negative offset towards bottom of stack.
-* `FP` points to **leftmost argument**
-* `FP - 4` points to **second from left**, etc.
-* Use `PUSHL + Offset` and `PUSHL + Offset` read/write to arguments/locals.
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
+* **Positive** offset towards **larger address / TOS**.
+* **Negative** offset towards **smaller address / bottom of stack**.
+* `FP - 4` points to **leftmost argument**
+* `FP - 8` points to **second from left**, etc.
+* Use `PUSHR32 + Offset` and `POPR32 + Offset` to read/write to arguments.
 
 |||
 |:--:|:--:|
 ||...|
 ||`func_data`|
-|`FP ->`|`a`|
-|`FP - 4`|`b`|
-|`FP - 8`|`c`|
+|`FP ->`|`Prev_FP \| Return_addr`|
+|`FP - 4`|`a`|
+|`FP - 8`|`b`|
+|`FP - 12`|`c`|
 ||...|
 ||Bottom (`F000`)|
-
-</td><td>
-
-||
-|:--:|
-|`Return_Addr = PC+3`|
-|`Prev_FP = 0xF000`|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
 
 ### Stack Unwinding
 
-At end of a function, **return value** is on top of **data stack**.
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
+At end of a function, **return value** is on TOS.
 
 |||
 |:--:|:--:|
 ||`return_val`|
-|`FP ->`|`a`|
-|`FP - 4`|`b`|
-|`FP - 8`|`c`|
+|`FP ->`|`Prev_FP \| Return_addr`|
+|`FP - 4`|`a`|
+|`FP - 8`|`b`|
+|`FP - 12`|`c`|
 ||...|
 ||Bottom (`F000`)|
 
-</td><td>
-
-||
-|:--:|
-|`Return_Addr = PC+3`|
-|`Prev_FP = 0xF000`|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
-
-Callee writes the return value to the **rightmost argument slot** (lowest on stack) using `POPL` instruction.
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
+**Callee** uses `POPR32` to place the return value in the **rightmost argument slot** (lowest on stack).
 
 |||
 |:--:|:--:|
-||`return_val`|
-|`FP ->`|`a`|
-|`FP - 4`|`b`|
-|`FP - 8`|`return_val`|
+|`FP ->`|`Prev_FP \| Return_addr`|
+|`FP - 4`|`a`|
+|`FP - 8`|`b`|
+|`FP - 12`|`return_val`|
 ||...|
 ||Bottom (`F000`)|
 
-</td><td>
-
-||
-|:--:|
-|`Return_Addr = PC+3`|
-|`Prev_FP = 0xF000`|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
-
-Callee then pops off everything until the **exactly one item** (return value) is on top.
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
+**Callee** uses `SWAP` and `DROP` to remove arguments until only return value is present.
 
 |||
 |:--:|:--:|
-|`FP - 8`|`return_val`|
+|`FP ->`|`|
+|`FP - 4`||
+|`FP - 8`|`Prev_FP \| Return_addr`|
+|`FP - 12`|`return_val`|
 ||...|
 ||Bottom (`F000`)|
 
-</td><td>
+**Callee** executes `RET` instruction, which:
 
-||
-|:--:|
-|`Return_Addr = PC+3`|
-|`Prev_FP = 0xF000`|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
-
-Callee executes `RET` instruction, which:
-
-* Pops off **return address (PC+3)** off **call stack** into **PC**
-* Pops off **Previous FP** off **call stack** into **Frame Pointer**
+* Pops off `frame_info`
+	* Loads `previous FP` into **Frame Pointer**
+	* Loads `return address` into **PC**
 * Resumes execution at PC
-* Return value on top of stack
-
-<table>
-<tr><th>Data Stack </th><th>Call Stack</th></tr>
-<tr><td>
 
 |||
 |:--:|:--:|
@@ -243,33 +146,27 @@ Callee executes `RET` instruction, which:
 ||...|
 |`FP ->`|Bottom (`F000`)|
 
-</td><td>
-
-||
-|:--:|
-|...|
-|Bottom (`F800`)|
-
-</td></tr> </table>
+* Return value on TOS for caller to use
 
 ## CPU Instructions
-
-All reference to **"stack"** refers to **Data Stack**. Unless noted otherwise.
 
 |Name| Opcode<br>Byte 0 |Comment | Byte 1| Byte 2|
 |:-:|:-:|:-:|:-:|:-:|
 | `NOP` |`0`/`0x0` |Do nothing| | |
 |`PUSHC16`|`1`/`0x1` |Push a **16-bit** constant on stack| CONST_LSB | CONST_MSB |
 |`PUSHI32`|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|ADDR_LSB |ADDR_MSB |
-| `POP32` |`3`/`0x3` |Pop one item off top of stack<br>Write **4 bytes** to ADDR|ADDR_LSB |ADDR_MSB |
-| `BRZ` |`4`/`0x4` |Pop one item off top of stack<br>If value is zero, jump to ADDR |ADDR_LSB |ADDR_MSB |
-| `JMP` |`5`/`0x5` |Unconditional Jump|ADDR_LSB |ADDR_MSB |
-| `CALL`|`6`/`0x6` |Jump to Subroutine<br>Pushes **current FP** to **call stack**<br>Push the **next instruction** (PC+3) to **call stack**<br>Jump to ADDR |ADDR_LSB |ADDR_MSB |
-| `RET` |`7`/`0x7` |Return from Subroutine<br>Pop off return address off **call stack** into PC<br>Pop off **Previous FP** off **call stack** into **Frame Pointer**<br>Resume execution at PC<br>Return value on top of **data stack**| | |
-| `HALT`|`8`/`0x8` |Stop execution| | |
-|`PUSHL32`|`9`/`0x9`|Read **4 Bytes** at **offset from frame pointer**<br>Push to stack as one **32-bit** number|OFFSET_LSB|OFFSET_MSB|
-|`POPL32`|`10`/`0xa`|Pop one item off top of stack<br>Write as **4 Bytes** at **offset from frame pointer**|OFFSET_LSB|OFFSET_MSB|
-| `VMVER`|`255`/`0xFF`| VM Version Check<br>Abort if mismath |VM VER||
+|`PUSHR32`|`3`/`0x3`|Read **4 Bytes** at **offset from frame pointer**<br>Push to stack as one **32-bit** number<br>Offset in **Bytes**<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
+| `POPI32` |`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|ADDR_LSB |ADDR_MSB |
+|`POPR32`|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from frame pointer**<br>Offset in **Bytes**<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
+|`SWAP`|`6`/`0x6`|Swap the **top two items**|||
+|`DROP`|`7`/`0x7`|Discard the **topmost item**|||
+| `BRZ` |`8`/`0x8` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |
+| `JMP` |`9`/`0x9` |Unconditional Jump|ADDR_LSB |ADDR_MSB |
+| `CALL`|`10`/`0xa` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Low 16b `return_addr`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |
+| `RET` |`11`/`0xb` |Under construction|Pop off | |
+| `HALT`|`12`/`0xc` |Stop execution| | |
+| `VMVER`|`255`/`0xff`| VM Version Check<br>Abort if mismath |VM VER||
+
 
 Reserved between 0 and 31 decimal.
 
@@ -315,14 +212,14 @@ Reserved between 32 and 63 decimal.
 
 |Name| Opcode<br>Byte 0|Comment | Byte 1| Byte 2|
 |:-------:|:----:|:----------:|:---------:|:---------:|
-|DELAY|`64`/`0x40`| Pop one item off top of stack<br>Delay the amount in milliseconds| | |
+|DELAY|`64`/`0x40`| Pop one item off TOS<br>Delay the amount in milliseconds| | |
 |KUP|`65`/`0x41`|**Release Key**<br>Pop ONE item<br>Upper byte: KEYTYPE<br>Lower byte: KEYCODE |||
 |KDOWN|`66`/`0x42`| **Press Key**<br>Pop ONE item<br>Upper byte: KEYTYPE<br>Lower byte: KEYCODE |||
 |MSCL|`67`/`0x43`| **Mouse Scroll**<br>Pop ONE item<br>Scroll number of lines || |
 |MMOV|`68`/`0x44`|**Mouse Move**<br>Pop TWO items<br>Move X and Y|||
 |SWCF|`69`/`0x45`| **Switch Color Fill**<br>Pop THREE items<br>Red, Green, Blue<br>Set ALL LED color to the RGB value | | |
 |SWCC|`70`/`0x46`| **Switch Color Change**<br>Pop FOUR items<br>N, Red, Green, Blue<br>Set N-th switch to the RGB value<br>If N is 0, set current switch. | | |
-|SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop one item off top of stack<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys | | |
+|SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop one item off TOS<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys | | |
 |STR|`72`/`0x48`|Print zero-terminated string at ADDR |ADDR_LSB |ADDR_MSB |
 |STRLN|`73`/`0x49`|Same as above, presses ENTER at end |ADDR_LSB | ADDR_MSB |
 |OLC|`74`/`0x4a`|**OLED_CURSOR**<br>Pop TWO items<br>X and Y<br>| | |
@@ -343,7 +240,10 @@ Reserved between 64 and 95 decimal.
 
 ## TODO
 
-* Figure out details of PUSHL and POPL instructions
+new opcode values
+new opcode names
+calling convention
+single stack
 
 ## Changelog
 
