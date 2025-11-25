@@ -19,14 +19,13 @@ Flat memory map
 |:-:|:--:|:--:|
 |`0000`<br>`EFFF` |Binary<br>Executable|60K Bytes  |
 |`F000`<br>`F7FF` |Data Stack|2048 Bytes<br>4 Bytes/Entry<br>512 Entries|
-|`F800`<br>`F9FF` |User-defined<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
+|`F800`<br>`F9FF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
 |`FA00`<br>`FBFF` |Unused|512 Bytes|
 |`FC00`<br>`FCFF`|Internal<br>Registers|256 Bytes<br>4 Bytes/Entry<br>64 Entries|
 |`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |
 |`FE00`<br>`FFFF` |Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
 
 * New entries **grow towards larger address**.
-* All user-defined variables are global scope
 
 ## Calling Convention
 
@@ -256,6 +255,7 @@ new opcode values
 new opcode names
 calling convention
 single stack
+internal registers
 
 ## Changelog
 
