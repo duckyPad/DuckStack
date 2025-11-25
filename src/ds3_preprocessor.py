@@ -75,37 +75,7 @@ def contains_english_alphabet(in_str):
     return False
 
 def check_rvalue(rvalue_str, vt):
-    if len(rvalue_str) == 0:
-        return False, "empty rvalue"
-    # print("rvalue_str before replacement:", rvalue_str)
-    var_list = sorted(list(vt.keys()), key=len, reverse=True)
-    for key in var_list:
-        if "$"+key in rvalue_str:
-            rvalue_str = rvalue_str.replace("$"+key, str(vt[key])).strip()
-    # print("rvalue_str after replacement:", rvalue_str)
-
-    # if contains_english_alphabet(rvalue_str):
-    #     return False, "unknown variable or invalid character"
-    try:
-        rvalue_str = rvalue_str.replace("||", " or ").replace("&&", " and ")
-        # print("rvalue_str after replacement:", rvalue_str)
-        eval(rvalue_str)
-    except Exception as e:
-        return False, f"expr eval fail: {e}"
     return True, ''
-
-def is_valid_expr(whole_line, vt):
-    presult = PARSE_ERROR
-    pcomment = 'Invalid expression'
-    try:
-        whole_line = whole_line.split(' ', 1)[1]
-        is_valid_rv, rv_comment = check_rvalue(whole_line, vt)
-        if is_valid_rv:
-            presult = PARSE_OK
-            return presult, pcomment
-    except Exception as e:
-        pass
-    return presult, pcomment
 
 def assign_var(var_keyword, pgm_line, vt, check_duplicate=False):
     has_global_variable = False
@@ -389,18 +359,6 @@ def ensure_zero_arg(pgm_line):
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
 
-def check_first_arg(pgm_line, vt, allow_multi_arg=False):
-    split = [x for x in pgm_line.split(' ') if len(x) > 0]
-    if allow_multi_arg is False and len(split) != 2:
-        return PARSE_ERROR, "only one argument allowed"
-    try:
-        if int(split[1]) < 0:
-            return PARSE_ERROR, "value can't be negative"
-        return PARSE_OK, ""
-    except:
-        pass
-    return is_valid_expr(pgm_line, vt)
-
 def check_loop(pgm_line):
     try:
         line_split = [x for x in pgm_line.split(cmd_LOOP) if len(x) > 0]
@@ -549,9 +507,9 @@ def run_once(program_listing):
                 presult = PARSE_OK
                 pcomment = ''
         elif first_word == cmd_DELAY:
-            presult, pcomment = check_first_arg(this_line, var_table, allow_multi_arg=True)
+            presult, pcomment = PARSE_OK, ''
         elif first_word == cmd_GOTO_PROFILE:
-            presult, pcomment = check_first_arg(this_line, var_table, allow_multi_arg=True)
+            presult, pcomment = PARSE_OK, ''
         elif first_word == cmd_SWCC:
             return_dict['color_state_save_needed'] = True
             presult, pcomment = PARSE_OK, ''

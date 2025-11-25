@@ -736,10 +736,6 @@ def make_dsb_with_exception(program_listing, profile_list=None):
         else:
             item['addr'] = str_list[index-1]['addr'] + len(str_list[index-1]['bytes'])
 
-    for instruction in assembly_listing:
-        print(instruction)
-    exit()
-
     # replace lables with real memory address
     label_to_addr_dict = {}
     for item in assembly_listing:
@@ -757,6 +753,8 @@ def make_dsb_with_exception(program_listing, profile_list=None):
         if isinstance(item['oparg'], str) and "@" in item['oparg']:
             item['oparg'] = label_to_addr_dict[item['oparg']]
         if isinstance(item['oparg'], int) is False:
+            print(func_lookup)
+            print(item)
             current_line_content = item['comment']
             current_line_number_sf1 = item['lnum_sf1']
             raise ValueError("Unknown variable")
