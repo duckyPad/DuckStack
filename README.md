@@ -20,7 +20,8 @@ Flat memory map
 |`0000`<br>`EFFF` |Binary<br>Executable|60K Bytes  |
 |`F000`<br>`F7FF` |Data Stack|2048 Bytes<br>4 Bytes/Entry<br>512 Entries|
 |`F800`<br>`F9FF` |User-defined<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
-|`FA00`<br>`FCFF` |Unused|768 Bytes  |
+|`FA00`<br>`FBFF` |Unused|512 Bytes|
+|`FC00`<br>`FCFF`|Internal<br>Registers|256 Bytes<br>4 Bytes/Entry<br>64 Entries|
 |`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |
 |`FE00`<br>`FFFF` |Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
 
@@ -46,7 +47,7 @@ Outside function calls, FP points to **bottom of stack.**
 When calling a function: **`foo(a, b, c)`**
 
 * **Caller** pushes 32-bit arguments **right to left** to stack
-	* If no arguments, push one dummy value?
+	* Don't push if no args.
 
 |||
 |:--:|:--:|
@@ -99,11 +100,11 @@ To reference arguments, **FP + Byte_Offset** is used.
 
 ### Stack Unwinding
 
-At end of a function, **return value** is on TOS.
+At end of a function, `return_value` is on TOS.
 
 |||
 |:--:|:--:|
-||`return_val`|
+||`return_value`|
 |`FP ->`|`Prev_FP \| Return_addr`|
 |`FP - 4`|`a`|
 |`FP - 8`|`b`|
@@ -111,25 +112,38 @@ At end of a function, **return value** is on TOS.
 ||...|
 ||Bottom (`F000`)|
 
-**Callee** uses `POPR32` to place the return value in the **rightmost argument slot** (lowest on stack).
+**Callee** pops `return_value` and `frame_info` into internal registers.
+
+**FP** is no longer valid.
 
 |||
 |:--:|:--:|
-|`FP ->`|`Prev_FP \| Return_addr`|
-|`FP - 4`|`a`|
-|`FP - 8`|`b`|
-|`FP - 12`|`return_val`|
+||Empty|
+||Empty|
+||`a`|
+||`b`|
+||`c`|
 ||...|
 ||Bottom (`F000`)|
 
-**Callee** uses `SWAP` and `DROP` to remove arguments until only return value is present.
+**Callee** pops off all arguments (if any).
 
 |||
 |:--:|:--:|
-|`FP ->`|`|
-|`FP - 4`||
-|`FP - 8`|`Prev_FP \| Return_addr`|
-|`FP - 12`|`return_val`|
+||Empty|
+||Empty|
+||Empty|
+||Empty|
+||Empty|
+||...|
+||Bottom (`F000`)|
+
+**Callee** pushes `return_value` then `frame_info` back on stack.
+
+|||
+|:--:|:--:|
+||`frame_info`|
+||`return_value`|
 ||...|
 ||Bottom (`F000`)|
 
@@ -155,16 +169,14 @@ At end of a function, **return value** is on TOS.
 | `NOP` |`0`/`0x0` |Do nothing| | |
 |`PUSHC16`|`1`/`0x1` |Push a **16-bit** constant on stack| CONST_LSB | CONST_MSB |
 |`PUSHI32`|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|ADDR_LSB |ADDR_MSB |
-|`PUSHR32`|`3`/`0x3`|Read **4 Bytes** at **offset from frame pointer**<br>Push to stack as one **32-bit** number<br>Offset in **Bytes**<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
+|`PUSHR32`|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number<br>Offset: Signed, **byte addressable**<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
 | `POPI32` |`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|ADDR_LSB |ADDR_MSB |
-|`POPR32`|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from frame pointer**<br>Offset in **Bytes**<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
-|`SWAP`|`6`/`0x6`|Swap the **top two items**|||
-|`DROP`|`7`/`0x7`|Discard the **topmost item**|||
-| `BRZ` |`8`/`0x8` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |
-| `JMP` |`9`/`0x9` |Unconditional Jump|ADDR_LSB |ADDR_MSB |
-| `CALL`|`10`/`0xa` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Low 16b `return_addr`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |
-| `RET` |`11`/`0xb` |Under construction|Pop off | |
-| `HALT`|`12`/`0xc` |Stop execution| | |
+|`POPR32`|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**<br>Offset: Signed, **byte addressable**<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
+| `BRZ` |`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |
+| `JMP` |`7`/`0x7` |Unconditional Jump|ADDR_LSB |ADDR_MSB |
+| `CALL`|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Low 16b `return_addr`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |
+| `RET` |`9`/`0x9` |Pops off `frame_info`<br>Restore FP<br>Restore PC|| |
+| `HALT`|`10`/`0xa` |Stop execution| | |
 | `VMVER`|`255`/`0xff`| VM Version Check<br>Abort if mismath |VM VER||
 
 
