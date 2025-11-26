@@ -235,6 +235,7 @@ PUSHC16 zero extension or sign extension?
 PUSHI POPI make sure little endian
 binOPs: Signed or unsigned?
 RSHIFT: logical or arithmetic?
+comparison instructions: signed or unsigned?
 
 ## Changelog
 
