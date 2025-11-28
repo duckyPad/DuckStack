@@ -68,9 +68,7 @@ def run_all(program_listing):
             new_listing.append(new_obj)
         else:
             new_listing.append(line_obj)
-            pass
-
-    print_ds_line_list(new_listing)
+    return new_listing
 
 if __name__ == "__main__":
     # Require at least input and output arguments
@@ -97,4 +95,6 @@ if __name__ == "__main__":
 
     post_pp_listing = rdict["program_listing_with_indent_level"]
     # print_ds_line_list(post_pp_listing)
-    run_all(post_pp_listing)
+    pyout = run_all(post_pp_listing)
+
+    print_ds_line_list(pyout)

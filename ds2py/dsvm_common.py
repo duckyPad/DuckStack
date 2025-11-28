@@ -429,7 +429,7 @@ valid_combo_chars = {'!', '"', '#', '$', '%', '&', "'", '(',
 STRING_MAX_SIZE = 256
 REPEAT_MAX_SIZE = 256
 
-ds_string_funcs = {cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT}
+ds_string_funcs = {cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT, cmd_KEYDOWN, cmd_KEYUP}
 
 ds_func_arg_lookup = {
     cmd_DELAY : 1,
@@ -437,8 +437,6 @@ ds_func_arg_lookup = {
     cmd_PREV_PROFILE : 0,
     cmd_NEXT_PROFILE : 0,
     cmd_GOTO_PROFILE : 1,
-    cmd_KEYDOWN : 1,
-    cmd_KEYUP : 1,
     cmd_SWCC : 4,
     cmd_SWCF : 3,
     cmd_SWCR : 1,
