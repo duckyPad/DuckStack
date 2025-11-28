@@ -51,35 +51,17 @@ OLED_CURSOR 30 50
 OLED_PRINT Typing...
 OLED_UPDATE
 
+REM_BLOCK
+dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
+END_REM
+
 STRINGLN_BLOCK
-Welcome to duckyPad Pro!
- _
-<(.)__
- (___/
-
-I can automate any keyboard/mouse task you want.
-From simple shortcuts to complex scripts (like this one!)
-
-----
-
-duckyPad uses duckyScript. It's very powerful but can get pretty complex. 
-
-Let's start simple!
-
-This row has a few shortcuts. Easy to write but still very useful.
-
-Try out each row to see what duckyPad can do!
-
-----
-
-Full instructions:
-
-duckyPad.com
-
-Questions or comments? Join our Discord!
-
-https://discord.gg/4sJCBx5
+dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
 END_STRINGLN
+
+STRING_BLOCK
+dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
+END_STRING
 
 IF $is_win THEN
     CTRL +
@@ -88,7 +70,6 @@ IF $is_win THEN
 END_IF
 
 SWC_RESET 99
-
 
 LOOP0:
 STRING first action
@@ -101,3 +82,8 @@ ENTER
 LOOP2:
 STRING third action
 ENTER
+
+
+STRINGLN_BLOCK
+dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
+END_STRINGLN
