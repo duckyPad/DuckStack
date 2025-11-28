@@ -1,0 +1,27 @@
+Module(
+  body=[
+    FunctionDef(
+      name='DS_KB_KEYCOMBO',
+      args=arguments(
+        vararg=arg(arg='args')),
+      body=[
+        Pass()]),
+    Expr(
+      value=Call(
+        func=Name(id='DS_KB_PRINT', ctx=Load()),
+        args=[
+          Name(id='ENTER', ctx=Load())]))])
+
+=== Symbol Table ===
+Table: top (type=module)
+  Nested scope: False
+  Has children: True
+  Identifiers:
+    DS_KB_KEYCOMBO: local=True, global=True, free=False, imported=False, parameter=False, assigned=True, namespace=True
+    Table: DS_KB_KEYCOMBO (type=function)
+      Nested scope: False
+      Has children: False
+      Identifiers:
+        args: local=True, global=False, free=False, imported=False, parameter=True, assigned=False, namespace=False
+    DS_KB_PRINT: local=False, global=True, free=False, imported=False, parameter=False, assigned=False, namespace=False
+    ENTER: local=False, global=True, free=False, imported=False, parameter=False, assigned=False, namespace=False

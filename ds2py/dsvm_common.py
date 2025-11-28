@@ -400,12 +400,6 @@ internal_variable_dict = {
     "_STR_PRINT_PADDING": (INTERAL_VAR_START_ADDRESS + 31 * INTERAL_VAR_BYTE_WIDTH),
 }
 
-global_variable_dict = {}
-for i in range(PGV_COUNT):
-    global_variable_dict[f"_GV{i}"] = PGV_START_ADDRESS + i * PGV_BYTE_WIDTH
-
-reserved_variable_dict = internal_variable_dict | global_variable_dict
-
 class ds_line:
     def __init__(self, content, lnum_sf1=-1, pplnum=-1):
         self.lnum_sf1 = lnum_sf1
@@ -414,3 +408,4 @@ class ds_line:
 
     def __repr__(self):
         return f"ds_line({self.lnum_sf1!r}, {self.content!r}, {self.preprocessed_lnum_ssf1!r})"
+

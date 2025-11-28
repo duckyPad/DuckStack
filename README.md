@@ -106,11 +106,11 @@ All instructions here:
 |SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop one item off TOS<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys | | |
 |STR|`72`/`0x48`|Print zero-terminated string at ADDR |ADDR_LSB |ADDR_MSB |
 |STRLN|`73`/`0x49`|Same as above, presses ENTER at end |ADDR_LSB | ADDR_MSB |
-|OLC|`74`/`0x4a`|**OLED_CURSOR**<br>Pop TWO items<br>X and Y<br>| | |
-|OLP|`75`/`0x4b`|Print zero-terminated string at ADDR to OLED |ADDR_LSB |ADDR_MSB |
-|OLU|`76`/`0x4c`|**OLED_UPDATE** | | |
-|OLB|`77`/`0x4d`|**OLED_CLEAR**| | |
-|OLR|`78`/`0x4e`| **OLED_RESTORE** | | |
+|OLED_CUSR|`74`/`0x4a`|**OLED_CURSOR**<br>Pop TWO items<br>X and Y<br>| | |
+|OLED_PRNT|`75`/`0x4b`|Print zero-terminated string at ADDR to OLED |ADDR_LSB |ADDR_MSB |
+|OLED_UPDE|`76`/`0x4c`|**OLED_UPDATE** | | |
+|OLED_CLR|`77`/`0x4d`|**OLED_CLEAR**| | |
+|OLED_REST|`78`/`0x4e`| **OLED_RESTORE** | | |
 |BCLR|`79`/`0x4f`|Clear switch event queue | | |
 |PREVP|`80`/`0x50`| Previous profile | | |
 |NEXTP|`81`/`0x51`| Next profile | | |
@@ -236,6 +236,8 @@ PUSHI POPI make sure little endian
 binOPs: Signed or unsigned?
 RSHIFT: logical or arithmetic?
 comparison instructions: signed or unsigned?
+
+new OLED instruction names
 
 ## Changelog
 
