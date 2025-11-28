@@ -108,7 +108,6 @@ def check_loop(pgm_line):
     except Exception as e:
         return PARSE_ERROR, str(e), None
 
-
 def new_rem_block_check(pgm_line, lnum, rbss, rbdict):
     if len(rbss) != 0:
         return PARSE_ERROR, "unmatched END_REM"
@@ -374,7 +373,6 @@ def single_pass(program_listing):
     strlen_block_table = {}
     str_block_search_stack = []
     str_block_table = {}
-    indent_level_dict = {}
 
     return_dict = {
     'is_success':False,
@@ -386,7 +384,6 @@ def single_pass(program_listing):
     'color_state_save_needed':False,
     'oled_restore_needed':False,
     'loop_size':None,
-    'indent_level_dict':None,
     }
 
     for line_obj in program_listing:
@@ -501,6 +498,8 @@ def single_pass(program_listing):
         if this_indent_level < 0:
             presult, pcomment = PARSE_ERROR, "Invalid indent level"
         
+        line_obj.indent_level = this_indent_level
+        
         if presult == PARSE_ERROR:
             # error_message = f"PARSE ERROR at Line {line_number_starting_from_1}: {this_line}\n{pcomment}"
             # print(error_message)
@@ -510,8 +509,6 @@ def single_pass(program_listing):
             return_dict['error_line_str'] = this_line
             return return_dict
         
-        indent_level_dict[line_obj.orig_lnum_sf1] = this_indent_level
-
     # ----------
     
     if len(if_search_stack) != 0:
@@ -573,7 +570,7 @@ def single_pass(program_listing):
     return_dict['rem_block_table'] = rem_block_table
     return_dict['strlen_block_table'] = strlen_block_table
     return_dict['str_block_table'] = str_block_table
-    return_dict['indent_level_dict'] = indent_level_dict
+    return_dict['program_listing_with_indent_level'] = program_listing
 
     if len(loop_numbers) > 0:
         return_dict['loop_size'] = max(loop_numbers)
@@ -668,10 +665,87 @@ def run_all(program_listing, profile_list=None):
 
     print("---------First Pass OK!---------")
 
-    for item in program_listing:
-        final_str = "    "*rdict['indent_level_dict'][item.orig_lnum_sf1] + item.content
+    # ----- Second Pass -------------
+
+    second_pass_program_listing = []
+    needs_end_if = False
+
+    epilogue = 0
+    if rdict['loop_state_save_needed']:
+        epilogue |= 0x1
+    if rdict['color_state_save_needed']:
+        epilogue |= 0x2
+    if rdict['oled_restore_needed']:
+        epilogue |= 0x4
+    # 0x8 is disable_autorepeat, generated on duckypad itself
+    # 0x10 is pgv_save_needed, generated on duckypad itself
+
+    if epilogue != 0:
+        second_pass_program_listing.append(ds_line(content=f"$_NEEDS_EPILOGUE = {epilogue}"))
+    if rdict['loop_size'] is not None:
+        second_pass_program_listing.append(ds_line(content=f"$_LOOP_SIZE = {rdict['loop_size']+1}"))
+    
+    for line_obj in program_listing:
+        line_number_starting_from_1 = line_obj.orig_lnum_sf1
+        this_line = line_obj.content.lstrip(' \t')
+        rdict['error_line_number_starting_from_1'] = line_number_starting_from_1
+        rdict['error_line_str'] = this_line
+        if len(this_line) == 0:
+            continue
+        first_word = this_line.split(" ")[0]
+        if is_within_rem_block(line_number_starting_from_1, rdict['rem_block_table']):
+            continue
+        if needs_rstrip(first_word):
+            line_obj.content = this_line.rstrip(" \t")
+        if first_word == cmd_REM or this_line.startswith(cmd_C_COMMENT):
+            continue
+        if first_word != cmd_DEFINE:
+            is_success, replaced_str = replace_DEFINE(this_line, rdict['define_dict'])
+            if is_success is False:
+                rdict['is_success'] = False
+                rdict['comments'] = "Recursive DEFINE"
+                return rdict
+            else:
+                line_obj.content = replaced_str
+        else:
+            continue
+
+        if first_word == cmd_REPEAT:
+            if len(second_pass_program_listing) == 0:
+                rdict['is_success'] = False
+                rdict['comments'] = "Nothing before REPEAT"
+                return rdict
+            try:
+                repeat_count = int(this_line[len(cmd_REPEAT):].strip())
+                if repeat_count > REPEAT_MAX_SIZE:
+                    raise ValueError
+            except Exception as e:
+                rdict['is_success'] = False
+                rdict['comments'] = "Invalid REPEAT count"
+                return rdict
+            last_line = second_pass_program_listing[-1]
+            for x in range(repeat_count):
+                second_pass_program_listing.append(last_line)
+        elif this_line.startswith(cmd_LOOP):
+            presult, pcomment, value = check_loop(this_line)
+            if needs_end_if:
+                second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
+            loop_str = f'{cmd_IF} $_KEYPRESS_COUNT % $_LOOP_SIZE == {value} {cmd_THEN}'
+            second_pass_program_listing.append(ds_line(loop_str, line_number_starting_from_1))
+            needs_end_if = True
+        else:
+            second_pass_program_listing.append(line_obj)
+        
+    if needs_end_if:
+        second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
+
+    final_dict = single_pass(second_pass_program_listing)
+    print(final_dict)
+    second_pass_program_listing = final_dict['program_listing_with_indent_level']
+
+    for item in second_pass_program_listing:
+        final_str = "    "*item.indent_level + item.content
         print(final_str)
-    print(rdict['indent_level_dict'])
 
 if __name__ == "__main__":
     # Require at least input and output arguments

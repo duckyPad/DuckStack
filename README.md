@@ -239,6 +239,8 @@ comparison instructions: signed or unsigned?
 
 new OLED instruction names
 
+generate PGV save flag on DSVM itself not compiler
+
 ## Changelog
 
 * `VMVER` instruction: version number now on byte 1 (LSB)

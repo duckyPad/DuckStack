@@ -401,17 +401,17 @@ internal_variable_dict = {
 }
 
 class ds_line:
-    def __init__(self, content, orig_lnum_sf1):
+    def __init__(self, content, orig_lnum_sf1=-1, indent_lvl=0):
         self.orig_lnum_sf1 = orig_lnum_sf1
         self.content = content
-        self.preprocessed_lnum_ssf1 = None
+        self.post_pp_lnum_sf1 = None
+        self.indent_level = indent_lvl
 
     def __repr__(self):
-        return f"ds_line({self.orig_lnum_sf1!r}, {self.content!r}, {self.preprocessed_lnum_ssf1!r})"
+        return f"ds_line({self.orig_lnum_sf1!r}, {self.content!r}, {self.indent_level!r}, {self.post_pp_lnum_sf1!r})"
 
 PARSE_OK = 0
 PARSE_ERROR = 1
-
 
 english_alphabets = [
 'a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -422,3 +422,4 @@ english_alphabets = set(english_alphabets)
 valid_var_chars = set(valid_var_chars)
 
 STRING_MAX_SIZE = 256
+REPEAT_MAX_SIZE = 256
