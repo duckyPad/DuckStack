@@ -790,9 +790,16 @@ if __name__ == "__main__":
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
 
-    result = run_all(program_listing)
+    rdict = run_all(program_listing)
     
-    if result['is_success'] is False:
+    if rdict['is_success'] is False:
         print("Preprocessing failed!")
-        print(f"\t{result['comments']}")
-        print(f"\tLine {result['error_line_number_starting_from_1']}: {result['error_line_str']}")
+        print(f"\t{rdict['comments']}")
+        print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
+        exit()
+
+    post_pp_listing = rdict["program_listing_with_indent_level"]
+    
+    for item in post_pp_listing:
+        final_str = "    "*item.indent_level + item.content
+        print(final_str)

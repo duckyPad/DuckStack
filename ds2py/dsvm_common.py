@@ -12,13 +12,11 @@ cmd_STRINGLN = "STRINGLN"
 cmd_UARTPRINT = "UARTPRINT"
 cmd_EMUK = "EMUK"
 cmd_LOOP = "LOOP"
-cmd_LCR = "LCR"
 cmd_DP_SLEEP = "DP_SLEEP"
 cmd_PREV_PROFILE = "PREV_PROFILE"
 cmd_NEXT_PROFILE = "NEXT_PROFILE"
 cmd_GOTO_PROFILE = "GOTO_PROFILE"
 cmd_GOTO_PROFILE_NAME = "GOTO_PROFILE_NAME"
-cmd_PEEK_PROFILE = "PEEK_PROFILE"
 
 cmd_KEYDOWN = "KEYDOWN"
 cmd_KEYUP = "KEYUP"
@@ -417,15 +415,49 @@ english_alphabets = [
 'a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 valid_var_chars = ['0', '1', '2', '3', '4', '5', '6', '7','8', '9', '_'] + english_alphabets
-valid_char_for_define_replacements = set([' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&'])
-english_alphabets = set(english_alphabets)
 valid_var_chars = set(valid_var_chars)
+english_alphabets = set(english_alphabets)
 
-valid_combo_chars = ['!', '"', '#', '$', '%', '&', "'", '(',
+valid_char_for_define_replacements = {' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&'}
+
+valid_combo_chars = {'!', '"', '#', '$', '%', '&', "'", '(',
 ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7',
 '8', '9', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`',
 'a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~']
+'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'}
 
 STRING_MAX_SIZE = 256
 REPEAT_MAX_SIZE = 256
+
+ds_string_funcs = {cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT}
+
+ds_func_arg_lookup = {
+    cmd_DELAY : 1,
+    cmd_DP_SLEEP : 1,
+    cmd_PREV_PROFILE : 0,
+    cmd_NEXT_PROFILE : 0,
+    cmd_GOTO_PROFILE : 1,
+    cmd_KEYDOWN : 1,
+    cmd_KEYUP : 1,
+    cmd_SWCC : 4,
+    cmd_SWCF : 3,
+    cmd_SWCR : 1,
+    cmd_OLED_UPDATE : 0,
+    cmd_OLED_CURSOR : 2,
+    cmd_OLED_BLANK : 0,
+    cmd_OLED_RESTORE : 0,
+    cmd_OLED_LINE : 4,
+    cmd_OLED_RECT : 5,
+    cmd_OLED_CIRCLE : 4,
+    cmd_BCLR : 0,
+    cmd_MOUSE_MOVE : 2,
+    cmd_MOUSE_WHEEL : 1,
+    cmd_HALT : 0,
+}
+
+ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
+
+def print_ds_line_list(dslist):
+    for item in dslist:
+        final_str = "    "*item.indent_level + item.content
+        print(final_str)

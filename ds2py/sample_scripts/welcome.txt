@@ -65,7 +65,7 @@ END_STRING
 
 IF $is_win THEN
     CTRL +
-    REPEAT 4ff
+    REPEAT 4
     WINDOWS UP
 END_IF
 
@@ -92,7 +92,4 @@ OPTION
 
 LMOUSE
 
-MMOUSE
-
-
-MOUSE_MOVE 2 2 233
+MMOUSE 
