@@ -23,3 +23,10 @@ another(result, 44)
     # for item in program_listing:
     #     final_str = "    "*rdict['indent_level_dict'][item.orig_lnum_sf1] + item.content
     #     print(final_str)
+	
+    final_dict = single_pass(second_pass_program_listing)
+    second_pass_program_listing = final_dict['program_listing_with_indent_level']
+
+    for item in second_pass_program_listing:
+        final_str = "    "*item.indent_level + item.content
+        print(final_str)

@@ -663,15 +663,12 @@ def run_all(program_listing, profile_list=None):
         # remove leading space and tabs
         line_obj.content = line_obj.content.lstrip(" \t")
         first_word = line_obj.content.split(" ")[0]
-
         # remove single-line comments 
         if first_word == cmd_REM or first_word.startswith(cmd_C_COMMENT):
             continue
-
         # remove INJECT_MOD
         if first_word == cmd_INJECT_MOD:
             line_obj.content = line_obj.content.replace(cmd_INJECT_MOD, "", 1)
-
         line_obj.content = line_obj.content.lstrip(" \t")
         new_program_listing.append(line_obj)
 
@@ -776,14 +773,7 @@ def run_all(program_listing, profile_list=None):
 
     second_pass_program_listing = new_program_listing
     # -----------------
-
-    final_dict = single_pass(second_pass_program_listing)
-    print(final_dict)
-    second_pass_program_listing = final_dict['program_listing_with_indent_level']
-
-    for item in second_pass_program_listing:
-        final_str = "    "*item.indent_level + item.content
-        print(final_str)
+    return single_pass(second_pass_program_listing)
 
 if __name__ == "__main__":
     # Require at least input and output arguments
@@ -801,4 +791,8 @@ if __name__ == "__main__":
         program_listing.append(ds_line(line, index + 1))
 
     result = run_all(program_listing)
-    print(result)
+    
+    if result['is_success'] is False:
+        print("Preprocessing failed!")
+        print(f"\t{result['comments']}")
+        print(f"\tLine {result['error_line_number_starting_from_1']}: {result['error_line_str']}")
