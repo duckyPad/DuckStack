@@ -1,9 +1,9 @@
 import sys
 from dsvm_common import *
+import copy
 
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
-
 
 valid_char_for_define_replacements = set([' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&'])
 
@@ -350,6 +350,24 @@ def split_str_cmd(cmd_type, line_obj):
         new_obj = ds_line(content=f"{cmd_ENTER}", orig_lnum_sf1=line_obj.orig_lnum_sf1)
         cmd_list.append(new_obj)
     return cmd_list
+
+def parse_combo(line_obj):
+    combo_keys = [x for x in line_obj.content.split(' ') if len(x) > 0]
+    if len(combo_keys) > 6:
+        return PARSE_ERROR, 'No more than 6 combos', None
+    for item in [x.lower() for x in combo_keys if x not in ds3_keyname_dict.keys()]:
+        if item not in valid_combo_chars:
+            return PARSE_ERROR, 'Invalid combo character', None
+    new_lines = []
+    for item in combo_keys:
+        new_obj = copy.deepcopy(line_obj)
+        new_obj.content = f"KEYDOWN {item}"
+        new_lines.append(new_obj)
+    for item in reversed(combo_keys):
+        new_obj = copy.deepcopy(line_obj)
+        new_obj.content = f"KEYUP {item}"
+        new_lines.append(new_obj)
+    return PARSE_OK, 'Success', new_lines
 
 # this makes sure the code is suitable for converting into python
 def single_pass(program_listing):
@@ -738,6 +756,26 @@ def run_all(program_listing, profile_list=None):
         
     if needs_end_if:
         second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
+
+    # -----------------
+
+    new_program_listing = []
+    for line_obj in second_pass_program_listing:
+        first_word = line_obj.content.split(" ")[0]
+        # Expand key combos
+        if first_word in ds3_keyname_dict.keys():
+            parse_result, comments, new_lines = parse_combo(line_obj)
+            if parse_result == PARSE_ERROR:
+                rdict['is_success'] = False
+                rdict['comments'] = comments
+                return rdict
+            new_program_listing += new_lines
+            continue
+        line_obj.content = line_obj.content.lstrip(" \t")
+        new_program_listing.append(line_obj)
+
+    second_pass_program_listing = new_program_listing
+    # -----------------
 
     final_dict = single_pass(second_pass_program_listing)
     print(final_dict)
