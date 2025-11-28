@@ -1,2 +1,0 @@
-
-DS_KB_PRINT(ENTER)

@@ -88,3 +88,16 @@ IF $is_win THEN
 END_IF
 
 SWC_RESET 99
+
+
+LOOP0:
+STRING first action
+ENTER
+
+LOOP1:
+STRING second action
+ENTER
+
+LOOP2:
+STRING third action
+ENTER

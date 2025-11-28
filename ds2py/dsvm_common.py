@@ -401,11 +401,22 @@ internal_variable_dict = {
 }
 
 class ds_line:
-    def __init__(self, content, lnum_sf1=-1, pplnum=-1):
-        self.lnum_sf1 = lnum_sf1
+    def __init__(self, content, orig_lnum_sf1):
+        self.orig_lnum_sf1 = orig_lnum_sf1
         self.content = content
-        self.preprocessed_lnum_ssf1 = pplnum
+        self.preprocessed_lnum_ssf1 = None
 
     def __repr__(self):
-        return f"ds_line({self.lnum_sf1!r}, {self.content!r}, {self.preprocessed_lnum_ssf1!r})"
+        return f"ds_line({self.orig_lnum_sf1!r}, {self.content!r}, {self.preprocessed_lnum_ssf1!r})"
 
+PARSE_OK = 0
+PARSE_ERROR = 1
+
+
+english_alphabets = [
+'a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+valid_var_chars = ['0', '1', '2', '3', '4', '5', '6', '7','8', '9', '_'] + english_alphabets
+valid_char_for_define_replacements = set([' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&'])
+english_alphabets = set(english_alphabets)
+valid_var_chars = set(valid_var_chars)
