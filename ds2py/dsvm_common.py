@@ -455,7 +455,25 @@ ds_func_arg_lookup = {
 
 ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
 
-def print_ds_line_list(dslist):
+def get_pretty_ds_line_list(dslist):
+    lines = []
     for item in dslist:
-        final_str = "    "*item.indent_level + item.content
-        print(final_str)
+        lines.append("    "*item.indent_level + item.content)
+    return lines
+
+def print_ds_line_list(dslist):
+    line_list = get_pretty_ds_line_list(dslist)
+    for line in line_list:
+        print(line)
+
+def save_lines_to_file(dslist, filename):
+    line_list = get_pretty_ds_line_list(dslist)
+    with open(filename, "w") as file:
+        file.writelines(line + "\n" for line in line_list)
+
+def dsline_to_source(dslist):
+    result = ""
+    lines = get_pretty_ds_line_list(dslist)
+    for line in lines:
+        result += f"{line}\n"
+    return result
