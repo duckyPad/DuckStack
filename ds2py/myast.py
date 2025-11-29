@@ -9,18 +9,29 @@ def print_node_info(node):
 			print(f"{item}: {getattr(node, item, None)}")
 	print()
 
+AST_LEAF_NODES = (
+	ast.Name,
+)
+
 def is_leaf(node):
-    return not any(ast.iter_child_nodes(node))
+	if isinstance(node, AST_LEAF_NODES):
+		return True
+	return not any(ast.iter_child_nodes(node))
 
 def postorder_walk(node, action, instruction_list):
-	print_node_info(node)
 	if isinstance(node, ast.Expr):
 		postorder_walk(node.value, action, instruction_list)
 	elif isinstance(node, ast.BinOp):
 		postorder_walk(node.left, action, instruction_list)
 		postorder_walk(node.right, action, instruction_list)
 		postorder_walk(node.op, action, instruction_list)
+	if isinstance(node, ast.Assign):
+		postorder_walk(node.value, action, instruction_list)
+		if len(node.targets) != 1:
+			raise ValueError("Multiple Assignments")
+		postorder_walk(node.targets[0], action, instruction_list)
 	elif is_leaf(node):
 		action(node, instruction_list)
 	else:
+		print_node_info(node)
 		raise ValueError(f"Unknown AST Node")

@@ -134,3 +134,16 @@ def postorder_walk(node, action, instruction_list):
 	postorder_walk(get_right(node), action, instruction_list)
 	action(node, instruction_list)
 
+def try_print_node(node):
+	lineno = getattr(node, "lineno", None)
+	print(f"---Line {lineno}: {type(node)}---")
+	for item in node._fields:
+		if getattr(node, item, None) is not None:
+			print(f"{item}: {getattr(node, item, None)}")
+	print()
+
+def print_node_info(node):
+	try:
+		try_print_node(node)
+	except:
+		print(node)

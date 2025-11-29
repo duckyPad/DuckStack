@@ -210,28 +210,28 @@ pyout = ds2py.run_all(post_pp_listing)
 save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 tree = ast.parse(source, mode="exec")
-print(ast.dump(tree, indent=2))
+# print(ast.dump(tree, indent=2))
 
-def visit_leaf_node(node, instruction_list):
+def visit_node(node, instruction_list):
     print("at leaf:", node)
     if isinstance(node, ast.Constant):
         instruction_list += make_instruction_pushc32(node.value)
-    elif isinstance(node, ast.BinOp):
-        op_name = node.op.__class__.__name__
+    elif isinstance(node, ast.operator):
+        op_name = node.__class__.__name__
         if op_name not in arith_lookup:
-            raise ValueError("unknown BinOp operation")
+            raise ValueError("unknown operator")
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = arith_lookup[op_name]
         instruction_list.append(this_instruction)
-    # if isinstance(node, ast.Name):
-    #     this_instruction = get_empty_instruction()
-    #     this_instruction['opcode'] = OP_PUSH32_DUMMY
-    #     this_instruction['oparg'] = str(node.id)
-    #     instruction_list.append(this_instruction)
+    if isinstance(node, ast.Name):
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSH32_DUMMY
+        this_instruction['oparg'] = str(node.id)
+        instruction_list.append(this_instruction)
     
 
 instruction_list = []
 for statement in tree.body:
-    myast.postorder_walk(statement, visit_leaf_node, instruction_list)
+    myast.postorder_walk(statement, visit_node, instruction_list)
 
 print_asslist(instruction_list)
