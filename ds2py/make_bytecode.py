@@ -246,7 +246,6 @@ def visit_node(node, instruction_list):
         instruction_list.append(this_instruction)
     else:
         raise ValueError("Unknown leaf node:", node)
-    
 
 instruction_list = []
 for statement in tree.body:

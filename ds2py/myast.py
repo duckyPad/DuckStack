@@ -43,6 +43,13 @@ def postorder_walk(node, action, instruction_list):
 		if len(node.targets) != 1:
 			raise ValueError("Multiple Assignments")
 		postorder_walk(node.targets[0], action, instruction_list)
+	if isinstance(node, ast.FunctionDef):
+		arg_list = node.args.args
+		print("FunctionDef Node: Not Implemented")
+		print_node_info(node)
+		for item in arg_list:
+			print(item.__dict__)
+		exit()
 	elif is_leaf(node):
 		action(node, instruction_list)
 	else:
