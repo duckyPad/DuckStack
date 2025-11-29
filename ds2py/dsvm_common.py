@@ -402,11 +402,11 @@ class ds_line:
     def __init__(self, content, orig_lnum_sf1=-1, indent_lvl=0):
         self.orig_lnum_sf1 = orig_lnum_sf1
         self.content = content
-        self.post_pp_lnum_sf1 = None
+        self.py_lnum_sf1 = None
         self.indent_level = indent_lvl
 
     def __repr__(self):
-        return f"ds_line({self.orig_lnum_sf1!r}, {self.content!r}, {self.post_pp_lnum_sf1!r}, {self.indent_level!r})"
+        return f"ds_line({self.orig_lnum_sf1!r}, {self.content!r}, {self.py_lnum_sf1!r}, {self.indent_level!r})"
 
 PARSE_OK = 0
 PARSE_ERROR = 1
@@ -462,9 +462,9 @@ def get_pretty_ds_line_list(dslist):
     return lines
 
 def print_ds_line_list(dslist):
-    line_list = get_pretty_ds_line_list(dslist)
-    for line in line_list:
-        print(line)
+    print("OG PY")
+    for item in dslist:
+        print(f"{item.orig_lnum_sf1:02} {item.py_lnum_sf1:02} {"    "*item.indent_level} {item.content}")
 
 def save_lines_to_file(dslist, filename):
     line_list = get_pretty_ds_line_list(dslist)

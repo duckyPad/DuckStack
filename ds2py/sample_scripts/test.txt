@@ -1,4 +1,3 @@
-FUNCTION test(assd, fghg)
-    VAR $foo = 3
-    return $foo * 2
-END_FUNCTION
+//VAR $foo = 3 + 2
+
+1+2

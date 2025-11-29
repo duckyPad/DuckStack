@@ -68,6 +68,8 @@ def run_all(program_listing):
             new_listing.append(new_obj)
         else:
             new_listing.append(line_obj)
+    for index, line_obj in enumerate(new_listing):
+        line_obj.py_lnum_sf1 = index+1
     return new_listing
 
 if __name__ == "__main__":
