@@ -30,3 +30,26 @@ another(result, 44)
     for item in second_pass_program_listing:
         final_str = "    "*item.indent_level + item.content
         print(final_str)
+
+def walk_tree(this_tree):
+    for statement in this_tree.body:
+        print(statement)
+        for item in ast.iter_child_nodes(statement):
+            print(item)
+
+        print("---------")
+
+if isinstance(node, ast.Assign):
+		print("ASSIGN!")
+		print(node._fields)
+		print(node.targets, node.value, node.type_comment)
+		exit()
+
+FUNCTION test()
+    VAR $foo = 3
+END_FUNCTION
+
+VAR $foo = 2
+VAR $bar = 3 + $foo
+STRING Value is: $bar
+CTRL ALT DELETE
