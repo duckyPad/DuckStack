@@ -1,4 +1,11 @@
-FUNCTION test(foo)
-    foo = foo*2
-    return foo
-END_FUNCTION
+foo = 0
+bar = 0
+IF foo > 5 THEN
+    bar = 1
+ELSE IF foo > 6 THEN
+    bar = 2
+ELSE IF foo > 7 THEN
+    bar = 3
+ELSE
+    bar = 4
+END_IF

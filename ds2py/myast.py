@@ -18,40 +18,46 @@ def is_leaf(node):
 		return True
 	return not any(ast.iter_child_nodes(node))
 
-def postorder_walk(node, action, instruction_list):
+def postorder_walk(node, action, goodies):
 	if isinstance(node, ast.Expr):
-		postorder_walk(node.value, action, instruction_list)
+		postorder_walk(node.value, action, goodies)
 	elif isinstance(node, ast.BinOp):
-		postorder_walk(node.left, action, instruction_list)
-		postorder_walk(node.right, action, instruction_list)
-		postorder_walk(node.op, action, instruction_list)
+		postorder_walk(node.left, action, goodies)
+		postorder_walk(node.right, action, goodies)
+		postorder_walk(node.op, action, goodies)
 	elif isinstance(node, ast.BoolOp):
 		for item in node.values:
-			postorder_walk(item, action, instruction_list)
-		postorder_walk(node.op, action, instruction_list)
+			postorder_walk(item, action, goodies)
+		postorder_walk(node.op, action, goodies)
 	elif isinstance(node, ast.UnaryOp):
-		postorder_walk(node.operand, action, instruction_list)
-		postorder_walk(node.op, action, instruction_list)
+		postorder_walk(node.operand, action, goodies)
+		postorder_walk(node.op, action, goodies)
 	elif isinstance(node, ast.Compare):
 		if len(node.comparators) > 1 or len(node.ops) > 1:
 			raise ValueError("Multiple Comparators")
-		postorder_walk(node.left, action, instruction_list)
-		postorder_walk(node.comparators[0], action, instruction_list)
-		postorder_walk(node.ops[0], action, instruction_list)
+		postorder_walk(node.left, action, goodies)
+		postorder_walk(node.comparators[0], action, goodies)
+		postorder_walk(node.ops[0], action, goodies)
 	elif isinstance(node, ast.Assign):
-		postorder_walk(node.value, action, instruction_list)
+		postorder_walk(node.value, action, goodies)
 		if len(node.targets) != 1:
 			raise ValueError("Multiple Assignments")
-		postorder_walk(node.targets[0], action, instruction_list)
-	if isinstance(node, ast.FunctionDef):
+		postorder_walk(node.targets[0], action, goodies)
+	elif isinstance(node, ast.FunctionDef):
+		raise ValueError("FunctionDef Node: Not Implemented")
+	elif is_leaf(node):
+		action(node, goodies)
+	else:
+		print_node_info(node)
+		raise ValueError(f"Unknown AST Node")
+
+"""
+elif isinstance(node, ast.FunctionDef):
 		arg_list = node.args.args
 		print("FunctionDef Node: Not Implemented")
 		print_node_info(node)
 		for item in arg_list:
 			print(item.__dict__)
 		exit()
-	elif is_leaf(node):
-		action(node, instruction_list)
-	else:
-		print_node_info(node)
-		raise ValueError(f"Unknown AST Node")
+
+"""

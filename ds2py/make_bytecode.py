@@ -189,6 +189,35 @@ def make_instruction_pushc32(value):
         inst_list.append(this_instruction)
     return inst_list
 
+AST_ARITH_NODES = (
+    ast.operator,
+    ast.cmpop,
+    ast.boolop,
+    ast.unaryop,
+)
+
+def visit_node(node, goodies):
+    instruction_list = goodies['assembly_list']
+    print("at leaf:", node)
+    if isinstance(node, ast.Name):
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSH32_DUMMY
+        this_instruction['oparg'] = str(node.id)
+        instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Constant):
+        instruction_list += make_instruction_pushc32(node.value)
+    elif isinstance(node, AST_ARITH_NODES):
+        op_name = node.__class__.__name__
+        if op_name not in arith_lookup:
+            raise ValueError("unknown operation")
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = arith_lookup[op_name]
+        instruction_list.append(this_instruction)
+    else:
+        raise ValueError("Unknown leaf node:", node)
+    
+# ---------------------------
+
 if __name__ != "__main__":
     exit()
 
@@ -218,37 +247,15 @@ save_lines_to_file(post_pp_listing, "ppds.txt")
 pyout = ds2py.run_all(post_pp_listing)
 save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
-tree = ast.parse(source, mode="exec")
+tree = ast.parse(source, mode="exec", optimize=-1)
 # print(ast.dump(tree, indent=2))
 
-AST_ARITH_NODES = (
-    ast.operator,
-    ast.cmpop,
-    ast.boolop,
-    ast.unaryop,
-)
+rdict["assembly_list"] = []
+rdict["func_assembly_dict"] = {}
+rdict["parent_history_list"] = []
 
-def visit_node(node, instruction_list):
-    print("at leaf:", node)
-    if isinstance(node, ast.Name):
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSH32_DUMMY
-        this_instruction['oparg'] = str(node.id)
-        instruction_list.append(this_instruction)
-    elif isinstance(node, ast.Constant):
-        instruction_list += make_instruction_pushc32(node.value)
-    elif isinstance(node, AST_ARITH_NODES):
-        op_name = node.__class__.__name__
-        if op_name not in arith_lookup:
-            raise ValueError("unknown operation")
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = arith_lookup[op_name]
-        instruction_list.append(this_instruction)
-    else:
-        raise ValueError("Unknown leaf node:", node)
-
-instruction_list = []
 for statement in tree.body:
-    myast.postorder_walk(statement, visit_node, instruction_list)
+    rdict["parent_history_list"].clear()
+    myast.postorder_walk(statement, visit_node, rdict)
 
-print_asslist(instruction_list)
+print_asslist(rdict['assembly_list'])
