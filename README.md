@@ -60,15 +60,13 @@
 
 Binary as in **involving two operands**.
 
-All instructions here:
-
 * Pop **TWO** items off TOS
 
 * Top item is right-hand-side, lower item is left-hand-side.
 
 * Perform operation
 
-* Push result back on stack.
+* Push result back on TOS
 
 |Name|Opcode<br>Byte 0|Comment|Byte 1|Byte2|
 |:--:|:--:|:--:|:--:|:--:|
@@ -87,12 +85,26 @@ All instructions here:
 |LSHIFT|`44`/`0x2c`|Logical left shift|||
 |RSHIFT|`45`/`0x2d`|Logical right shift|||
 |BITOR|`46`/`0x2e`|Bitwise OR|||
-|BITAND|`47`/`0x2f`|Bitwise AND|||
-|LOGIAND|`48`/`0x30`|Logical AND|||
-|LOGIOR|`49`/`0x31`|Logical OR|||
-|BITXOR|`50`/`0x32`|Bitwise XOR|||
+|BITXOR|`47`/`0x2f`|Bitwise XOR|||
+|BITAND|`48`/`0x30`|Bitwise AND|||
+|LOGIAND|`49`/`0x31`|Logical AND|||
+|LOGIOR|`50`/`0x32`|Logical OR|||
 
-# duckyScript Command Instructions
+## Unary Operators
+
+* Pop **ONE** items off TOS
+
+* Perform operation
+
+* Push result back on TOS
+
+|Name|Opcode<br>Byte 0|Comment|Byte 1|Byte2|
+|:--:|:--:|:--:|:--:|:--:|
+|BITINV|`55`/`0x37`|Bitwise Invert|||
+|LOGINOT|`56`/`0x38`|Logical NOT|||
+|USUB|`57`/`0x39`|Unary Minus|||
+
+## duckyScript Command Instructions
 
 |Name| Opcode<br>Byte 0|Comment | Byte 1| Byte 2|
 |:-------:|:----:|:----------:|:---------:|:---------:|

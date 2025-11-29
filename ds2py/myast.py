@@ -25,7 +25,20 @@ def postorder_walk(node, action, instruction_list):
 		postorder_walk(node.left, action, instruction_list)
 		postorder_walk(node.right, action, instruction_list)
 		postorder_walk(node.op, action, instruction_list)
-	if isinstance(node, ast.Assign):
+	elif isinstance(node, ast.BoolOp):
+		for item in node.values:
+			postorder_walk(item, action, instruction_list)
+		postorder_walk(node.op, action, instruction_list)
+	elif isinstance(node, ast.UnaryOp):
+		postorder_walk(node.operand, action, instruction_list)
+		postorder_walk(node.op, action, instruction_list)
+	elif isinstance(node, ast.Compare):
+		if len(node.comparators) > 1 or len(node.ops) > 1:
+			raise ValueError("Multiple Comparators")
+		postorder_walk(node.left, action, instruction_list)
+		postorder_walk(node.comparators[0], action, instruction_list)
+		postorder_walk(node.ops[0], action, instruction_list)
+	elif isinstance(node, ast.Assign):
 		postorder_walk(node.value, action, instruction_list)
 		if len(node.targets) != 1:
 			raise ValueError("Multiple Assignments")

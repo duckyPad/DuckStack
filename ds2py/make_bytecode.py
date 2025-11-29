@@ -65,12 +65,17 @@ OP_POW = ("POW", 43)
 OP_LSHIFT = ("LSHIFT", 44)
 OP_RSHIFT = ("RSHIFT", 45)
 OP_BITOR = ("BITOR", 46)
-OP_BITAND = ("BITAND", 47)
-OP_LOGIAND = ("LOGIAND", 48)
-OP_LOGIOR = ("LOGIOR", 49)
-OP_BITXOR = ("BITXOR", 50)
+OP_BITXOR = ("BITXOR", 47)
+OP_BITAND = ("BITAND", 48)
+OP_LOGIAND = ("LOGIAND", 49)
+OP_LOGIOR = ("LOGIOR", 50)
 
-# duckyScript commands
+# Unary Operators
+OP_BITINV = ("BITINV", 55)
+OP_LOGINOT = ("LOGINOT", 56)
+OP_USUB = ("USUB", 57)
+
+# duckyScript Commands
 OP_DELAY = ("DELAY",64)
 OP_KUP = ("KUP",65)
 OP_KDOWN = ("KDOWN",66)
@@ -118,6 +123,10 @@ arith_lookup = {
 
     "And" : OP_LOGIAND,
     "Or" : OP_LOGIOR,
+
+    "Invert" : OP_BITINV,
+    "Not" : OP_LOGINOT,
+    "USub" : OP_USUB,
 }
 
 def get_empty_instruction(orig_lnum_sf1=None, py_lnum_sf1=None):
@@ -212,22 +221,31 @@ source = dsline_to_source(pyout)
 tree = ast.parse(source, mode="exec")
 # print(ast.dump(tree, indent=2))
 
+AST_ARITH_NODES = (
+    ast.operator,
+    ast.cmpop,
+    ast.boolop,
+    ast.unaryop,
+)
+
 def visit_node(node, instruction_list):
     print("at leaf:", node)
-    if isinstance(node, ast.Constant):
-        instruction_list += make_instruction_pushc32(node.value)
-    elif isinstance(node, ast.operator):
-        op_name = node.__class__.__name__
-        if op_name not in arith_lookup:
-            raise ValueError("unknown operator")
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = arith_lookup[op_name]
-        instruction_list.append(this_instruction)
     if isinstance(node, ast.Name):
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = OP_PUSH32_DUMMY
         this_instruction['oparg'] = str(node.id)
         instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Constant):
+        instruction_list += make_instruction_pushc32(node.value)
+    elif isinstance(node, AST_ARITH_NODES):
+        op_name = node.__class__.__name__
+        if op_name not in arith_lookup:
+            raise ValueError("unknown operation")
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = arith_lookup[op_name]
+        instruction_list.append(this_instruction)
+    else:
+        raise ValueError("Unknown leaf node:", node)
     
 
 instruction_list = []
