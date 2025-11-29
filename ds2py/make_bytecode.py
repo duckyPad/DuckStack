@@ -39,7 +39,8 @@ tree = ast.parse(source, mode="exec")
 # print(ast.dump(tree, indent=2))
 
 def my_action(node, instruction_list):
-    print(node, instruction_list)
+    # myast.print_node_info(node)
+    print("hello")
 
 for statement in tree.body:
     myast.postorder_walk(statement, my_action, None)

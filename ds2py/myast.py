@@ -1,17 +1,13 @@
 import sys
 import ast
 
-WALKABLE_NODES = (
-    ast.BinOp,
-    ast.BoolOp,
-    ast.Compare,
-    ast.UnaryOp,
-    ast.Call,
-	ast.Assign,
-)
-
-def is_walkable(node):
-	return isinstance(node, WALKABLE_NODES)
+def print_node_info(node):
+	lineno = getattr(node, "lineno", None)
+	print(f"---Line {lineno}: {type(node)}---")
+	for item in node._fields:
+		if getattr(node, item, None) is not None:
+			print(f"{item}: {getattr(node, item, None)}")
+	print()
 
 def get_right(node):
 	if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
@@ -40,7 +36,7 @@ def is_leaf(node):
 
 def postorder_walk(node, action, instruction_list):
 	if node is None:
-		raise ValueError(f"Walk fail")
+		raise ValueError(f"Unknown AST Node")
 	if isinstance(node, ast.BoolOp):
 		for item in node.values:
 			postorder_walk(item, action, instruction_list)
@@ -58,6 +54,14 @@ def postorder_walk(node, action, instruction_list):
 		"""
 		# POPI32 instruction here
 		postorder_walk(node.value, action, instruction_list)
+	if isinstance(node, ast.FunctionDef):
+		print_node_info(node)
+		arg_list = node.args.args
+		func_statements = node.body # lines inside function
+		for item in arg_list:
+			print_node_info(item)
+		exit()
+
 	if is_leaf(node):
 		action(node, instruction_list)
 		return

@@ -44,6 +44,17 @@ if isinstance(node, ast.Assign):
 		print(node._fields)
 		print(node.targets, node.value, node.type_comment)
 		exit()
+WALKABLE_NODES = (
+    ast.BinOp,
+    ast.BoolOp,
+    ast.Compare,
+    ast.UnaryOp,
+    ast.Call,
+	ast.Assign,
+)
+
+def is_walkable(node):
+	return isinstance(node, WALKABLE_NODES)
 
 FUNCTION test()
     VAR $foo = 3

@@ -1,1 +1,4 @@
-VAR $foo = 2 + 3 * b
+FUNCTION test(assd, fghg)
+    VAR $foo = 3
+    return $foo * 2
+END_FUNCTION
