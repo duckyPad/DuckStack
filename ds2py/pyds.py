@@ -1,10 +1,6 @@
-foo = 0
-bar = 0
+foo = 3
+bar = 4
 if foo > 5:
-    bar = 1
-elif foo > 6:
-    bar = 2
-elif foo > 7:
-    bar = 3
+    bar = 6
 else:
-    bar = 4
+    bar = 7

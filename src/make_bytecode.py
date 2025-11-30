@@ -16,20 +16,15 @@ Done:
 Added VMVER to aid version checking
 mouse move and mouse scroll arguments on stack
 more changes at the end of bytecode_vm.md
-
-Version 2:
-2025-11-23
-New flat memory map
-
 """
 
-DS_VM_VERSION = 2
+DS_VM_VERSION = 1
 
 # CPU instructions
 OP_NOP = ("NOP", 0)
-OP_PUSHC16 = ("PUSHC16", 1)
-OP_PUSHI32 = ("PUSHI32", 2)
-OP_POP32 = ("POP32", 3)
+OP_PUSHC = ("PUSHC", 1)
+OP_PUSHI = ("PUSHI", 2)
+OP_POP = ("POP", 3)
 OP_BRZ = ("BRZ", 4)
 OP_JMP = ("JMP", 5)
 OP_CALL = ("CALL", 6)
@@ -119,12 +114,12 @@ arith_lookup = {
 zero = 0
 endianness = 'little'
 var_boundary = 0x1f
+INSTRUCTION_SIZE_BYTES = 3
 
 if_skip_table = None
 if_info_list = None
 while_lookup = None
-user_var_lookup = None
-func_arg_order_lookup = None
+var_lookup = None
 compact_program_listing = None
 label_dict = None
 func_lookup = None
@@ -167,41 +162,19 @@ def print_asslist(lll):
         print_instruction(item)
     print()
 
-def make_instruction_pushc32(value):
-    node_value_high = (int(value) & 0xffff0000) >> 16
-    node_value_low = int(value) & 0xffff
-    inst_list = []
-    this_instruction = get_empty_instruction()
-    this_instruction['opcode'] = OP_PUSHC16
-    this_instruction['oparg'] = node_value_low
-    inst_list.append(this_instruction)
-    if node_value_high:
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = node_value_high
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = 16
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_LSHIFT
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_BITOR
-        inst_list.append(this_instruction)
-    return inst_list
-
 def visit_node(node, instruction_list):
     # print(node.__dict__)
     # a node can be Name, Constant, and operations such as ADD, SUB, COMPARE, etc
     if isinstance(node, ast.Name):
         this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHI32
+        this_instruction['opcode'] = OP_PUSHI
         this_instruction['oparg'] = str(node.id)
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Constant):
-        instruction_list += make_instruction_pushc32(node.value)
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSHC
+        this_instruction['oparg'] = int(node.value) & 0xffff
+        instruction_list.append(this_instruction)
     elif isinstance(node, ast.Compare):
         op_name = node.ops[0].__class__.__name__
         if op_name not in arith_lookup:
@@ -229,16 +202,6 @@ def visit_node(node, instruction_list):
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = OP_MULT
         instruction_list.append(this_instruction)
-    elif isinstance(node, ast.Call):
-        fun_name = node.func.id
-        if fun_name not in func_lookup:
-            raise ValueError("unknown function name")
-        if len(node.args) != len(func_lookup[fun_name]['args']):
-            raise ValueError("Wrong number of arguments")
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_CALL
-        this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
-        instruction_list.append(this_instruction)
     else:
         raise ValueError("Unimplemented AST operation")
 
@@ -253,10 +216,13 @@ def evaluate_expr(expr):
     if myast.is_walkable(root):
         myast.postorder_walk(root, visit_node, instruction_list, expr)
     elif isinstance(root, ast.Constant):
-        instruction_list += make_instruction_pushc32(root.value)
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_PUSHC
+        this_instruction['oparg'] = root.value
+        instruction_list.append(this_instruction)
     elif isinstance(root, ast.Name):
         this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHI32
+        this_instruction['opcode'] = OP_PUSHI
         this_instruction['oparg'] = str(root.id)
         instruction_list.append(this_instruction)
     else:
@@ -273,7 +239,7 @@ def assign_var(var_keyword, pgm_line):
     rvalue = replace_operators(rvalue)
     ins_list = evaluate_expr(rvalue)
     this_instruction = get_empty_instruction()
-    this_instruction['opcode'] = OP_POP32
+    this_instruction['opcode'] = OP_POP
     this_instruction['oparg'] = lvalue
     ins_list.append(this_instruction)
     for item in ins_list:
@@ -346,16 +312,6 @@ def make_delay_instruction(comment):
     this_instruction['comment'] = comment
     return this_instruction
 
-def parse_return_value(whole_line, ret_cmd):
-    return_arg = whole_line[len(ret_cmd):].strip()
-    if len(return_arg) == 0:
-        this_instruction = get_empty_instruction()
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = 0
-        this_instruction['comment'] = whole_line
-        return [this_instruction]
-    return parse_exp_one_item(return_arg, whole_line)
-
 def parse_exp_one_item(token, pgm_line):
     expression = replace_operators(token)
     ins_list = evaluate_expr(expression)
@@ -417,7 +373,7 @@ def replace_var_in_str(msg, vad):
 
 def push_1_constant_on_stack(value, comment=None):
     this_instruction = get_empty_instruction()
-    this_instruction['opcode'] = OP_PUSHC16
+    this_instruction['opcode'] = OP_PUSHC
     this_instruction['oparg'] = value & 0xffff
     if comment is not None:
         this_instruction['comment'] = comment
@@ -434,14 +390,13 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     global if_skip_table
     global if_info_list
     global while_lookup
-    global user_var_lookup
+    global var_lookup
     global compact_program_listing
     global label_dict
     global func_lookup
     global str_lookup
     global current_line_content
     global current_line_number_sf1
-    global func_arg_order_lookup
 
     current_line_number_sf1 = 0
     current_line_content = ''
@@ -458,23 +413,13 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     if_skip_table = result_dict['if_skip_table']
     if_info_list = result_dict["if_info"]
     while_lookup = result_dict['while_table_bidirectional']
-    user_var_lookup = result_dict['var_table']
+    var_lookup = result_dict['var_table']
     compact_program_listing = result_dict['compact_listing']
     label_dict = {}
     func_lookup = result_dict['func_table']
     str_lookup = {}
     break_dict = result_dict['break_dict']
     continue_dict = result_dict['continue_dict']
-    func_arg_order_lookup = {}
-
-    for fun_name in func_lookup:
-        arg_list = func_lookup[fun_name]['args']
-        if arg_list is None or len(arg_list) == 0:
-            continue
-        for index, this_arg in enumerate(arg_list):
-            if this_arg in func_arg_order_lookup:
-                raise ValueError("Duplicate function arguments")
-            func_arg_order_lookup[this_arg] = index
 
     print("--------- Program Listing After Preprocessing: ---------")
 
@@ -487,7 +432,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
 
     first_instruction = get_empty_instruction()
     first_instruction['opcode'] = OP_VMINFO
-    first_instruction['oparg'] = DS_VM_VERSION & 0xff
+    first_instruction['oparg'] = ((DS_VM_VERSION % 0xf) << 8)
     assembly_listing.append(first_instruction)
 
     for line_obj in compact_program_listing:
@@ -533,7 +478,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             this_instruction['label'] = label_dict[lnum]
             assembly_listing.append(this_instruction)
         elif first_word == cmd_FUNCTION:
-            fun_name = this_line.split()[1].split('(', 1)[0]
+            fun_name = this_line.split()[1].split('()')[0]
             this_instruction['opcode'] = OP_JMP
             fun_end_lnum = func_lookup[fun_name]['fun_end']
             fun_end_label = f"FEND_{fun_name}@{fun_end_lnum}"
@@ -549,17 +494,18 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             assembly_listing.append(this_instruction)
         elif first_word == cmd_END_FUNCTION:
             # RET, then NOP
-            assembly_listing += parse_return_value(this_line, cmd_END_FUNCTION)
             this_instruction['opcode'] = OP_RET
-            this_instruction['comment'] = this_line
+            this_instruction['comment'] = None
             assembly_listing.append(this_instruction)
             this_instruction = get_empty_instruction()
             this_instruction['comment'] = this_line
             this_instruction['label'] = label_dict[lnum]
             assembly_listing.append(this_instruction)
-        elif is_func_call(this_line, func_lookup):
-            inst_list = parse_exp_one_item(this_line, this_line)
-            assembly_listing += inst_list
+        elif first_word.endswith('()'):
+            fun_name = this_line.split('()')[0]
+            this_instruction['opcode'] = OP_CALL
+            this_instruction['oparg'] = label_dict[func_lookup[fun_name]['fun_start']]
+            assembly_listing.append(this_instruction)
         elif this_line.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT:
             str_content = this_line.split(' ', 1)[-1]
             if str_content not in str_lookup:
@@ -588,9 +534,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             this_instruction['comment'] = this_line
             assembly_listing.append(this_instruction)
         elif first_word == cmd_RETURN:
-            assembly_listing += parse_return_value(this_line, cmd_RETURN)
             this_instruction['opcode'] = OP_RET
-            this_instruction['comment'] = this_line
             assembly_listing.append(this_instruction)
         elif first_word == cmd_HALT:
             this_instruction['opcode'] = OP_HALT
@@ -700,16 +644,15 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     for index, item in enumerate(assembly_listing):
         item['addr'] = index * INSTRUCTION_SIZE_BYTES
 
+    VAR_SIZE_BYTES = 2
     var_addr_dict = {}
     var_count = 0
-    # assign address to all user-defined variables
-    for item in user_var_lookup:
+    # assign address to all variables
+    for item in var_lookup:
         if item in reserved_variable_dict:
             var_addr_dict[item] = reserved_variable_dict[item]
         else:
-            var_addr_dict[item] = USER_VAR_START_ADDRESS + var_count * USER_VAR_BYTE_WIDTH
-            if var_addr_dict[item] > USER_VAR_END_ADDRESS_INCLUSIVE:
-                raise ValueError("Too Many User-defined Variables")
+            var_addr_dict[item] = var_count * VAR_SIZE_BYTES
             var_count += 1
 
     for item in assembly_listing:
@@ -717,7 +660,10 @@ def make_dsb_with_exception(program_listing, profile_list=None):
             item['oparg'] = var_addr_dict[item['oparg']]
 
     for item in reserved_variable_dict:
-        user_var_lookup.pop(item, None)
+        var_lookup.pop(item, None)
+
+    if len(var_lookup) > MAX_NUMBER_OF_VARIABLES:
+        raise ValueError("Too many variables")
 
     str_list = []
     for item in str_lookup:
@@ -753,8 +699,6 @@ def make_dsb_with_exception(program_listing, profile_list=None):
         if isinstance(item['oparg'], str) and "@" in item['oparg']:
             item['oparg'] = label_to_addr_dict[item['oparg']]
         if isinstance(item['oparg'], int) is False:
-            print(func_lookup)
-            print(item)
             current_line_content = item['comment']
             current_line_number_sf1 = item['lnum_sf1']
             raise ValueError("Unknown variable")
@@ -785,7 +729,7 @@ def make_dsb_with_exception(program_listing, profile_list=None):
     print('\n')
     # print("label_to_addr_dict:", label_to_addr_dict)  
     # print("var_addr_dict:", var_addr_dict)
-    # print('user_var_lookup:', user_var_lookup)
+    # print('var_lookup:', var_lookup)
     # print("str_bin_start:", str_bin_start)
     # print("str_list:", str_list)
     print(f'Binary Size: {len(output_bin_array)} Bytes')
@@ -799,9 +743,9 @@ def make_dsb_no_exception(program_listing, profile_list=None):
         return {'comments':str(e), 'error_line_str':current_line_content, 'error_line_number_starting_from_1':current_line_number_sf1}, None
 
 if __name__ == "__main__":
-    # Require at least input and output arguments
-    if len(sys.argv) < 2:
-        print(f"Usage: {__file__} <ds3_script> [output]")
+
+    if len(sys.argv) <= 2:
+        print(__file__, "ds3_script output")
         exit()
 
     text_file = open(sys.argv[1])
@@ -810,7 +754,7 @@ if __name__ == "__main__":
 
     program_listing = []
     for index, item in enumerate(text_listing):
-        program_listing.append(ds_line(item, index + 1))
+        program_listing.append(ds_line(item, index+1))
 
     status_dict, bin_arr = make_dsb_no_exception(program_listing)
 
@@ -820,7 +764,7 @@ if __name__ == "__main__":
             print(f'{key}: {status_dict[key]}')
         exit()
 
-    # Only write binary if output file argument provided
-    if len(sys.argv) >= 3:
-        with open(sys.argv[2], 'wb') as bin_out:
-            bin_out.write(bin_arr)
+    bin_out = open(sys.argv[2], 'wb')
+    bin_out.write(bin_arr)
+    bin_out.close()
+

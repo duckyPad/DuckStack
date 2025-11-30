@@ -16,7 +16,7 @@ def get_default_var_table():
 
 # name : value
 var_table = get_default_var_table()
-# name :  {"fun_start":int, 'fun_end':int}
+# name : (start line number, end line number)
 func_table = {}
 if_take_table = {}
 if_skip_table = {}
@@ -75,7 +75,37 @@ def contains_english_alphabet(in_str):
     return False
 
 def check_rvalue(rvalue_str, vt):
+    if len(rvalue_str) == 0:
+        return False, "empty rvalue"
+    # print("rvalue_str before replacement:", rvalue_str)
+    var_list = sorted(list(vt.keys()), key=len, reverse=True)
+    for key in var_list:
+        if "$"+key in rvalue_str:
+            rvalue_str = rvalue_str.replace("$"+key, str(vt[key])).strip()
+    # print("rvalue_str after replacement:", rvalue_str)
+
+    # if contains_english_alphabet(rvalue_str):
+    #     return False, "unknown variable or invalid character"
+    try:
+        rvalue_str = rvalue_str.replace("||", " or ").replace("&&", " and ")
+        # print("rvalue_str after replacement:", rvalue_str)
+        eval(rvalue_str)
+    except Exception as e:
+        return False, f"expr eval fail: {e}"
     return True, ''
+
+def is_valid_expr(whole_line, vt):
+    presult = PARSE_ERROR
+    pcomment = 'Invalid expression'
+    try:
+        whole_line = whole_line.split(' ', 1)[1]
+        is_valid_rv, rv_comment = check_rvalue(whole_line, vt)
+        if is_valid_rv:
+            presult = PARSE_OK
+            return presult, pcomment
+    except Exception as e:
+        pass
+    return presult, pcomment
 
 def assign_var(var_keyword, pgm_line, vt, check_duplicate=False):
     has_global_variable = False
@@ -126,30 +156,19 @@ def new_string_block_check(pgm_line, lnum, sbss, sbdict):
 def new_func_check(pgm_line, lnum, fss, fdict):
     if len(fss) != 0:
         return PARSE_ERROR, "unmatched END_FUNCTION"
-    if pgm_line.endswith(")") is False:
-        return PARSE_ERROR, "missing )"
+    if pgm_line.endswith("()") is False:
+        return PARSE_ERROR, "invalid declaration"
     try:
-        fun_name = pgm_line.split()[1].split('(')[0]
+        fun_name = pgm_line.split()[1].split('()')[0]
     except Exception:
-        return PARSE_ERROR, "invalid func name"
+        return PARSE_ERROR, "invalid declaration"
     if_valid_vn, vn_comment = is_valid_var_name(fun_name)
     if if_valid_vn is False:
         return PARSE_ERROR, vn_comment
     if fun_name in fdict:
         return PARSE_ERROR, "function already exists"
-    try:
-        all_args = pgm_line.split("(", 1)[-1].rsplit(")", 1)[0]
-        arg_list = [f"{FUNC_NAME_MANGLE_PREFIX}{fun_name}_{x.strip()}" for x in all_args.split(",")]
-    except Exception:
-        return PARSE_ERROR, "Arg parse error"
-    for arg in arg_list:
-        is_valid, vn_comment = is_valid_var_name(arg)
-        if is_valid is False:
-            return PARSE_ERROR, vn_comment
-    if len(arg_list) != len(set(arg_list)):
-        return PARSE_ERROR, "Duplicate arg name"
     fss.append(fun_name)
-    fdict[fun_name] = {"fun_start":lnum, 'fun_end':None, 'args':arg_list}
+    fdict[fun_name] = {"fun_start":lnum, 'fun_end':None}
     return PARSE_OK, ''
 
 def rem_block_end_check(pgm_line, lnum, rbss, rbdict):
@@ -359,6 +378,18 @@ def ensure_zero_arg(pgm_line):
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
 
+def check_first_arg(pgm_line, vt, allow_multi_arg=False):
+    split = [x for x in pgm_line.split(' ') if len(x) > 0]
+    if allow_multi_arg is False and len(split) != 2:
+        return PARSE_ERROR, "only one argument allowed"
+    try:
+        if int(split[1]) < 0:
+            return PARSE_ERROR, "value can't be negative"
+        return PARSE_OK, ""
+    except:
+        pass
+    return is_valid_expr(pgm_line, vt)
+
 def check_loop(pgm_line):
     try:
         line_split = [x for x in pgm_line.split(cmd_LOOP) if len(x) > 0]
@@ -499,7 +530,7 @@ def run_once(program_listing):
             presult, pcomment = new_stringln_block_check(this_line, line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
         elif first_word == cmd_STRING_BLOCK:
             presult, pcomment = new_string_block_check(this_line, line_number_starting_from_1, str_block_search_stack, str_block_table)
-        elif first_word == cmd_RETURN:
+        elif this_line == cmd_RETURN:
             if len(func_search_stack) == 0:
                 presult = PARSE_ERROR
                 pcomment = f"RETURN outside function"
@@ -507,9 +538,9 @@ def run_once(program_listing):
                 presult = PARSE_OK
                 pcomment = ''
         elif first_word == cmd_DELAY:
-            presult, pcomment = PARSE_OK, ''
+            presult, pcomment = check_first_arg(this_line, var_table, allow_multi_arg=True)
         elif first_word == cmd_GOTO_PROFILE:
-            presult, pcomment = PARSE_OK, ''
+            presult, pcomment = check_first_arg(this_line, var_table, allow_multi_arg=True)
         elif first_word == cmd_SWCC:
             return_dict['color_state_save_needed'] = True
             presult, pcomment = PARSE_OK, ''
@@ -553,9 +584,12 @@ def run_once(program_listing):
         elif first_word in [cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT]:
             presult = PARSE_OK
             pcomment = ''
-        # elif this_line.endswith("()"):
-        elif is_func_call(this_line, func_table):
-            presult, pcomment = PARSE_OK, ''
+        elif this_line.endswith("()"):
+            fun_name = this_line[0:len(this_line)-2]
+            if fun_name in func_table:
+                presult = PARSE_OK
+            else:
+                pcomment = f"Unknown function"
         else:
             presult, pcomment = ds_syntax_check.parse_line(this_line)
         

@@ -406,62 +406,80 @@ cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
 cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
-INSTRUCTION_SIZE_BYTES = 3
-USER_VAR_START_ADDRESS = 0xFA00
-USER_VAR_BYTE_WIDTH = 4
-USER_VAR_END_ADDRESS_INCLUSIVE = 0xFBFF
-
-PGV_COUNT = 32
-PGV_START_ADDRESS = 0xFD80
-PGV_BYTE_WIDTH = 4
-PGV_END_ADDRESS_INCLUSIVE = 0xFDFF
-
-INTERAL_VAR_START_ADDRESS = 0xFE00
-INTERAL_VAR_BYTE_WIDTH = 4
-INTERAL_VAR_END_ADDRESS_INCLUSIVE = 0xFFFF
+GV_OFFSET = 64
 
 internal_variable_dict = {
-    '_DEFAULTDELAY': (INTERAL_VAR_START_ADDRESS + 0 * INTERAL_VAR_BYTE_WIDTH),
-    '_DEFAULTCHARDELAY': (INTERAL_VAR_START_ADDRESS + 1 * INTERAL_VAR_BYTE_WIDTH),
-    '_CHARJITTER': (INTERAL_VAR_START_ADDRESS + 2 * INTERAL_VAR_BYTE_WIDTH),
-    "_RANDOM_MIN": (INTERAL_VAR_START_ADDRESS + 3 * INTERAL_VAR_BYTE_WIDTH),
-    "_RANDOM_MAX": (INTERAL_VAR_START_ADDRESS + 4 * INTERAL_VAR_BYTE_WIDTH),
-    "_RANDOM_INT": (INTERAL_VAR_START_ADDRESS + 5 * INTERAL_VAR_BYTE_WIDTH),
-    "_TIME_MS": (INTERAL_VAR_START_ADDRESS + 6 * INTERAL_VAR_BYTE_WIDTH),
-    "_READKEY": (INTERAL_VAR_START_ADDRESS + 7 * INTERAL_VAR_BYTE_WIDTH),
-    "_LOOP_SIZE": (INTERAL_VAR_START_ADDRESS + 8 * INTERAL_VAR_BYTE_WIDTH),
-    "_KEYPRESS_COUNT": (INTERAL_VAR_START_ADDRESS + 9 * INTERAL_VAR_BYTE_WIDTH),
-    "_NEEDS_EPILOGUE": (INTERAL_VAR_START_ADDRESS + 10 * INTERAL_VAR_BYTE_WIDTH),
-    "_TIME_S": (INTERAL_VAR_START_ADDRESS + 11 * INTERAL_VAR_BYTE_WIDTH),
-    "_ALLOW_ABORT": (INTERAL_VAR_START_ADDRESS + 12 * INTERAL_VAR_BYTE_WIDTH),
-    "_BLOCKING_READKEY": (INTERAL_VAR_START_ADDRESS + 13 * INTERAL_VAR_BYTE_WIDTH),
-    "_IS_NUMLOCK_ON": (INTERAL_VAR_START_ADDRESS + 14 * INTERAL_VAR_BYTE_WIDTH),
-    "_IS_CAPSLOCK_ON": (INTERAL_VAR_START_ADDRESS + 15 * INTERAL_VAR_BYTE_WIDTH),
-    "_IS_SCROLLLOCK_ON": (INTERAL_VAR_START_ADDRESS + 16 * INTERAL_VAR_BYTE_WIDTH),
-    "_DONT_REPEAT": (INTERAL_VAR_START_ADDRESS + 17 * INTERAL_VAR_BYTE_WIDTH),
-    "_THIS_KEYID": (INTERAL_VAR_START_ADDRESS + 18 * INTERAL_VAR_BYTE_WIDTH),
-    "_DP_MODEL": (INTERAL_VAR_START_ADDRESS + 19 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_IS_VALID": (INTERAL_VAR_START_ADDRESS + 20 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_UTC_OFFSET": (INTERAL_VAR_START_ADDRESS + 21 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_YEAR": (INTERAL_VAR_START_ADDRESS + 22 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_MONTH": (INTERAL_VAR_START_ADDRESS + 23 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_DAY": (INTERAL_VAR_START_ADDRESS + 24 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_HOUR": (INTERAL_VAR_START_ADDRESS + 25 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_MINUTE": (INTERAL_VAR_START_ADDRESS + 26 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_SECOND": (INTERAL_VAR_START_ADDRESS + 27 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_WDAY": (INTERAL_VAR_START_ADDRESS + 28 * INTERAL_VAR_BYTE_WIDTH),
-    "_RTC_YDAY": (INTERAL_VAR_START_ADDRESS + 29 * INTERAL_VAR_BYTE_WIDTH),
-    "_STR_PRINT_FORMAT": (INTERAL_VAR_START_ADDRESS + 30 * INTERAL_VAR_BYTE_WIDTH),
-    "_STR_PRINT_PADDING": (INTERAL_VAR_START_ADDRESS + 31 * INTERAL_VAR_BYTE_WIDTH),
+    '_DEFAULTDELAY': (0xffff - 0),
+    '_DEFAULTCHARDELAY': (0xffff - 1),
+    '_CHARJITTER': (0xffff - 2),
+    "_RANDOM_MIN": (0xffff - 3),
+    "_RANDOM_MAX": (0xffff - 4),
+    "_RANDOM_INT": (0xffff - 5),
+    "_TIME_MS": (0xffff - 6),
+    "_READKEY": (0xffff - 7),
+    "_LOOP_SIZE": (0xffff - 8),
+    "_KEYPRESS_COUNT": (0xffff - 9),
+    "_NEEDS_EPILOGUE": (0xffff - 10),
+    "_TIME_S": (0xffff - 11),
+    "_ALLOW_ABORT": (0xffff - 12),
+    "_BLOCKING_READKEY": (0xffff - 13),
+    "_IS_NUMLOCK_ON": (0xffff - 14),
+    "_IS_CAPSLOCK_ON": (0xffff - 15),
+    "_IS_SCROLLLOCK_ON": (0xffff - 16),
+    "_DONT_REPEAT": (0xffff - 17),
+    "_THIS_KEYID": (0xffff - 18),
+    "_DP_MODEL": (0xffff - 19),
+    "_RTC_IS_VALID": (0xffff - 20),
+    "_RTC_UTC_OFFSET": (0xffff - 21),
+    "_RTC_YEAR": (0xffff - 22),
+    "_RTC_MONTH": (0xffff - 23),
+    "_RTC_DAY": (0xffff - 24),
+    "_RTC_HOUR": (0xffff - 25),
+    "_RTC_MINUTE": (0xffff - 26),
+    "_RTC_SECOND": (0xffff - 27),
+    "_RTC_WDAY": (0xffff - 28),
+    "_RTC_YDAY": (0xffff - 29),
+    "_STR_PRINT_FORMAT": (0xffff - 30),
+    "_STR_PRINT_PADDING": (0xffff - 31),
 }
 
-global_variable_dict = {}
-for i in range(PGV_COUNT):
-    global_variable_dict[f"_GV{i}"] = PGV_START_ADDRESS + i * PGV_BYTE_WIDTH
-
-FUNC_NAME_MANGLE_PREFIX = "_FUNARG_"
+global_variable_dict = {
+    "_GV0": (0xffff - GV_OFFSET - 0),
+    "_GV1": (0xffff - GV_OFFSET - 1),
+    "_GV2": (0xffff - GV_OFFSET - 2),
+    "_GV3": (0xffff - GV_OFFSET - 3),
+    "_GV4": (0xffff - GV_OFFSET - 4),
+    "_GV5": (0xffff - GV_OFFSET - 5),
+    "_GV6": (0xffff - GV_OFFSET - 6),
+    "_GV7": (0xffff - GV_OFFSET - 7),
+    "_GV8": (0xffff - GV_OFFSET - 8),
+    "_GV9": (0xffff - GV_OFFSET - 9),
+    "_GV10": (0xffff - GV_OFFSET - 10),
+    "_GV11": (0xffff - GV_OFFSET - 11),
+    "_GV12": (0xffff - GV_OFFSET - 12),
+    "_GV13": (0xffff - GV_OFFSET - 13),
+    "_GV14": (0xffff - GV_OFFSET - 14),
+    "_GV15": (0xffff - GV_OFFSET - 15),
+    "_GV16": (0xffff - GV_OFFSET - 16),
+    "_GV17": (0xffff - GV_OFFSET - 17),
+    "_GV18": (0xffff - GV_OFFSET - 18),
+    "_GV19": (0xffff - GV_OFFSET - 19),
+    "_GV20": (0xffff - GV_OFFSET - 20),
+    "_GV21": (0xffff - GV_OFFSET - 21),
+    "_GV22": (0xffff - GV_OFFSET - 22),
+    "_GV23": (0xffff - GV_OFFSET - 23),
+    "_GV24": (0xffff - GV_OFFSET - 24),
+    "_GV25": (0xffff - GV_OFFSET - 25),
+    "_GV26": (0xffff - GV_OFFSET - 26),
+    "_GV27": (0xffff - GV_OFFSET - 27),
+    "_GV28": (0xffff - GV_OFFSET - 28),
+    "_GV29": (0xffff - GV_OFFSET - 29),
+    "_GV30": (0xffff - GV_OFFSET - 30),
+    "_GV31": (0xffff - GV_OFFSET - 31),
+}
 
 reserved_variable_dict = internal_variable_dict | global_variable_dict
+MAX_NUMBER_OF_VARIABLES = 64
 
 class ds_line:
     def __init__(self, content, lnum_sf1=-1, pplnum=-1):
@@ -714,11 +732,5 @@ def get_profile_dir(dir_path):
         if os.path.isdir(full_path) and entry.startswith("profile"):
             return full_path
     return None
-
-def is_func_call(pgm_line, func_dict):
-    for key in func_dict:
-        if pgm_line.startswith(key+"("):
-            return True
-    return False
 
 # unzip_to_own_directory("duckyPad_Profile_Photoshop.zip", "output")

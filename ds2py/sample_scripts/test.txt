@@ -1,13 +1,9 @@
-foo = 0
-bar = 0
+VAR $foo = 3
+VAR $bar = 4
 
-IF foo > 5 THEN
-bar = 1
-ELSE IF foo > 6 THEN
-bar = 2
-ELSE IF foo > 7 THEN
-bar = 3
+IF $foo > 5 THEN
+$bar = 6
 ELSE
-bar = 4
+$bar = 7
 END_IF
 

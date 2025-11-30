@@ -45,6 +45,17 @@ def postorder_walk(node, action, goodies):
 		postorder_walk(node.targets[0], action, goodies)
 	elif isinstance(node, ast.FunctionDef):
 		raise ValueError("FunctionDef Node: Not Implemented")
+	elif isinstance(node, ast.If):
+		print_node_info(node)
+		goodies['this_label'] = f"{node.__class__.__name__}@{getattr(node, "lineno", None)}"
+		postorder_walk(node.test, action, goodies)
+		action(node, goodies)
+		for item in node.body:
+			postorder_walk(item, action, goodies)
+		for item in node.orelse:
+			postorder_walk(item, action, goodies)
+		action("NOP", goodies)
+		# add labelled NOP here
 	elif is_leaf(node):
 		action(node, goodies)
 	else:

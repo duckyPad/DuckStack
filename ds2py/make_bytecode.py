@@ -47,7 +47,7 @@ OP_RET = ("RET", 9)
 OP_HALT = ("HALT", 10)
 # to be resolved into PUSHI32 or PUSHR32 depending on variable type
 OP_PUSH32_DUMMY = ("PUSHD32", 11)
-OP_POP32_DUMMY = ("PUSHD32", 12)
+OP_POP32_DUMMY = ("POPD32", 12)
 
 # Binary Operators
 OP_EQ = ("EQ", 32)
@@ -198,8 +198,13 @@ AST_ARITH_NODES = (
 
 def visit_node(node, goodies):
     instruction_list = goodies['assembly_list']
-    print("at leaf:", node)
-    if isinstance(node, ast.Name):
+    # print("at leaf:", node)
+    if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_POP32_DUMMY
+        this_instruction['oparg'] = str(node.id)
+        instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = OP_PUSH32_DUMMY
         this_instruction['oparg'] = str(node.id)
@@ -212,6 +217,16 @@ def visit_node(node, goodies):
             raise ValueError("unknown operation")
         this_instruction = get_empty_instruction()
         this_instruction['opcode'] = arith_lookup[op_name]
+        instruction_list.append(this_instruction)
+    elif isinstance(node, ast.If):
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_BRZ
+        this_instruction['oparg'] = goodies['this_label']
+        instruction_list.append(this_instruction)
+    elif isinstance(node, str):
+        this_instruction = get_empty_instruction()
+        this_instruction['opcode'] = OP_NOP
+        this_instruction['label'] = goodies['this_label']
         instruction_list.append(this_instruction)
     else:
         raise ValueError("Unknown leaf node:", node)
@@ -248,14 +263,14 @@ pyout = ds2py.run_all(post_pp_listing)
 save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 tree = ast.parse(source, mode="exec", optimize=-1)
-# print(ast.dump(tree, indent=2))
+print(ast.dump(tree, indent=2))
 
 rdict["assembly_list"] = []
-rdict["func_assembly_dict"] = {}
-rdict["parent_history_list"] = []
+# rdict["func_assembly_dict"] = {}
+# rdict["parent_history_list"] = []
 
 for statement in tree.body:
-    rdict["parent_history_list"].clear()
+    rdict['this_label'] = None
     myast.postorder_walk(statement, visit_node, rdict)
 
 print_asslist(rdict['assembly_list'])
