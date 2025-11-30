@@ -1,9 +1,11 @@
 VAR $foo = 0
 
 IF 1 THEN
-	$foo = 2
-ELSE IF 0 THEN
-	$foo = 3
+	$foo = 10
+ELSE IF 2 THEN
+	$foo = 20
+ELSE IF 4 THEN
+	$foo = 40
 ELSE
-	$foo = 4
+	$foo = 30
 END_IF

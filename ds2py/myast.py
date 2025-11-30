@@ -64,7 +64,6 @@ def postorder_walk(node, action, goodies):
 	elif isinstance(node, ast.FunctionDef):
 		raise ValueError("FunctionDef Node: Not Implemented")
 	elif isinstance(node, ast.If):
-		print_node_info(node)
 		if_skip_label = f"{node.__class__.__name__}_skip@{this_orig_ds_lnum_sf1}"
 		if_end_label = f"{node.__class__.__name__}_end@{this_orig_ds_lnum_sf1}"
 		if len(node.orelse) == 0:
@@ -80,7 +79,6 @@ def postorder_walk(node, action, goodies):
 			for item in node.orelse:
 				postorder_walk(item, action, goodies)
 		action(add_nop(if_end_label), goodies)
-		# add labelled NOP here
 	elif is_leaf(node):
 		action(node, goodies)
 	else:
