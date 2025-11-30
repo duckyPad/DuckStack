@@ -196,12 +196,18 @@ AST_ARITH_NODES = (
     ast.unaryop,
 )
 
+def get_orig_ds_line_from_py_lnum(rdict, pylnum_sf1):
+    if pylnum_sf1 is None:
+        return ""
+    print("pylnum_sf1:", pylnum_sf1)
+    for line_obj in rdict['dspp_listing_with_indent_level']:
+        print(line_obj)
+        # if line_obj.py_lnum_sf1
+    exit()
+
 def visit_node(node, goodies):
     instruction_list = goodies['assembly_list']
-    this_lnum_py = getattr(node, "lineno", None)
-    if this_lnum_py is not None:
-        this_lnum_py -= 1
-        print(goodies["ds2py_listing"][this_lnum_py])
+    get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
     # print("at leaf:", node)
     if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
         this_instruction = get_empty_instruction()
