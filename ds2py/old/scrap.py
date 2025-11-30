@@ -154,3 +154,4 @@ def print_node_info(node):
 rdict["assembly_list"] = []
 # rdict["func_assembly_dict"] = {}
 # rdict["parent_history_list"] = []
+		goodies['if_take_label'] = f"{node.__class__.__name__}_take@{this_orig_ds_lnum_sf1}"

@@ -1,6 +1,15 @@
 import sys
 import ast
 
+def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1):
+    if this_pylnum_sf1 is None:
+        return None
+    og_index_sf1 = None
+    for line_obj in rdict['ds2py_listing']:
+        if line_obj.py_lnum_sf1 == this_pylnum_sf1:
+            og_index_sf1 = line_obj.orig_lnum_sf1
+    return og_index_sf1
+
 def print_node_info(node):
 	lineno = getattr(node, "lineno", None)
 	print(f"---Line {lineno}: {type(node)}---")
@@ -13,12 +22,21 @@ AST_LEAF_NODES = (
 	ast.Name,
 )
 
+class add_nop:
+    def __init__(self, label=''):
+        self.label = label
+class add_jmp:
+    def __init__(self, label=''):
+        self.label = label
+
 def is_leaf(node):
 	if isinstance(node, AST_LEAF_NODES):
 		return True
 	return not any(ast.iter_child_nodes(node))
 
 def postorder_walk(node, action, goodies):
+	this_pylnum_sf1 = getattr(node, "lineno", None)
+	this_orig_ds_lnum_sf1 = get_orig_ds_lnumsf1_from_py_lnumsf1(goodies, this_pylnum_sf1)
 	if isinstance(node, ast.Expr):
 		postorder_walk(node.value, action, goodies)
 	elif isinstance(node, ast.BinOp):
@@ -47,14 +65,21 @@ def postorder_walk(node, action, goodies):
 		raise ValueError("FunctionDef Node: Not Implemented")
 	elif isinstance(node, ast.If):
 		print_node_info(node)
-		goodies['this_label'] = f"{node.__class__.__name__}@{getattr(node, "lineno", None)}"
+		if_skip_label = f"{node.__class__.__name__}_skip@{this_orig_ds_lnum_sf1}"
+		if_end_label = f"{node.__class__.__name__}_end@{this_orig_ds_lnum_sf1}"
+		if len(node.orelse) == 0:
+			if_skip_label = if_end_label
+		goodies['if_destination_label'] = if_skip_label
 		postorder_walk(node.test, action, goodies)
 		action(node, goodies)
 		for item in node.body:
 			postorder_walk(item, action, goodies)
-		for item in node.orelse:
-			postorder_walk(item, action, goodies)
-		action("NOP", goodies)
+		if len(node.orelse):
+			action(add_jmp(if_end_label), goodies)
+			action(add_nop(if_skip_label), goodies)
+			for item in node.orelse:
+				postorder_walk(item, action, goodies)
+		action(add_nop(if_end_label), goodies)
 		# add labelled NOP here
 	elif is_leaf(node):
 		action(node, goodies)

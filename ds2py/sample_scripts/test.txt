@@ -1,12 +1,9 @@
+VAR $foo = 0
 
-
-
-VAR $foo = 3
-VAR $bar = 4
-
-IF $foo > 5 THEN
-$bar = 6
+IF 1 THEN
+	$foo = 2
+ELSE IF 0 THEN
+	$foo = 3
 ELSE
-$bar = 7
+	$foo = 4
 END_IF
-

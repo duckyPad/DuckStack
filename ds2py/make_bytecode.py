@@ -236,12 +236,17 @@ def visit_node(node, goodies):
     elif isinstance(node, ast.If):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_BRZ
-        this_instruction['oparg'] = goodies['this_label']
+        this_instruction['oparg'] = goodies['if_destination_label']
         instruction_list.append(this_instruction)
-    elif isinstance(node, str):
+    elif isinstance(node, myast.add_nop):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_NOP
-        this_instruction['label'] = goodies['this_label']
+        this_instruction['label'] = node.label
+        instruction_list.append(this_instruction)
+    elif isinstance(node, myast.add_jmp):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_JMP
+        this_instruction['oparg'] = node.label
         instruction_list.append(this_instruction)
     else:
         raise ValueError("Unknown leaf node:", node)
@@ -285,7 +290,7 @@ tree = ast.parse(source, mode="exec", optimize=-1)
 rdict["assembly_list"] = []
 
 for statement in tree.body:
-    rdict['this_label'] = None
+    rdict['latest_label'] = None
     myast.postorder_walk(statement, visit_node, rdict)
 
 print_asslist(rdict['assembly_list'])
