@@ -198,6 +198,10 @@ AST_ARITH_NODES = (
 
 def visit_node(node, goodies):
     instruction_list = goodies['assembly_list']
+    this_lnum_py = getattr(node, "lineno", None)
+    if this_lnum_py is not None:
+        this_lnum_py -= 1
+        print(goodies["ds2py_listing"][this_lnum_py])
     # print("at leaf:", node)
     if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
         this_instruction = get_empty_instruction()
@@ -257,13 +261,15 @@ if rdict['is_success'] is False:
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
 
-post_pp_listing = rdict["program_listing_with_indent_level"]
+post_pp_listing = rdict["dspp_listing_with_indent_level"]
 save_lines_to_file(post_pp_listing, "ppds.txt")
 pyout = ds2py.run_all(post_pp_listing)
+rdict["ds2py_listing"] = pyout
 save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 tree = ast.parse(source, mode="exec", optimize=-1)
-print(ast.dump(tree, indent=2))
+# print(ast.dump(tree, indent=2))
+print_ds_line_list(pyout)
 
 rdict["assembly_list"] = []
 # rdict["func_assembly_dict"] = {}

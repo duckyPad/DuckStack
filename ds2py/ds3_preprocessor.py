@@ -588,7 +588,7 @@ def single_pass(program_listing):
     return_dict['rem_block_table'] = rem_block_table
     return_dict['strlen_block_table'] = strlen_block_table
     return_dict['str_block_table'] = str_block_table
-    return_dict['program_listing_with_indent_level'] = program_listing
+    return_dict['dspp_listing_with_indent_level'] = program_listing
 
     if len(loop_numbers) > 0:
         return_dict['loop_size'] = max(loop_numbers)
@@ -798,7 +798,7 @@ if __name__ == "__main__":
         print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
         exit()
 
-    post_pp_listing = rdict["program_listing_with_indent_level"]
+    post_pp_listing = rdict["dspp_listing_with_indent_level"]
     
     for item in post_pp_listing:
         final_str = "    "*item.indent_level + item.content

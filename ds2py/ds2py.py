@@ -95,7 +95,7 @@ if __name__ == "__main__":
         print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
         exit()
 
-    post_pp_listing = rdict["program_listing_with_indent_level"]
+    post_pp_listing = rdict["dspp_listing_with_indent_level"]
     # print_ds_line_list(post_pp_listing)
     pyout = run_all(post_pp_listing)
 
