@@ -35,6 +35,7 @@ def is_leaf(node):
 	return not any(ast.iter_child_nodes(node))
 
 def postorder_walk(node, action, goodies):
+	# print_node_info(node)
 	this_pylnum_sf1 = getattr(node, "lineno", None)
 	this_orig_ds_lnum_sf1 = get_orig_ds_lnumsf1_from_py_lnumsf1(goodies, this_pylnum_sf1)
 	if isinstance(node, ast.Expr):
@@ -44,6 +45,9 @@ def postorder_walk(node, action, goodies):
 		postorder_walk(node.right, action, goodies)
 		postorder_walk(node.op, action, goodies)
 	elif isinstance(node, ast.BoolOp):
+		# Consecutive operations with the same operator, such as a or b or c, are collapsed into one node with several values.
+		if len(node.values) > 2:
+			raise ValueError("Ambiguous expr, add parentheses.")
 		for item in node.values:
 			postorder_walk(item, action, goodies)
 		postorder_walk(node.op, action, goodies)

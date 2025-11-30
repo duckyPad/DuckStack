@@ -1,11 +1,1 @@
-VAR $foo = 0
-
-IF 1 THEN
-	$foo = 10
-ELSE IF 2 THEN
-	$foo = 20
-ELSE IF 4 THEN
-	$foo = 40
-ELSE
-	$foo = 30
-END_IF
+(a && b) && d
