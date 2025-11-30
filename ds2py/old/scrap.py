@@ -147,3 +147,10 @@ def print_node_info(node):
 		try_print_node(node)
 	except:
 		print(node)
+
+# print(ast.dump(tree, indent=2))
+# print_ds_line_list(pyout)
+
+rdict["assembly_list"] = []
+# rdict["func_assembly_dict"] = {}
+# rdict["parent_history_list"] = []

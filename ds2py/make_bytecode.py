@@ -8,6 +8,7 @@ import ast
 import sys
 import symtable
 import myast
+import copy
 
 """
 duckyscript VM changelog
@@ -199,14 +200,14 @@ AST_ARITH_NODES = (
 def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
     if this_pylnum_sf1 is None:
         return ""
-    print("this_pylnum_sf1:", this_pylnum_sf1)
-    # dspp_listing_with_indent_level
+    # print("this_pylnum_sf1:", this_pylnum_sf1)
     og_index_sf0 = None
     for line_obj in rdict['ds2py_listing']:
         if line_obj.py_lnum_sf1 == this_pylnum_sf1:
             og_index_sf0 = line_obj.orig_lnum_sf1 - 1
     if og_index_sf0 is None:
         return ""
+    # print(rdict['orig_listing'])
     return rdict['orig_listing'][og_index_sf0].content
 
 def visit_node(node, goodies):
@@ -263,6 +264,7 @@ for index, line in enumerate(text_listing):
     line = line.rstrip("\r\n")
     program_listing.append(ds_line(line, index + 1))
 
+orig_listing = copy.deepcopy(program_listing)
 rdict = ds3_preprocessor.run_all(program_listing)
 
 if rdict['is_success'] is False:
@@ -271,7 +273,7 @@ if rdict['is_success'] is False:
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
 
-rdict["orig_listing"] = program_listing
+rdict["orig_listing"] = orig_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]
 save_lines_to_file(post_pp_listing, "ppds.txt")
 pyout = ds2py.run_all(post_pp_listing)
@@ -279,12 +281,8 @@ rdict["ds2py_listing"] = pyout
 save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 tree = ast.parse(source, mode="exec", optimize=-1)
-# print(ast.dump(tree, indent=2))
-# print_ds_line_list(pyout)
 
 rdict["assembly_list"] = []
-# rdict["func_assembly_dict"] = {}
-# rdict["parent_history_list"] = []
 
 for statement in tree.body:
     rdict['this_label'] = None
