@@ -129,12 +129,12 @@ arith_lookup = {
     "USub" : OP_USUB,
 }
 
-def get_empty_instruction(orig_lnum_sf1=None, py_lnum_sf1=None):
+def get_empty_instruction(comment="", orig_lnum_sf1=None, py_lnum_sf1=None):
     return {
     'opcode':OP_NOP,
     'oparg':None,
     'label':None,
-    'comment':None,
+    'comment':comment,
     'addr':None,
     'orig_lnum_sf1':orig_lnum_sf1,
     'py_lnum_sf1':py_lnum_sf1,
@@ -154,7 +154,7 @@ def print_instruction(instruction):
             tempstr += f"{hex(instruction['oparg'])}".ljust(6)
     print(tempstr.ljust(20), end='')
     tempstr = ""
-    if instruction['comment'] is not None:
+    if len(instruction['comment']) > 0:
         tempstr = ";" + str(instruction['comment'])
     print(tempstr)
 
@@ -164,27 +164,27 @@ def print_asslist(lll):
         print_instruction(item)
     print()
 
-def make_instruction_pushc32(value):
+def make_instruction_pushc32(value, comment=""):
     node_value_high = (int(value) & 0xffff0000) >> 16
     node_value_low = int(value) & 0xffff
     inst_list = []
-    this_instruction = get_empty_instruction()
+    this_instruction = get_empty_instruction(comment=comment)
     this_instruction['opcode'] = OP_PUSHC16
     this_instruction['oparg'] = node_value_low
     inst_list.append(this_instruction)
     if node_value_high:
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_PUSHC16
         this_instruction['oparg'] = node_value_high
         inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_PUSHC16
         this_instruction['oparg'] = 16
         inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_LSHIFT
         inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_BITOR
         inst_list.append(this_instruction)
     return inst_list
@@ -196,45 +196,49 @@ AST_ARITH_NODES = (
     ast.unaryop,
 )
 
-def get_orig_ds_line_from_py_lnum(rdict, pylnum_sf1):
-    if pylnum_sf1 is None:
+def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
+    if this_pylnum_sf1 is None:
         return ""
-    print("pylnum_sf1:", pylnum_sf1)
-    for line_obj in rdict['dspp_listing_with_indent_level']:
-        print(line_obj)
-        # if line_obj.py_lnum_sf1
-    exit()
+    print("this_pylnum_sf1:", this_pylnum_sf1)
+    # dspp_listing_with_indent_level
+    og_index_sf0 = None
+    for line_obj in rdict['ds2py_listing']:
+        if line_obj.py_lnum_sf1 == this_pylnum_sf1:
+            og_index_sf0 = line_obj.orig_lnum_sf1 - 1
+    if og_index_sf0 is None:
+        return ""
+    return rdict['orig_listing'][og_index_sf0].content
 
 def visit_node(node, goodies):
     instruction_list = goodies['assembly_list']
-    get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
-    # print("at leaf:", node)
+    og_ds_line = get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
+   # print("at leaf:", node)
     if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_POP32_DUMMY
         this_instruction['oparg'] = str(node.id)
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_PUSH32_DUMMY
         this_instruction['oparg'] = str(node.id)
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Constant):
-        instruction_list += make_instruction_pushc32(node.value)
+        instruction_list += make_instruction_pushc32(node.value, comment=og_ds_line)
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
         if op_name not in arith_lookup:
             raise ValueError("unknown operation")
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = arith_lookup[op_name]
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.If):
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_BRZ
         this_instruction['oparg'] = goodies['this_label']
         instruction_list.append(this_instruction)
     elif isinstance(node, str):
-        this_instruction = get_empty_instruction()
+        this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_NOP
         this_instruction['label'] = goodies['this_label']
         instruction_list.append(this_instruction)
@@ -267,6 +271,7 @@ if rdict['is_success'] is False:
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
 
+rdict["orig_listing"] = program_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]
 save_lines_to_file(post_pp_listing, "ppds.txt")
 pyout = ds2py.run_all(post_pp_listing)
@@ -275,7 +280,7 @@ save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 tree = ast.parse(source, mode="exec", optimize=-1)
 # print(ast.dump(tree, indent=2))
-print_ds_line_list(pyout)
+# print_ds_line_list(pyout)
 
 rdict["assembly_list"] = []
 # rdict["func_assembly_dict"] = {}

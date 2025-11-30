@@ -1,3 +1,6 @@
+
+
+
 VAR $foo = 3
 VAR $bar = 4
 

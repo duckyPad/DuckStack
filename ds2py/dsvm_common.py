@@ -406,7 +406,7 @@ class ds_line:
         self.indent_level = indent_lvl
 
     def __repr__(self):
-        return f"ds_line({self.orig_lnum_sf1!r}, {self.content!r}, {self.py_lnum_sf1!r}, {self.indent_level!r})"
+        return f"ds_line({self.content!r}, ogl={self.orig_lnum_sf1!r}, pyl={self.py_lnum_sf1!r})"
 
 PARSE_OK = 0
 PARSE_ERROR = 1
