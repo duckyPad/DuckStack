@@ -1,8 +1,7 @@
 VAR $foo = 3
 
-FUNCTION test(a, b)
-    VAR $temp = 2*a + b
-    RETURN $temp
+FUNCTION double(a)
+    RETURN a * 2
 END_FUNCTION
 
-$foo = $foo + 2
+$foo = double($foo)

@@ -30,6 +30,10 @@ class add_jmp:
     def __init__(self, label=''):
         self.label = label
 
+class add_push0:
+    def __init__(self, label=''):
+        self.label = label
+
 def is_leaf(node):
 	if isinstance(node, AST_LEAF_NODES):
 		return True
@@ -66,16 +70,17 @@ def postorder_walk(node, action, goodies):
 			raise ValueError("Multiple Assignments")
 		postorder_walk(node.targets[0], action, goodies)
 	elif isinstance(node, ast.FunctionDef):
-		# print_node_info(node)
 		this_func_label = f"func_{node.name}@{this_orig_ds_lnum_sf1}"
 		goodies['this_func_name'] = node.name
 		action(add_nop(this_func_label), goodies)
-		# raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
 		for item in node.body:
 			postorder_walk(item, action, goodies)
 	elif isinstance(node, ast.Return):
-		# raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
-		action(add_nop("dummy"), goodies)
+		if node.value is None:
+			action(add_push0(), goodies)
+		else:
+			postorder_walk(node.value, action, goodies)
+		action(node, goodies)
 	elif isinstance(node, ast.AugAssign):
 		raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
 	elif isinstance(node, ast.If):

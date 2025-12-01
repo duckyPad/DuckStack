@@ -36,11 +36,11 @@ DS_VM_VERSION = 2
 # CPU instructions
 OP_VMVER = ("VMVER", 255)
 OP_NOP = ("NOP", 0)
-OP_PUSHC32 = ("PUSHC32", 1)
-OP_PUSHI32 = ("PUSHI32", 2)
-OP_PUSHR32 = ("PUSHR32", 3)
-OP_POPI32 = ("POPI32", 4)
-OP_POPR32 = ("POPR32", 5)
+OP_PUSHC = ("PUSHC", 1)
+OP_PUSHI = ("PUSHI", 2)
+OP_PUSHR = ("PUSHR", 3)
+OP_POPI = ("POPI", 4)
+OP_POPR = ("POPR", 5)
 OP_BRZ = ("BRZ", 6)
 OP_JMP = ("JMP", 7)
 OP_CALL = ("CALL", 8)
@@ -191,8 +191,15 @@ def find_function_table(root: symtable.SymbolTable, func_name: str):
             return found
     return None
 
+def how_many_args(name: str, table: symtable.SymbolTable):
+    func_table = find_function_table(table, name)
+    if func_table is None:
+        return None
+    return len(func_table.get_parameters())
+
 SYM_TYPE_GLOBAL_VAR = 0
 SYM_TYPE_FUNC_ARG = 1
+
 def classify_name(name: str,
                   current_function: str | None,
                   root_table: symtable.SymbolTable) -> int:
@@ -224,17 +231,17 @@ def visit_name_node(node, goodies, inst_list):
     if isinstance(node.ctx, ast.Store):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         if sym_type == SYM_TYPE_FUNC_ARG:
-            this_instruction['opcode'] = OP_POPR32
+            this_instruction['opcode'] = OP_POPR
         else:
-            this_instruction['opcode'] = OP_POPI32
+            this_instruction['opcode'] = OP_POPI
         this_instruction['oparg'] = str(node.id)
         inst_list.append(this_instruction)
     elif isinstance(node.ctx, ast.Load):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         if sym_type == SYM_TYPE_FUNC_ARG:
-            this_instruction['opcode'] = OP_PUSHR32
+            this_instruction['opcode'] = OP_PUSHR
         else:
-            this_instruction['opcode'] = OP_PUSHI32
+            this_instruction['opcode'] = OP_PUSHI
         this_instruction['oparg'] = str(node.id)
         inst_list.append(this_instruction)
 
@@ -254,8 +261,8 @@ def visit_node(node, goodies):
         visit_name_node(node, goodies, instruction_list)
     elif isinstance(node, ast.Constant):
         this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_PUSHC32
-        this_instruction['oparg'] = str(node.value)
+        this_instruction['opcode'] = OP_PUSHC
+        this_instruction['oparg'] = node.value
         instruction_list.append(this_instruction)
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
@@ -284,6 +291,11 @@ def visit_node(node, goodies):
         this_instruction['opcode'] = OP_JMP
         this_instruction['oparg'] = goodies['while_end_label']
         instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Return):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_RET
+        this_instruction['oparg'] = how_many_args(current_function, goodies['symtable_root'])
+        instruction_list.append(this_instruction)
     elif isinstance(node, myast.add_nop):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_NOP
@@ -293,6 +305,12 @@ def visit_node(node, goodies):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_JMP
         this_instruction['oparg'] = node.label
+        instruction_list.append(this_instruction)
+    elif isinstance(node, myast.add_push0):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_PUSHC
+        this_instruction['oparg'] = 0
+        this_instruction['label'] = node.label
         instruction_list.append(this_instruction)
     else:
         raise ValueError("Unknown leaf node:", node)
@@ -347,7 +365,7 @@ save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 my_tree = ast.parse(source, mode="exec", optimize=-1)
 symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
-print_symtable(symtable_root)
+# print_symtable(symtable_root)
 rdict["root_assembly_list"] = []
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}

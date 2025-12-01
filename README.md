@@ -262,6 +262,8 @@ new OLED instruction names
 
 generate PGV save flag on DSVM itself not compiler
 
+watch out for unused function return value clogging up stack, discard if no assign? in compiler
+
 ## Changelog
 
 * `VMVER` instruction: version number now on byte 1 (LSB)
