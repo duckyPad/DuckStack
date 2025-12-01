@@ -1,5 +1,1 @@
-VAR $foo = 3
-FUNCTION test(a)
-    RETURN a * 2
-END_FUNCTION
-$foo = test(7)
+DELAY 20

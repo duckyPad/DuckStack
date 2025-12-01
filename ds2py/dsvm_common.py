@@ -399,7 +399,7 @@ internal_variable_dict = {
 }
 
 class ds_line:
-    def __init__(self, content, orig_lnum_sf1=-1, indent_lvl=0):
+    def __init__(self, content, orig_lnum_sf1=0, indent_lvl=0):
         self.orig_lnum_sf1 = orig_lnum_sf1
         self.content = content
         self.py_lnum_sf1 = None
@@ -433,7 +433,7 @@ ds_string_funcs = {cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT, cmd_KEYDOWN, cmd_KE
 
 ds_func_arg_lookup = {
     cmd_DELAY : 1,
-    cmd_DP_SLEEP : 1,
+    cmd_DP_SLEEP : 0,
     cmd_PREV_PROFILE : 0,
     cmd_NEXT_PROFILE : 0,
     cmd_GOTO_PROFILE : 1,

@@ -189,6 +189,12 @@ def classify_name(name: str,
                   current_function: str | None,
                   root_table: symtable.SymbolTable) -> int:
     
+    function_names = {child.get_name() for child in root_table.get_children()
+                      if child.get_type() == 'function'}
+
+    if name in function_names and name != current_function:
+        raise ValueError(f"Variable \"{name}\" conflicts with function \"{name}()\"")
+    
     if current_function is None:
         table = root_table
     else:
