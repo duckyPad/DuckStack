@@ -36,7 +36,7 @@ DS_VM_VERSION = 2
 # CPU instructions
 OP_VMVER = ("VMVER", 255)
 OP_NOP = ("NOP", 0)
-OP_PUSHC16 = ("PUSHC16", 1)
+OP_PUSHC32 = ("PUSHC32", 1)
 OP_PUSHI32 = ("PUSHI32", 2)
 OP_PUSHR32 = ("PUSHR32", 3)
 OP_POPI32 = ("POPI32", 4)
@@ -46,9 +46,6 @@ OP_JMP = ("JMP", 7)
 OP_CALL = ("CALL", 8)
 OP_RET = ("RET", 9)
 OP_HALT = ("HALT", 10)
-# to be resolved into PUSHI32 or PUSHR32 depending on variable type
-OP_PUSH32_DUMMY = ("PUSHD32", 11)
-OP_POP32_DUMMY = ("POPD32", 12)
 
 # Binary Operators
 OP_EQ = ("EQ", 32)
@@ -142,7 +139,7 @@ def get_empty_instruction(comment="", orig_lnum_sf1=None, py_lnum_sf1=None):
     }
 
 def print_instruction(instruction):
-    if instruction['label'] is not None:
+    if instruction['label'] is not None and len(instruction['label']):
         print(f"~~~~{instruction['label']}:")
 
     if instruction['addr'] is not None:
@@ -156,39 +153,14 @@ def print_instruction(instruction):
     print(tempstr.ljust(20), end='')
     tempstr = ""
     if len(instruction['comment']) > 0:
-        tempstr = ";" + str(instruction['comment'])
+        tempstr = ";" + str(instruction['comment'].strip())
     print(tempstr)
 
 def print_asslist(lll):
-    print()
+    # print()
     for item in lll:
         print_instruction(item)
-    print()
-
-def make_instruction_pushc32(value, comment=""):
-    node_value_high = (int(value) & 0xffff0000) >> 16
-    node_value_low = int(value) & 0xffff
-    inst_list = []
-    this_instruction = get_empty_instruction(comment=comment)
-    this_instruction['opcode'] = OP_PUSHC16
-    this_instruction['oparg'] = node_value_low
-    inst_list.append(this_instruction)
-    if node_value_high:
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = node_value_high
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = 16
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_LSHIFT
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_BITOR
-        inst_list.append(this_instruction)
-    return inst_list
+    # print()
 
 AST_ARITH_NODES = (
     ast.operator,
@@ -210,22 +182,81 @@ def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
     # print(rdict['orig_listing'])
     return rdict['orig_listing'][og_index_sf0].content
 
+def find_function_table(root: symtable.SymbolTable, func_name: str):
+    for child in root.get_children():
+        if child.get_type() == 'function' and child.get_name() == func_name:
+            return child
+        found = find_function_table(child, func_name)
+        if found is not None:
+            return found
+    return None
+
+SYM_TYPE_GLOBAL_VAR = 0
+SYM_TYPE_FUNC_ARG = 1
+def classify_name(name: str,
+                  current_function: str | None,
+                  root_table: symtable.SymbolTable) -> int:
+    
+    if current_function is None:
+        table = root_table
+    else:
+        table = find_function_table(root_table, current_function)
+        if table is None:
+            raise ValueError(f"No symtable for function {current_function!r}")
+    try:
+        sym = table.lookup(name)
+        if sym.is_local() is False:
+            raise ValueError(f"Symbol {name} not found")
+    except KeyError:
+        # name is not known in this scope at all
+        raise ValueError(f"Symbol {name} not found")
+    if current_function is not None and sym.is_parameter():
+        return SYM_TYPE_FUNC_ARG
+    # Anything else that *does* exist (local / global / free / imported)
+    return SYM_TYPE_GLOBAL_VAR
+
+def visit_name_node(node, goodies, inst_list):
+    og_ds_line = goodies['og_ds_line']
+    current_function = goodies['this_func_name']
+    symtable_root = goodies['symtable_root']
+
+    sym_type = classify_name(node.id, current_function, symtable_root)
+    if isinstance(node.ctx, ast.Store):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        if sym_type == SYM_TYPE_FUNC_ARG:
+            this_instruction['opcode'] = OP_POPR32
+        else:
+            this_instruction['opcode'] = OP_POPI32
+        this_instruction['oparg'] = str(node.id)
+        inst_list.append(this_instruction)
+    elif isinstance(node.ctx, ast.Load):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        if sym_type == SYM_TYPE_FUNC_ARG:
+            this_instruction['opcode'] = OP_PUSHR32
+        else:
+            this_instruction['opcode'] = OP_PUSHI32
+        this_instruction['oparg'] = str(node.id)
+        inst_list.append(this_instruction)
+
 def visit_node(node, goodies):
-    instruction_list = goodies['assembly_list']
+    current_function = goodies['this_func_name']
+    if current_function is None:
+        instruction_list = goodies['root_assembly_list']
+    elif current_function not in goodies['func_assembly_dict']:
+        goodies['func_assembly_dict'][current_function] = []
+        instruction_list = goodies['func_assembly_dict'][current_function]
+    else:
+        instruction_list = goodies['func_assembly_dict'][current_function]
     og_ds_line = get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
-   # print("at leaf:", node)
-    if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_POP32_DUMMY
-        this_instruction['oparg'] = str(node.id)
-        instruction_list.append(this_instruction)
-    elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_PUSH32_DUMMY
-        this_instruction['oparg'] = str(node.id)
-        instruction_list.append(this_instruction)
+    # print(current_function, og_ds_line)
+    goodies['og_ds_line'] = og_ds_line
+    if isinstance(node, ast.Name):
+        visit_name_node(node, goodies, instruction_list)
     elif isinstance(node, ast.Constant):
-        instruction_list += make_instruction_pushc32(node.value, comment=og_ds_line)
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_PUSHC32
+        this_instruction['oparg'] = str(node.value)
+        instruction_list.append(this_instruction)
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
         if op_name not in arith_lookup:
@@ -266,6 +297,20 @@ def visit_node(node, goodies):
     else:
         raise ValueError("Unknown leaf node:", node)
     
+def print_symtable(tbl, indent=0):
+    pad = " " * indent
+    print(f"{pad}Table ({tbl.get_type()}): {tbl.get_name()}")
+    for symbol in tbl.get_symbols():
+        print(f"{pad}  - {symbol.get_name()} "
+              f"(param={symbol.is_parameter()}, "
+              f"local={symbol.is_local()}, "
+              f"global={symbol.is_global()}, "
+              f"free={symbol.is_free()}, "
+              )
+
+    for child in tbl.get_children():
+        print_symtable(child, indent + 2)
+
 # ---------------------------
 
 if __name__ != "__main__":
@@ -300,12 +345,24 @@ pyout = ds2py.run_all(post_pp_listing)
 rdict["ds2py_listing"] = pyout
 save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
-tree = ast.parse(source, mode="exec", optimize=-1)
+my_tree = ast.parse(source, mode="exec", optimize=-1)
+symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
+print_symtable(symtable_root)
+rdict["root_assembly_list"] = []
+rdict["symtable_root"] = symtable_root
+rdict['func_assembly_dict'] = {}
 
-rdict["assembly_list"] = []
-
-for statement in tree.body:
-    rdict['latest_label'] = None
+for statement in my_tree.body:
+    rdict["this_func_name"] = None
+    # print(statement)
     myast.postorder_walk(statement, visit_node, rdict)
 
-print_asslist(rdict['assembly_list'])
+print()
+print_asslist(rdict['root_assembly_list'])
+print()
+
+for key in rdict['func_assembly_dict']:
+    print(f'----FUNC: {key}----')
+    print_asslist(rdict['func_assembly_dict'][key])
+    print(f'----END {key}----')
+

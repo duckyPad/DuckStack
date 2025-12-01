@@ -1,7 +1,6 @@
-VAR $a = 0
-WHILE 1
-    a = a + 1
-    IF $a == 3 THEN
-        LBREAK
-    END_IF
-END_WHILE
+VAR $foo = 3
+FUNCTION test(a, b)
+    VAR $temp = 2*a + b
+    RETURN $temp
+END_FUNCTION
+$foo = $foo + 2

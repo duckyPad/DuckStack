@@ -52,7 +52,7 @@
 | `BRZ` |`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |
 | `JMP` |`7`/`0x7` |Unconditional Jump|ADDR_LSB |ADDR_MSB |
 | `CALL`|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |
-| `RET` |`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` arguments<br>Push `return_value` back on TOS<br>Resumes execution at PC|ARG_COUNT||
+| `RET` |`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items off TOS until `SP == FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` arguments<br>Push `return_value` back on TOS<br>Resumes execution at PC|ARG_COUNT||
 | `HALT`|`10`/`0xa` |Stop execution| | |
 | `VMVER`|`255`/`0xff`| VM Version Check<br>Abort if mismath |VM_VER||
 
@@ -132,8 +132,6 @@ Binary as in **involving two operands**.
 |OLED_RECT|`85`/`0x55`|OLED Draw Rectangle<br>Pop FIVE items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|||
 |OLED_CIRC|`86`/`0x56`|OLED Draw Circle<br>Pop FOUR items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|||
 
-Reserved between 64 and 95 decimal.
-
 ## Calling Convention
 
 * Multiple arguments, one return value.
@@ -211,6 +209,7 @@ At end of a function, `return_value` is on TOS.
 |||
 |:--:|:--:|
 ||`return_value`|
+||`temp data (if any)`|
 |`FP ->`|`Prev_FP \| Return_addr`|
 |`FP - 4`|`a`|
 |`FP - 8`|`b`|
@@ -221,6 +220,7 @@ At end of a function, `return_value` is on TOS.
 **Callee** executes `RET n` instruction, which:
 
 * Pops off `return_value` into temp location
+* Pop items off TOS **until SP = FP**
 * Pops off `frame_info`
 	* Loads `previous FP` into **FP**
 	* Loads `return address` into **PC**

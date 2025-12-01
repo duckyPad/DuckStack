@@ -159,3 +159,43 @@ rdict["assembly_list"] = []
 		postorder_walk(node.target, action, goodies)
 		postorder_walk(node.value, action, goodies)
 		postorder_walk(node.op, action, goodies)
+
+
+def make_instruction_pushc32(value, comment=""):
+    node_value_high = (int(value) & 0xffff0000) >> 16
+    node_value_low = int(value) & 0xffff
+    inst_list = []
+    this_instruction = get_empty_instruction(comment=comment)
+    this_instruction['opcode'] = OP_PUSHC16
+    this_instruction['oparg'] = node_value_low
+    inst_list.append(this_instruction)
+    if node_value_high:
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = node_value_high
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = 16
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_LSHIFT
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_BITOR
+        inst_list.append(this_instruction)
+    return inst_list
+
+if goodies['this_func_name'] is not None:
+        print(f"In function: {goodies['this_func_name']}()!!!")
+
+"""
+elif isinstance(node, ast.FunctionDef):
+		arg_list = node.args.args
+		print("FunctionDef Node: Not Implemented")
+		print_node_info(node)
+		for item in arg_list:
+			print(item.__dict__)
+		exit()
+
+"""

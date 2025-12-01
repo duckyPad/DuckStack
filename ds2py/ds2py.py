@@ -64,6 +64,11 @@ def run_all(program_listing):
             new_obj = copy.deepcopy(line_obj)
             new_obj.content = "break"
             new_listing.append(new_obj)
+        elif first_word == cmd_RETURN:
+            return_expr = this_line[len(cmd_RETURN):].strip()
+            new_obj = copy.deepcopy(line_obj)
+            new_obj.content = f"return {return_expr}"
+            new_listing.append(new_obj)
         elif first_word in ds2py_ignored_cmds:
             continue
         elif first_word == cmd_WHILE:

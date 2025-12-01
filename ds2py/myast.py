@@ -25,6 +25,7 @@ AST_LEAF_NODES = (
 class add_nop:
     def __init__(self, label=''):
         self.label = label
+
 class add_jmp:
     def __init__(self, label=''):
         self.label = label
@@ -35,7 +36,6 @@ def is_leaf(node):
 	return not any(ast.iter_child_nodes(node))
 
 def postorder_walk(node, action, goodies):
-	# print_node_info(node)
 	this_pylnum_sf1 = getattr(node, "lineno", None)
 	this_orig_ds_lnum_sf1 = get_orig_ds_lnumsf1_from_py_lnumsf1(goodies, this_pylnum_sf1)
 	if isinstance(node, ast.Expr):
@@ -66,7 +66,16 @@ def postorder_walk(node, action, goodies):
 			raise ValueError("Multiple Assignments")
 		postorder_walk(node.targets[0], action, goodies)
 	elif isinstance(node, ast.FunctionDef):
-		raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
+		# print_node_info(node)
+		this_func_label = f"func_{node.name}@{this_orig_ds_lnum_sf1}"
+		goodies['this_func_name'] = node.name
+		action(add_nop(this_func_label), goodies)
+		# raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
+		for item in node.body:
+			postorder_walk(item, action, goodies)
+	elif isinstance(node, ast.Return):
+		# raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
+		action(add_nop("dummy"), goodies)
 	elif isinstance(node, ast.AugAssign):
 		raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
 	elif isinstance(node, ast.If):
@@ -100,16 +109,4 @@ def postorder_walk(node, action, goodies):
 	elif is_leaf(node):
 		action(node, goodies)
 	else:
-		print_node_info(node)
 		raise ValueError(f"Unknown AST Node: {node}")
-
-"""
-elif isinstance(node, ast.FunctionDef):
-		arg_list = node.args.args
-		print("FunctionDef Node: Not Implemented")
-		print_node_info(node)
-		for item in arg_list:
-			print(item.__dict__)
-		exit()
-
-"""

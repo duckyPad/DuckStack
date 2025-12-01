@@ -1,5 +1,5 @@
-a = 0
-while 1:
-    a = a + 1
-    if a == 3:
-        break
+foo = 3
+def test(a, b):
+    temp = 2*a + b
+    return temp
+foo = foo + 2
