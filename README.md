@@ -15,7 +15,6 @@
 
 * Flat memory map
 * Byte-addressed
-* Little-endian
 
 |Address|Purpose |Comment |
 |:-:|:--:|:--:|
@@ -31,30 +30,35 @@
 
 ## Instruction Set
 
-**Fixed-length** of **three bytes**.
+**Variable-length** between **1 to 5 bytes**.
 
 * First byte (Byte 0): **Opcode**.
 
-* Second and third byte (Byte 1 and 2): **Optional data**.
-
-* They are treated as **one uint16_t** or **two uint8_t** depending on the instruction.
+* Byte 1 to 4: **Optional payload**.
 
 ## CPU Instructions
 
-|Name| Opcode<br>Byte 0 |Comment | Byte 1| Byte 2|
-|:-:|:-:|:-:|:-:|:-:|
-| `NOP` |`0`/`0x0` |Do nothing| | |
-|`PUSHC16`|`1`/`0x1` |Push a **16-bit** constant on stack| CONST_LSB | CONST_MSB |
-|`PUSHI32`|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|ADDR_LSB |ADDR_MSB |
-|`PUSHR32`|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number<br>Offset: **Signed & byte addressed**.<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
-| `POPI32` |`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|ADDR_LSB |ADDR_MSB |
-|`POPR32`|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**<br>Offset: **Signed & byte addressed**.<br>Positive: Towards larger address / TOS|OFFSET_LSB|OFFSET_MSB|
-| `BRZ` |`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |
-| `JMP` |`7`/`0x7` |Unconditional Jump|ADDR_LSB |ADDR_MSB |
-| `CALL`|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |
-| `RET` |`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items off TOS until `SP == FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` arguments<br>Push `return_value` back on TOS<br>Resumes execution at PC|ARG_COUNT||
-| `HALT`|`10`/`0xa` |Stop execution| | |
-| `VMVER`|`255`/`0xff`| VM Version Check<br>Abort if mismath |VM_VER||
+* **1 stack item** = **1 uint32_t** = 4 **bytes**
+
+* All multi-byte operations are **Little-endian**
+
+* `PUSHR32` / `POPR32` **Offset** is a **byte-addressed signed 16-bit integer**
+	* Positive: Towards larger address / TOS
+
+|Name|Inst.<br>Size|Opcode<br>Byte 0 |Comment| Byte 1| Byte 2| Byte 3| Byte 4|
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|`NOP`|1|`0`/`0x0` |Do nothing|x|x|x|x|
+|`PUSHC32`|5|`1`/`0x1` |Push a **32-bit** constant on stack| CONST_LSB | CONST_B2 |CONST_B3 |CONST_MSB |
+|`PUSHI32`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|ADDR_LSB |ADDR_MSB |x|x|
+|`PUSHR32`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|OFFSET_LSB|OFFSET_MSB|x|x|
+|`POPI32`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|ADDR_LSB |ADDR_MSB |x|x|
+|`POPR32`|3|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**|OFFSET_LSB|OFFSET_MSB|x|x|
+|`BRZ`|3|`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |x|x|
+|`JMP`|3|`7`/`0x7` |Unconditional Jump|ADDR_LSB |ADDR_MSB |x|x|
+|`CALL`|3|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |x|x|
+|`RET`|3|`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items off TOS until `SP == FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|ARG_COUNT|Reserved|x|x|
+|`HALT`|1|`10`/`0xa` |Stop execution|x|x|x|x|
+|`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismath |VM_VER|Reserved|x|x|
 
 ## Binary Operator Instructions
 
