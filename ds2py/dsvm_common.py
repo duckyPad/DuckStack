@@ -37,7 +37,7 @@ cmd_OLED_LINE = "OLED_LINE"
 cmd_OLED_RECT = "OLED_RECT"
 cmd_OLED_CIRCLE = "OLED_CIRCLE"
 
-cmd_BCLR = "BCLR"
+cmd_SWQC = "SWQC"
 
 cmd_LMOUSE = "LMOUSE"
 cmd_RMOUSE = "RMOUSE"
@@ -447,7 +447,7 @@ ds_func_arg_lookup = {
     cmd_OLED_LINE : 4,
     cmd_OLED_RECT : 5,
     cmd_OLED_CIRCLE : 4,
-    cmd_BCLR : 0,
+    cmd_SWQC : 0,
     cmd_MOUSE_MOVE : 2,
     cmd_MOUSE_WHEEL : 1,
     cmd_HALT : 0,

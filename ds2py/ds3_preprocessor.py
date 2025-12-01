@@ -501,7 +501,7 @@ def single_pass(program_listing):
             presult, pcomment = ensure_zero_arg(this_line)
         elif first_word == cmd_OLED_RESTORE:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_BCLR:
+        elif first_word == cmd_SWQC:
             presult, pcomment = ensure_zero_arg(this_line)
         elif first_word == cmd_NEXT_PROFILE:
             presult, pcomment = ensure_zero_arg(this_line)
