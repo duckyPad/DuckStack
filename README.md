@@ -9,6 +9,7 @@
 * Single **Data Stack**
 * Program Counter (PC)
 * Stack Pointer (SP)
+	* Points to **currently occupied entry**
 * Frame Pointer (FP)
 
 ## Memory Map
@@ -18,7 +19,7 @@
 
 |Address|Purpose |Comment |
 |:-:|:--:|:--:|
-|`0000`<br>`EFFF` |Binary<br>Executable|60K Bytes  |
+|`0000`<br>`EFFF` |Binary<br>Executable|60K Bytes|
 |`F000`<br>`F7FF` |Data Stack|2048 Bytes<br>4 Bytes/Entry<br>512 Entries|
 |`F800`<br>`F9FF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|
 |`FA00`<br>`FBFF` |Unused|512 Bytes|
@@ -42,27 +43,29 @@
 
 * All multi-byte operations are **Little-endian**
 
-* `PUSHR32` / `POPR32` **Offset** is a **byte-addressed signed 16-bit integer**
+* `PUSHR` / `POPR` **Offset** is a **byte-addressed signed 16-bit integer**
 	* Positive: Towards larger address / TOS
 
-|Name|Inst.<br>Size|Opcode<br>Byte 0 |Comment| Byte 1| Byte 2| Byte 3| Byte 4|
-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|`NOP`|1|`0`/`0x0` |Do nothing|x|x|x|x|
-|`PUSHC32`|5|`1`/`0x1` |Push a **32-bit** constant on stack| CONST_LSB | CONST_B2 |CONST_B3 |CONST_MSB |
-|`PUSHI32`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|ADDR_LSB |ADDR_MSB |x|x|
-|`PUSHR32`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|OFFSET_LSB|OFFSET_MSB|x|x|
-|`POPI32`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|ADDR_LSB |ADDR_MSB |x|x|
-|`POPR32`|3|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**|OFFSET_LSB|OFFSET_MSB|x|x|
-|`BRZ`|3|`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |ADDR_LSB |ADDR_MSB |x|x|
-|`JMP`|3|`7`/`0x7` |Unconditional Jump|ADDR_LSB |ADDR_MSB |x|x|
-|`CALL`|3|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|ADDR_LSB |ADDR_MSB |x|x|
-|`RET`|3|`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items off TOS until `SP == FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|ARG_COUNT|Reserved|x|x|
-|`HALT`|1|`10`/`0xa` |Stop execution|x|x|x|x|
-|`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismath |VM_VER|Reserved|x|x|
+|Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-4|
+|:-:|:-:|:-:|:-:|:-:|
+|`NOP`|1|`0`/`0x0` |Do nothing|None|
+|`PUSHC`|5|`1`/`0x1` |Push a **32-bit** constant on stack|4 Bytes:<br>`CONST_LSB`<br>`CONST_B2`<br>`CONST_B3`<br>`CONST_MSB` |
+|`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
+|`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|`POPR`|3|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
+|`BRZ`|3|`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|`JMP`|3|`7`/`0x7` |Unconditional Jump|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|`CALL`|3|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|`RET`|3|`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items off TOS until `SP == FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
+|`HALT`|1|`10`/`0xa` |Stop execution|None|
+|`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ## Binary Operator Instructions
 
 Binary as in **involving two operands**.
+
+* All **single-byte** instruction
 
 * Pop **TWO** items off TOS
 
@@ -72,29 +75,31 @@ Binary as in **involving two operands**.
 
 * Push result back on TOS
 
-|Name|Opcode<br>Byte 0|Comment|Byte 1|Byte2|
-|:--:|:--:|:--:|:--:|:--:|
-|EQ|`32`/`0x20`|Equal|||
-|NOTEQ|`33`/`0x21`|Not equal|||
-|LT|`34`/`0x22`|Less than|||
-|LTE|`35`/`0x23`|Less than or equal|||
-|GT|`36`/`0x24`|Greater than|||
-|GTE|`37`/`0x25`|Greater than or equal|||
-|ADD|`38`/`0x26`|Add|||
-|SUB|`39`/`0x27`|Subtract|||
-|MULT|`40`/`0x28`|Multiply|||
-|DIV|`41`/`0x29`|Integer division|||
-|MOD|`42`/`0x2a`|Modulus|||
-|POW|`43`/`0x2b`|Power of|||
-|LSHIFT|`44`/`0x2c`|Logical left shift|||
-|RSHIFT|`45`/`0x2d`|Logical right shift|||
-|BITOR|`46`/`0x2e`|Bitwise OR|||
-|BITXOR|`47`/`0x2f`|Bitwise XOR|||
-|BITAND|`48`/`0x30`|Bitwise AND|||
-|LOGIAND|`49`/`0x31`|Logical AND|||
-|LOGIOR|`50`/`0x32`|Logical OR|||
+|Name|Opcode<br>Byte 0|Comment|
+|:--:|:--:|:--:|
+|EQ|`32`/`0x20`|Equal|
+|NOTEQ|`33`/`0x21`|Not equal|
+|LT|`34`/`0x22`|Less than|
+|LTE|`35`/`0x23`|Less than or equal|
+|GT|`36`/`0x24`|Greater than|
+|GTE|`37`/`0x25`|Greater than or equal|
+|ADD|`38`/`0x26`|Add|
+|SUB|`39`/`0x27`|Subtract|
+|MULT|`40`/`0x28`|Multiply|
+|DIV|`41`/`0x29`|Integer division|
+|MOD|`42`/`0x2a`|Modulus|
+|POW|`43`/`0x2b`|Power of|
+|LSHIFT|`44`/`0x2c`|Logical left shift|
+|RSHIFT|`45`/`0x2d`|Logical right shift|
+|BITOR|`46`/`0x2e`|Bitwise OR|
+|BITXOR|`47`/`0x2f`|Bitwise XOR|
+|BITAND|`48`/`0x30`|Bitwise AND|
+|LOGIAND|`49`/`0x31`|Logical AND|
+|LOGIOR|`50`/`0x32`|Logical OR|
 
 ## Unary Operators
+
+* All **single-byte** instruction
 
 * Pop **ONE** items off TOS
 
@@ -102,39 +107,39 @@ Binary as in **involving two operands**.
 
 * Push result back on TOS
 
-|Name|Opcode<br>Byte 0|Comment|Byte 1|Byte2|
-|:--:|:--:|:--:|:--:|:--:|
-|BITINV|`55`/`0x37`|Bitwise Invert|||
-|LOGINOT|`56`/`0x38`|Logical NOT|||
-|USUB|`57`/`0x39`|Unary Minus|||
+|Name|Opcode<br>Byte 0|Comment|
+|:--:|:--:|:--:|
+|BITINV|`55`/`0x37`|Bitwise Invert|
+|LOGINOT|`56`/`0x38`|Logical NOT|
+|USUB|`57`/`0x39`|Unary Minus|
 
 ## duckyScript Command Instructions
 
-|Name| Opcode<br>Byte 0|Comment | Byte 1| Byte 2|
+|Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-4|
 |:-------:|:----:|:----------:|:---------:|:---------:|
-|DELAY|`64`/`0x40`| Pop one item off TOS<br>Delay the amount in milliseconds| | |
-|KUP|`65`/`0x41`|**Release Key**<br>Pop ONE item<br>Upper byte: KEYTYPE<br>Lower byte: KEYCODE |||
-|KDOWN|`66`/`0x42`| **Press Key**<br>Pop ONE item<br>Upper byte: KEYTYPE<br>Lower byte: KEYCODE |||
-|MSCL|`67`/`0x43`| **Mouse Scroll**<br>Pop ONE item<br>Scroll number of lines || |
-|MMOV|`68`/`0x44`|**Mouse Move**<br>Pop TWO items<br>Move X and Y|||
-|SWCF|`69`/`0x45`| **Switch Color Fill**<br>Pop THREE items<br>Red, Green, Blue<br>Set ALL LED color to the RGB value | | |
-|SWCC|`70`/`0x46`| **Switch Color Change**<br>Pop FOUR items<br>N, Red, Green, Blue<br>Set N-th switch to the RGB value<br>If N is 0, set current switch. | | |
-|SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop one item off TOS<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys | | |
-|STR|`72`/`0x48`|Print zero-terminated string at ADDR |ADDR_LSB |ADDR_MSB |
-|STRLN|`73`/`0x49`|Same as above, presses ENTER at end |ADDR_LSB | ADDR_MSB |
-|OLED_CUSR|`74`/`0x4a`|**OLED_CURSOR**<br>Pop TWO items<br>X and Y<br>| | |
-|OLED_PRNT|`75`/`0x4b`|Print zero-terminated string at ADDR to OLED |ADDR_LSB |ADDR_MSB |
-|OLED_UPDE|`76`/`0x4c`|**OLED_UPDATE** | | |
-|OLED_CLR|`77`/`0x4d`|**OLED_CLEAR**| | |
-|OLED_REST|`78`/`0x4e`| **OLED_RESTORE** | | |
-|BCLR|`79`/`0x4f`|Clear switch event queue | | |
-|PREVP|`80`/`0x50`| Previous profile | | |
-|NEXTP|`81`/`0x51`| Next profile | | |
-|GOTOP|`82`/`0x52`| Pop one item<br>Go to profile of its value | | |
-|SLEEP|`83`/`0x53`| Put duckyPad to sleep<br>Terminates execution| | |
-|OLED_LINE|`84`/`0x54`|OLED Draw Line<br>Pop FOUR items<br>`x1, y1, x2, y2`<br>Draw single-pixel line inbetween |||
-|OLED_RECT|`85`/`0x55`|OLED Draw Rectangle<br>Pop FIVE items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|||
-|OLED_CIRC|`86`/`0x56`|OLED Draw Circle<br>Pop FOUR items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|||
+|DELAY|1|`64`/`0x40`| Pop one item off TOS<br>Delay the amount in milliseconds|None|
+|KUP|1|`65`/`0x41`|**Release Key**<br>Pop ONE item<br>Upper byte: KEYTYPE<br>Lower byte: KEYCODE|None|
+|KDOWN|1|`66`/`0x42`| **Press Key**<br>Pop ONE item<br>Upper byte: KEYTYPE<br>Lower byte: KEYCODE|None|
+|MSCL|1|`67`/`0x43`| **Mouse Scroll**<br>Pop ONE item<br>Scroll number of lines|None|
+|MMOV|1|`68`/`0x44`|**Mouse Move**<br>Pop TWO items<br>Move X and Y|None|
+|SWCF|1|`69`/`0x45`| **Switch Color Fill**<br>Pop THREE items<br>Red, Green, Blue<br>Set ALL LED color to the RGB value|None|
+|SWCC|1|`70`/`0x46`| **Switch Color Change**<br>Pop FOUR items<br>N, Red, Green, Blue<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|None|
+|SWCR|1|`71`/`0x47`| **Switch Color Reset**<br>Pop one item off TOS<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|None|
+|STR|1|`72`/`0x48`|Print zero-terminated string at ADDR |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|STRLN|1|`73`/`0x49`|Same as above, presses ENTER at end |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|OLED_CUSR|1|`74`/`0x4a`|**OLED_CURSOR**<br>Pop TWO items<br>X and Y|None|
+|OLED_PRNT|1|`75`/`0x4b`|Print zero-terminated string at ADDR to OLED |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|OLED_UPDE|1|`76`/`0x4c`|**OLED_UPDATE**|None|
+|OLED_CLR|1|`77`/`0x4d`|**OLED_CLEAR**|None|
+|OLED_REST|1|`78`/`0x4e`| **OLED_RESTORE**|None|
+|BCLR|1|`79`/`0x4f`|Clear switch event queue|None|
+|PREVP|1|`80`/`0x50`| Previous profile|None|
+|NEXTP|1|`81`/`0x51`| Next profile|None|
+|GOTOP|1|`82`/`0x52`| Pop one item<br>Go to profile of its value|None|
+|SLEEP|1|`83`/`0x53`| Put duckyPad to sleep<br>Terminates execution|None|
+|OLED_LINE|1|`84`/`0x54`|OLED Draw Line<br>Pop FOUR items<br>`x1, y1, x2, y2`<br>Draw single-pixel line in-between|None|
+|OLED_RECT|1|`85`/`0x55`|OLED Draw Rectangle<br>Pop FIVE items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|None|
+|OLED_CIRC|1|`86`/`0x56`|OLED Draw Circle<br>Pop FOUR items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|None|
 
 ## Calling Convention
 
@@ -193,7 +198,7 @@ To reference arguments, **FP + Byte_Offset** is used.
 * **Negative** offset towards **smaller address / bottom of stack**.
 * `FP - 4` points to **leftmost argument**
 * `FP - 8` points to **second from left**, etc.
-* Use `PUSHR32 + Offset` and `POPR32 + Offset` to read/write to arguments.
+* Use `PUSHR + Offset` and `POPR + Offset` to read/write to arguments.
 
 |||
 |:--:|:--:|
