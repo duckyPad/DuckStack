@@ -36,7 +36,7 @@ DS_VM_VERSION = 2
 # CPU instructions
 OP_VMVER = ("VMVER", 255)
 OP_NOP = ("NOP", 0)
-OP_PUSHC = ("PUSHC", 1)
+OP_PUSHC16 = ("PUSHC16", 1)
 OP_PUSHI = ("PUSHI", 2)
 OP_PUSHR = ("PUSHR", 3)
 OP_POPI = ("POPI", 4)
@@ -137,6 +137,31 @@ def get_empty_instruction(comment="", orig_lnum_sf1=None, py_lnum_sf1=None):
     'orig_lnum_sf1':orig_lnum_sf1,
     'py_lnum_sf1':py_lnum_sf1,
     }
+
+def make_instruction_pushc32(value, comment=""):
+    node_value_high = (int(value) & 0xffff0000) >> 16
+    node_value_low = int(value) & 0xffff
+    inst_list = []
+    this_instruction = get_empty_instruction(comment=comment)
+    this_instruction['opcode'] = OP_PUSHC16
+    this_instruction['oparg'] = node_value_low
+    inst_list.append(this_instruction)
+    if node_value_high:
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = node_value_high
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_PUSHC16
+        this_instruction['oparg'] = 16
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_LSHIFT
+        inst_list.append(this_instruction)
+        this_instruction = get_empty_instruction(comment=comment)
+        this_instruction['opcode'] = OP_BITOR
+        inst_list.append(this_instruction)
+    return inst_list
 
 def print_instruction(instruction):
     if instruction['label'] is not None and len(instruction['label']):
@@ -251,10 +276,7 @@ def visit_node(node, goodies):
     if isinstance(node, ast.Name):
         visit_name_node(node, goodies, instruction_list)
     elif isinstance(node, ast.Constant):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_PUSHC
-        this_instruction['oparg'] = node.value
-        instruction_list.append(this_instruction)
+        instruction_list += make_instruction_pushc32(node.value, og_ds_line)
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
         if op_name not in arith_lookup:
@@ -307,7 +329,7 @@ def visit_node(node, goodies):
         instruction_list.append(this_instruction)
     elif isinstance(node, myast.add_push0):
         this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_PUSHC
+        this_instruction['opcode'] = OP_PUSHC16
         this_instruction['oparg'] = 0
         this_instruction['label'] = node.label
         instruction_list.append(this_instruction)

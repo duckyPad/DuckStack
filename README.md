@@ -49,7 +49,7 @@
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-4|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSHC`|5|`1`/`0x1` |Push a **32-bit** constant on stack|4 Bytes:<br>`CONST_LSB`<br>`CONST_B2`<br>`CONST_B3`<br>`CONST_MSB` |
+|`PUSHC`|3|`1`/`0x1` |Push a **16-bit** constant on stack|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
@@ -129,11 +129,11 @@ Binary as in **involving two operands**.
 |SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop ONE item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
 |STR|`72`/`0x48`|**Type String**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR`|None||
 |STRLN|`73`/`0x49`|**Type Line**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR`<br>**Press ENTER at end**|
-|OLED_CUSR|`74`/`0x4a`|**OLED_CURSOR**<br>Pop ONE item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|X\|Y\|`|
-|OLED_PRNT|`75`/`0x4b`|**OLED_PRINT**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR` to OLED|None|
-|OLED_UPDE|`76`/`0x4c`|**OLED_UPDATE**|
-|OLED_CLR|`77`/`0x4d`|**OLED_CLEAR**|
-|OLED_REST|`78`/`0x4e`| **OLED_RESTORE**|
+|OLED_CUSR|`74`/`0x4a`|**Set OLED Cursor**<br>Pop ONE item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|X\|Y\|`|
+|OLED_PRNT|`75`/`0x4b`|**OLED Print**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR` to OLED|None|
+|OLED_UPDE|`76`/`0x4c`|**OLED Update**|
+|OLED_CLR|`77`/`0x4d`|**OLED Clear**|
+|OLED_REST|`78`/`0x4e`| **OLED Restore**|
 |OLED_LINE|`79`/`0x4f`|**OLED Draw Line**<br>Pop ONE item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|x1\|y1\|x2\|y2\|`<br>Draw single-pixel line in-between|
 |OLED_RECT|`80`/`0x50`|**OLED Draw Rectangle**<br>Pop TWO items<br>First item:<br>`\|Unused\|Unused\|Unused\|Fill\|`<br>Second Item:<br>`\|x1\|y1\|x2\|y2\|`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|
 |OLED_CIRC|`81`/`0x51`|**OLED Draw Circle**<br>Pop ONE item<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
