@@ -266,3 +266,5 @@ generate PGV save flag on DSVM itself not compiler
 	* By combining `PUSH16`, `LSHIFT`, and `BITOR.
 
 * Opcode New Values
+
+variable instruction length
