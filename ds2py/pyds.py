@@ -1,4 +1,4 @@
 foo = 3
-def double(a):
+def test(a):
     return a * 2
-foo = double(foo)
+foo = test(7)

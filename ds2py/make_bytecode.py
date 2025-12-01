@@ -182,21 +182,6 @@ def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
     # print(rdict['orig_listing'])
     return rdict['orig_listing'][og_index_sf0].content
 
-def find_function_table(root: symtable.SymbolTable, func_name: str):
-    for child in root.get_children():
-        if child.get_type() == 'function' and child.get_name() == func_name:
-            return child
-        found = find_function_table(child, func_name)
-        if found is not None:
-            return found
-    return None
-
-def how_many_args(name: str, table: symtable.SymbolTable):
-    func_table = find_function_table(table, name)
-    if func_table is None:
-        return None
-    return len(func_table.get_parameters())
-
 SYM_TYPE_GLOBAL_VAR = 0
 SYM_TYPE_FUNC_ARG = 1
 
@@ -207,13 +192,13 @@ def classify_name(name: str,
     if current_function is None:
         table = root_table
     else:
-        table = find_function_table(root_table, current_function)
+        table = myast.find_function_table(root_table, current_function)
         if table is None:
             raise ValueError(f"No symtable for function {current_function!r}")
     try:
         sym = table.lookup(name)
         if sym.is_local() is False:
-            raise ValueError(f"Symbol {name} not found")
+            raise ValueError(f"Symbol \"{name}\" not found")
     except KeyError:
         # name is not known in this scope at all
         raise ValueError(f"Symbol {name} not found")
@@ -291,10 +276,18 @@ def visit_node(node, goodies):
         this_instruction['opcode'] = OP_JMP
         this_instruction['oparg'] = goodies['while_end_label']
         instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Call):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_CALL
+        this_instruction['oparg'] = f"func_{node.func.id}"
+        instruction_list.append(this_instruction)
     elif isinstance(node, ast.Return):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_RET
-        this_instruction['oparg'] = how_many_args(current_function, goodies['symtable_root'])
+        arg_count = myast.how_many_args(current_function, goodies['symtable_root'])
+        if arg_count == None:
+            raise ValueError("Invalid arg count")
+        this_instruction['oparg'] = arg_count
         instruction_list.append(this_instruction)
     elif isinstance(node, myast.add_nop):
         this_instruction = get_empty_instruction(comment=og_ds_line)
@@ -365,7 +358,7 @@ save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 my_tree = ast.parse(source, mode="exec", optimize=-1)
 symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
-# print_symtable(symtable_root)
+print_symtable(symtable_root)
 rdict["root_assembly_list"] = []
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}

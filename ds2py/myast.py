@@ -1,5 +1,21 @@
 import sys
 import ast
+import symtable
+
+def find_function_table(root: symtable.SymbolTable, func_name: str):
+    for child in root.get_children():
+        if child.get_type() == 'function' and child.get_name() == func_name:
+            return child
+        found = find_function_table(child, func_name)
+        if found is not None:
+            return found
+    return None
+
+def how_many_args(name: str, table: symtable.SymbolTable):
+    func_table = find_function_table(table, name)
+    if func_table is None:
+        return None
+    return len(func_table.get_parameters())
 
 def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1):
     if this_pylnum_sf1 is None:
@@ -70,7 +86,7 @@ def postorder_walk(node, action, goodies):
 			raise ValueError("Multiple Assignments")
 		postorder_walk(node.targets[0], action, goodies)
 	elif isinstance(node, ast.FunctionDef):
-		this_func_label = f"func_{node.name}@{this_orig_ds_lnum_sf1}"
+		this_func_label = f"func_{node.name}"
 		goodies['this_func_name'] = node.name
 		action(add_nop(this_func_label), goodies)
 		for item in node.body:
@@ -111,6 +127,14 @@ def postorder_walk(node, action, goodies):
 			postorder_walk(item, action, goodies)
 		action(add_jmp(while_start_label), goodies)
 		action(add_nop(while_end_label), goodies)
+	elif isinstance(node, ast.Call):
+		print_node_info(node)
+		func_name = node.func.id
+		if len(node.args) != how_many_args(func_name, goodies['symtable_root']):
+			raise ValueError("Wrong number of arguments")
+		for item in node.args:
+			postorder_walk(item, action, goodies)
+		action(node, goodies)
 	elif is_leaf(node):
 		action(node, goodies)
 	else:

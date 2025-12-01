@@ -1,5 +1,5 @@
 VAR $foo = 3
-FUNCTION double(a)
+FUNCTION test(a)
     RETURN a * 2
 END_FUNCTION
-$foo = double($foo)
+$foo = test(7)
