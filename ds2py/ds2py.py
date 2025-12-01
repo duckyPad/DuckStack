@@ -56,6 +56,14 @@ def run_all(program_listing):
             new_obj = copy.deepcopy(line_obj)
             new_obj.content = "else:"
             new_listing.append(new_obj)
+        elif first_word == cmd_CONTINUE:
+            new_obj = copy.deepcopy(line_obj)
+            new_obj.content = "continue"
+            new_listing.append(new_obj)
+        elif first_word == cmd_LOOP_BREAK:
+            new_obj = copy.deepcopy(line_obj)
+            new_obj.content = "break"
+            new_listing.append(new_obj)
         elif first_word in ds2py_ignored_cmds:
             continue
         elif first_word == cmd_WHILE:

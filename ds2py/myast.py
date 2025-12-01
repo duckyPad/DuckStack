@@ -66,7 +66,9 @@ def postorder_walk(node, action, goodies):
 			raise ValueError("Multiple Assignments")
 		postorder_walk(node.targets[0], action, goodies)
 	elif isinstance(node, ast.FunctionDef):
-		raise ValueError("FunctionDef Node: Not Implemented")
+		raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
+	elif isinstance(node, ast.AugAssign):
+		raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
 	elif isinstance(node, ast.If):
 		if_skip_label = f"{node.__class__.__name__}_skip@{this_orig_ds_lnum_sf1}"
 		if_end_label = f"{node.__class__.__name__}_end@{this_orig_ds_lnum_sf1}"
@@ -83,11 +85,23 @@ def postorder_walk(node, action, goodies):
 			for item in node.orelse:
 				postorder_walk(item, action, goodies)
 		action(add_nop(if_end_label), goodies)
+	elif isinstance(node, ast.While):
+		while_start_label = f"{node.__class__.__name__}_start@{this_orig_ds_lnum_sf1}"
+		while_end_label = f"{node.__class__.__name__}_end@{this_orig_ds_lnum_sf1}"
+		action(add_nop(while_start_label), goodies)
+		postorder_walk(node.test, action, goodies)
+		goodies['while_start_label'] = while_start_label
+		goodies['while_end_label'] = while_end_label
+		action(node, goodies)
+		for item in node.body:
+			postorder_walk(item, action, goodies)
+		action(add_jmp(while_start_label), goodies)
+		action(add_nop(while_end_label), goodies)
 	elif is_leaf(node):
 		action(node, goodies)
 	else:
 		print_node_info(node)
-		raise ValueError(f"Unknown AST Node")
+		raise ValueError(f"Unknown AST Node: {node}")
 
 """
 elif isinstance(node, ast.FunctionDef):

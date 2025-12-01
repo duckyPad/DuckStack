@@ -155,3 +155,7 @@ rdict["assembly_list"] = []
 # rdict["func_assembly_dict"] = {}
 # rdict["parent_history_list"] = []
 		goodies['if_take_label'] = f"{node.__class__.__name__}_take@{this_orig_ds_lnum_sf1}"
+	elif isinstance(node, ast.AugAssign):
+		postorder_walk(node.target, action, goodies)
+		postorder_walk(node.value, action, goodies)
+		postorder_walk(node.op, action, goodies)

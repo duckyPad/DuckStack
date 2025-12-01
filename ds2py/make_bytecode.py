@@ -238,6 +238,21 @@ def visit_node(node, goodies):
         this_instruction['opcode'] = OP_BRZ
         this_instruction['oparg'] = goodies['if_destination_label']
         instruction_list.append(this_instruction)
+    elif isinstance(node, ast.While):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_BRZ
+        this_instruction['oparg'] = goodies['while_end_label']
+        instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Continue):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_JMP
+        this_instruction['oparg'] = goodies['while_start_label']
+        instruction_list.append(this_instruction)
+    elif isinstance(node, ast.Break):
+        this_instruction = get_empty_instruction(comment=og_ds_line)
+        this_instruction['opcode'] = OP_JMP
+        this_instruction['oparg'] = goodies['while_end_label']
+        instruction_list.append(this_instruction)
     elif isinstance(node, myast.add_nop):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_NOP
