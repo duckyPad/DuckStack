@@ -130,7 +130,12 @@ def postorder_walk(node, action, goodies):
 	elif isinstance(node, ast.Call):
 		print_node_info(node)
 		func_name = node.func.id
-		if len(node.args) != how_many_args(func_name, goodies['symtable_root']):
+		callee_arg_count = len(node.args)
+		func_arg_count = how_many_args(func_name, goodies['symtable_root'])
+		# is_builtin_func(name) do it here
+		if func_arg_count is None:
+			raise ValueError(f"Function {func_name}() not found")
+		if callee_arg_count != func_arg_count:
 			raise ValueError("Wrong number of arguments")
 		for item in node.args:
 			postorder_walk(item, action, goodies)
