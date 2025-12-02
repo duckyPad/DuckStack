@@ -62,40 +62,22 @@ arith_lookup = {
     "USub" : OP_USUB,
 }
 
-def get_empty_instruction(comment="", orig_lnum_sf1=None, py_lnum_sf1=None):
-    return {
-    'opcode':OP_NOP,
-    'payload':None,
-    'label':None,
-    'comment':comment,
-    'addr':None,
-    'orig_lnum_sf1':orig_lnum_sf1,
-    'py_lnum_sf1':py_lnum_sf1,
-    }
+def make_instruction_pushc32(value, comment: str = ""):
+    node_value_high = (int(value) & 0xFFFF0000) >> 16
+    node_value_low  = int(value) & 0xFFFF
 
-def make_instruction_pushc32(value, comment=""):
-    node_value_high = (int(value) & 0xffff0000) >> 16
-    node_value_low = int(value) & 0xffff
-    inst_list = []
-    this_instruction = get_empty_instruction(comment=comment)
-    this_instruction['opcode'] = OP_PUSHC16
-    this_instruction['payload'] = node_value_low
-    inst_list.append(this_instruction)
+    inst_list: list[dsvm_instruction] = []
+
+    # low 16
+    inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment))
+
+    # if high 16 is non-zero, build (high << 16) | low
     if node_value_high:
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['payload'] = node_value_high
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['payload'] = 16
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_LSHIFT
-        inst_list.append(this_instruction)
-        this_instruction = get_empty_instruction(comment=comment)
-        this_instruction['opcode'] = OP_BITOR
-        inst_list.append(this_instruction)
+        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_high, comment=comment))
+        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=16, comment=comment))
+        inst_list.append(dsvm_instruction(opcode=OP_LSHIFT, comment=comment))
+        inst_list.append(dsvm_instruction(opcode=OP_BITOR, comment=comment))
+
     return inst_list
 
 def print_assembly_list(asmlist):
@@ -156,115 +138,94 @@ def classify_name(name: str,
     return SYM_TYPE_GLOBAL_VAR
 
 def visit_name_node(node, goodies, inst_list):
-    og_ds_line = goodies['og_ds_line']
-    current_function = goodies['this_func_name']
-    symtable_root = goodies['symtable_root']
+    og_ds_line = goodies["og_ds_line"]
+    current_function = goodies["this_func_name"]
+    symtable_root = goodies["symtable_root"]
 
     sym_type = classify_name(node.id, current_function, symtable_root)
+    name = str(node.id)
+
     if isinstance(node.ctx, ast.Store):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        if sym_type == SYM_TYPE_FUNC_ARG:
-            this_instruction['opcode'] = OP_POPR
-        else:
-            this_instruction['opcode'] = OP_POPI
-        this_instruction['payload'] = str(node.id)
-        inst_list.append(this_instruction)
-    elif isinstance(node.ctx, ast.Load):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        if sym_type == SYM_TYPE_FUNC_ARG:
-            this_instruction['opcode'] = OP_PUSHR
-        else:
-            this_instruction['opcode'] = OP_PUSHI
-        this_instruction['payload'] = str(node.id)
-        inst_list.append(this_instruction)
+        opcode = OP_POPR if sym_type == SYM_TYPE_FUNC_ARG else OP_POPI
+        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line))
+        return
+
+    if isinstance(node.ctx, ast.Load):
+        opcode = OP_PUSHR if sym_type == SYM_TYPE_FUNC_ARG else OP_PUSHI
+        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line))
 
 def visit_node(node, goodies):
-    current_function = goodies['this_func_name']
+    current_function = goodies.get("this_func_name")
+
+    # Pick the right instruction list (root vs function)
     if current_function is None:
-        instruction_list = goodies['root_assembly_list']
-    elif current_function not in goodies['func_assembly_dict']:
-        goodies['func_assembly_dict'][current_function] = []
-        instruction_list = goodies['func_assembly_dict'][current_function]
+        instruction_list = goodies["root_assembly_list"]
     else:
-        instruction_list = goodies['func_assembly_dict'][current_function]
+        instruction_list = goodies["func_assembly_dict"].setdefault(current_function, [])
+
     og_ds_line = get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
-    # print(current_function, og_ds_line)
-    goodies['og_ds_line'] = og_ds_line
+    goodies["og_ds_line"] = og_ds_line
+
+    def emit(opcode, payload=None, label=None):
+        instruction_list.append(
+            dsvm_instruction(opcode=opcode, payload=payload, label=label, comment=og_ds_line)
+        )
+
     if isinstance(node, ast.Name):
         visit_name_node(node, goodies, instruction_list)
+
     elif isinstance(node, ast.Constant):
         if isinstance(node.value, str):
-            this_instruction = get_empty_instruction(comment=og_ds_line)
-            this_instruction['opcode'] = OP_PUSHSTR
-            this_instruction['payload'] = node.value
-            instruction_list.append(this_instruction)
+            emit(OP_PUSHSTR, payload=node.value)
         elif isinstance(node.value, int):
-            instruction_list += make_instruction_pushc32(node.value, og_ds_line)
+            # assumes make_instruction_pushc32 now returns list[dsvm_instruction]
+            instruction_list.extend(make_instruction_pushc32(node.value, og_ds_line))
         else:
             raise ValueError("Unknown type:", type(node.value))
+
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
         if op_name not in arith_lookup:
             raise ValueError("unknown operation")
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = arith_lookup[op_name]
-        instruction_list.append(this_instruction)
+        emit(arith_lookup[op_name])
+
     elif isinstance(node, ast.If):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_BRZ
-        this_instruction['payload'] = goodies['if_destination_label']
-        instruction_list.append(this_instruction)
+        emit(OP_BRZ, payload=goodies["if_destination_label"])
+
     elif isinstance(node, ast.While):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_BRZ
-        this_instruction['payload'] = goodies['while_end_label']
-        instruction_list.append(this_instruction)
+        emit(OP_BRZ, payload=goodies["while_end_label"])
+
     elif isinstance(node, ast.Continue):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_JMP
-        this_instruction['payload'] = goodies['while_start_label']
-        instruction_list.append(this_instruction)
+        emit(OP_JMP, payload=goodies["while_start_label"])
+
     elif isinstance(node, ast.Break):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_JMP
-        this_instruction['payload'] = goodies['while_end_label']
-        instruction_list.append(this_instruction)
+        emit(OP_JMP, payload=goodies["while_end_label"])
+
     elif isinstance(node, ast.Call):
         func_name = node.func.id
-        this_instruction = get_empty_instruction(comment=og_ds_line)
         if func_name in ds_reserved_funcs:
-            this_instruction['opcode'] = ds_reserved_funcs[func_name][0]
+            emit(ds_reserved_funcs[func_name][0])
         else:
-            this_instruction['opcode'] = OP_CALL
-            this_instruction['payload'] = f"func_{func_name}"
-        instruction_list.append(this_instruction)
+            emit(OP_CALL, payload=f"func_{func_name}")
+
     elif isinstance(node, ast.Return):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_RET
-        arg_count = myast.how_many_args(current_function, goodies['symtable_root'])
-        if arg_count == None:
+        arg_count = myast.how_many_args(current_function, goodies["symtable_root"])
+        if arg_count is None:
             raise ValueError("Invalid arg count")
-        this_instruction['payload'] = arg_count
-        instruction_list.append(this_instruction)
+        emit(OP_RET, payload=arg_count)
+
     elif isinstance(node, myast.add_nop):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_NOP
-        this_instruction['label'] = node.label
-        instruction_list.append(this_instruction)
+        emit(OP_NOP, label=node.label)
+
     elif isinstance(node, myast.add_jmp):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_JMP
-        this_instruction['payload'] = node.label
-        instruction_list.append(this_instruction)
+        emit(OP_JMP, payload=node.label)
+
     elif isinstance(node, myast.add_push0):
-        this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['payload'] = 0
-        this_instruction['label'] = node.label
-        instruction_list.append(this_instruction)
+        emit(OP_PUSHC16, payload=0, label=node.label)
+
     else:
         raise ValueError("Unknown leaf node:", node)
-    
+
 def print_symtable(tbl, indent=0):
     pad = " " * indent
     print(f"{pad}Table ({tbl.get_type()}): {tbl.get_name()}")
