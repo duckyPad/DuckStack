@@ -459,6 +459,12 @@ ds_builtin_func_lookup = {
     cmd_HALT : ("halt", 0),
 }
 
+ds_reserved_func_names = set()
+for key in ds_str_func_lookup:
+    ds_reserved_func_names.add(ds_str_func_lookup[key])
+for key in ds_builtin_func_lookup:
+    ds_reserved_func_names.add(ds_builtin_func_lookup[key][0])
+
 ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
 
 def get_pretty_ds_line_list(dslist):

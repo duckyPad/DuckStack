@@ -1,2 +1,3 @@
+_NEEDS_EPILOGUE = 2
 test = -1
-oled_rect(1dfgsrthth)
+swcc(1, 2, 3, 4)

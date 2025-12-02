@@ -1,6 +1,7 @@
 import sys
 import ast
 import symtable
+from dsvm_common import *
 
 def find_function_table(root: symtable.SymbolTable, func_name: str):
     for child in root.get_children():
@@ -128,18 +129,21 @@ def postorder_walk(node, action, goodies):
         action(add_jmp(while_start_label), goodies)
         action(add_nop(while_end_label), goodies)
     elif isinstance(node, ast.Call):
-        print_node_info(node)
         func_name = node.func.id
-        callee_arg_count = len(node.args)
-        func_arg_count = how_many_args(func_name, goodies['symtable_root'])
-        # is_builtin_func(name) do it here
-        if func_arg_count is None:
+        caller_arg_count = len(node.args)
+        if func_name in ds_reserved_func_names:
+            callee_arg_count = 0
+        else:
+            callee_arg_count = how_many_args(func_name, goodies['symtable_root'])
+        print(func_name, caller_arg_count, callee_arg_count)
+        if callee_arg_count is None:
             raise ValueError(f"Function {func_name}() not found")
-        if callee_arg_count != func_arg_count:
+        if caller_arg_count != callee_arg_count:
             raise ValueError("Wrong number of arguments")
         for item in node.args:
             postorder_walk(item, action, goodies)
         action(node, goodies)
+ 
     elif is_leaf(node):
         action(node, goodies)
     else:
