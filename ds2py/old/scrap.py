@@ -212,3 +212,28 @@ elif isinstance(node, ast.FunctionDef):
     #     new_listing.append(new_obj)
     #     new_obj = ds_line(content="pass", indent_lvl=1)
     #     new_listing.append(new_obj)
+
+
+def print_instruction(instruction):
+    if instruction['label'] is not None and len(instruction['label']):
+        print(f"~~~~{instruction['label']}:")
+
+    if instruction['addr'] is not None:
+        print(str(instruction['addr']).ljust(5), end='')
+    print(instruction['opcode'][0].ljust(10), end='')
+    tempstr = ""
+    this_payload = instruction['payload']
+    if this_payload is not None:
+        if isinstance(this_payload, str) and len(this_payload) > 14:
+            this_payload = f"{this_payload[:14]}..."
+        tempstr = f"{this_payload}".ljust(6)
+        if isinstance(this_payload, int):
+            tempstr += f"{hex(this_payload)}".ljust(6)
+    print(tempstr.ljust(20), end='')
+    tempstr = ""
+    this_comment = str(instruction['comment'])
+    if len(this_comment) > 32:
+        tempstr = ";" + str(instruction['comment'].strip())[:32] + "..."
+    elif len(this_comment) > 0:
+        tempstr = ";" + str(instruction['comment'].strip())
+    print(tempstr)

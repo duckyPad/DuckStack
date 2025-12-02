@@ -553,3 +553,56 @@ def dsline_to_source(dslist):
     for line in lines:
         result += f"{line}\n"
     return result
+
+class dsvm_instruction:
+    LABEL_PREFIX = "~~~~"
+    ADDR_WIDTH = 5
+    OPCODE_WIDTH = 10
+    PAYLOAD_STR_MAX = 14
+    PAYLOAD_FIELD_WIDTH = 6
+    PAYLOAD_BLOCK_WIDTH = 20
+    COMMENT_MAX = 32
+
+    def __init__(self, opcode=OP_NOP, payload=None, label=None, comment='', addr=None):
+        self.opcode = opcode
+        self.payload = payload
+        self.label = label
+        self.comment = comment
+        self.addr = addr
+
+    def __str__(self) -> str:
+        lines = []
+
+        if self.label:
+            lines.append(f"{self.LABEL_PREFIX}{self.label}:")
+
+        parts = []
+        if self.addr is not None:
+            parts.append(str(self.addr).ljust(self.ADDR_WIDTH))
+
+        parts.append(self.opcode[0].ljust(self.OPCODE_WIDTH))
+
+        # payload section
+        payload_block = ""
+        payload = self.payload
+        if payload is not None:
+            if isinstance(payload, str) and len(payload) > self.PAYLOAD_STR_MAX:
+                payload = f"{payload[:self.PAYLOAD_STR_MAX]}..."
+            payload_block = f"{payload}".ljust(self.PAYLOAD_FIELD_WIDTH)
+            if isinstance(payload, int):
+                payload_block += f"{hex(payload)}".ljust(self.PAYLOAD_FIELD_WIDTH)
+
+        parts.append(payload_block.ljust(self.PAYLOAD_BLOCK_WIDTH))
+
+        # comment section
+        comment = str(self.comment)
+        comment_out = ""
+        if len(comment) > self.COMMENT_MAX:
+            comment_out = ";" + comment.strip()[:self.COMMENT_MAX] + "..."
+        elif len(comment) > 0:
+            comment_out = ";" + comment.strip()
+
+        parts.append(comment_out)
+
+        lines.append("".join(parts))
+        return "\n".join(lines)

@@ -98,34 +98,10 @@ def make_instruction_pushc32(value, comment=""):
         inst_list.append(this_instruction)
     return inst_list
 
-def print_instruction(instruction):
-    if instruction['label'] is not None and len(instruction['label']):
-        print(f"~~~~{instruction['label']}:")
-
-    if instruction['addr'] is not None:
-        print(str(instruction['addr']).ljust(5), end='')
-    print(instruction['opcode'][0].ljust(10), end='')
-    tempstr = ""
-    this_payload = instruction['payload']
-    if this_payload is not None:
-        if isinstance(this_payload, str) and len(this_payload) > 14:
-            this_payload = f"{this_payload[:14]}..."
-        tempstr = f"{this_payload}".ljust(6)
-        if isinstance(this_payload, int):
-            tempstr += f"{hex(this_payload)}".ljust(6)
-    print(tempstr.ljust(20), end='')
-    tempstr = ""
-    this_comment = str(instruction['comment'])
-    if len(this_comment) > 32:
-        tempstr = ";" + str(instruction['comment'].strip())[:32] + "..."
-    elif len(this_comment) > 0:
-        tempstr = ";" + str(instruction['comment'].strip())
-    print(tempstr)
-
-def print_asslist(lll):
+def print_assembly_list(asmlist):
     # print()
-    for item in lll:
-        print_instruction(item)
+    for item in asmlist:
+        print(item)
     # print()
 
 AST_ARITH_NODES = (
@@ -349,11 +325,11 @@ for statement in my_tree.body:
     myast.postorder_walk(statement, visit_node, rdict)
 
 print()
-print_asslist(rdict['root_assembly_list'])
+print_assembly_list(rdict['root_assembly_list'])
 print()
 
 for key in rdict['func_assembly_dict']:
     print(f'----FUNC: {key}----')
-    print_asslist(rdict['func_assembly_dict'][key])
+    print_assembly_list(rdict['func_assembly_dict'][key])
     print(f'----END {key}----')
 
