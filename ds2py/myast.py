@@ -51,6 +51,10 @@ class add_push0:
     def __init__(self, label=''):
         self.label = label
 
+class add_default_return:
+    def __init__(self, arg_count=0):
+        self.arg_count = arg_count
+
 def is_leaf(node):
     if isinstance(node, AST_LEAF_NODES):
         return True
@@ -87,11 +91,14 @@ def postorder_walk(node, action, goodies):
             raise ValueError("Multiple Assignments")
         postorder_walk(node.targets[0], action, goodies)
     elif isinstance(node, ast.FunctionDef):
-        this_func_label = f"func_{node.name}"
-        goodies['this_func_name'] = node.name
+        func_name = node.name
+        this_func_label = f"func_{func_name}"
+        goodies['this_func_name'] = func_name
         action(add_nop(this_func_label), goodies)
         for item in node.body:
             postorder_walk(item, action, goodies)
+        action(add_push0(), goodies)
+        action(add_default_return(how_many_args(func_name, goodies['symtable_root'])), goodies)
     elif isinstance(node, ast.Return):
         if node.value is None:
             action(add_push0(), goodies)
@@ -142,8 +149,6 @@ def postorder_walk(node, action, goodies):
         for item in node.args:
             postorder_walk(item, action, goodies)
         action(node, goodies)
-        dummy_return = ast.Return()
-        action(dummy_return, goodies)
     elif is_leaf(node):
         action(node, goodies)
     else:

@@ -1,3 +1,6 @@
-FUNCTION blink(sdfsd)
+FUNCTION blink(a, b, c, d)
     DELAY 200
 END_FUNCTION
+
+
+blink(1,2,3,4)

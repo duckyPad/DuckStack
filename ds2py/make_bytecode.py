@@ -226,6 +226,9 @@ def visit_node(node, goodies):
     elif isinstance(node, myast.add_push0):
         emit(OP_PUSHC16, payload=0, label=node.label)
 
+    elif isinstance(node, myast.add_default_return):
+        emit(OP_RET, payload=node.arg_count)
+
     else:
         raise ValueError("Unknown leaf node:", node)
 
