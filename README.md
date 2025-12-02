@@ -8,9 +8,12 @@
 
 * Single **Data Stack**
 * Program Counter (PC)
+	* 16-bit byte-addressed
 * Stack Pointer (SP)
+	* 16-bit byte-addressed
 	* Points to **the next free slot above TOS**
 * Frame Pointer (FP)
+	* Points to current function base frame
 
 ## Memory Map
 
@@ -35,18 +38,21 @@
 
 * First byte (Byte 0): **Opcode**.
 
-* Byte 1 to 4: **Optional payload**.
+* Byte 1 & 2: **Optional payload**.
+
+* All operations are **signed int32** BY DEFAULT
+	* User can write to a reserved variable to switch to **unsigned mode** as needed
 
 ## CPU Instructions
 
-* **1 stack item** = **1 uint32_t** = 4 **bytes**
+* **1 stack item** = 4 **bytes**
 
 * All multi-byte operations are **Little-endian**
 
 * `PUSHR` / `POPR` **Offset** is a **byte-addressed signed 16-bit integer**
 	* Positive: Towards larger address / TOS
 
-|Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-4|
+|Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
 |`PUSHC16`|3|`1`/`0x1` |Push a **16-bit** constant on stack|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
@@ -57,7 +63,7 @@
 |`BRZ`|3|`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`JMP`|3|`7`/`0x7` |Unconditional Jump|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`CALL`|3|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
-|`RET`|3|`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items off TOS until `SP == FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
+|`RET`|3|`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
 |`HALT`|1|`10`/`0xa` |Stop execution|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
@@ -272,8 +278,12 @@ At end of a function, `return_value` is on TOS.
 	* invalid alignment
 	* version mismatch
 	* divide zero
-* `PUSHC16` zero extend or sign extend?
+* `PUSHC16` zero extend or sign extend? Depend on mode?
 * default signed or unsigned ?
+
+negative shift counts?
+POW negative exponent?
+
 
 ## Changelog
 
