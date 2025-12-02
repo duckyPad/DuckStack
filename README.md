@@ -9,7 +9,7 @@
 * Single **Data Stack**
 * Program Counter (PC)
 * Stack Pointer (SP)
-	* Points to **currently occupied entry?**
+	* Points to **the next free slot above TOS**
 * Frame Pointer (FP)
 
 ## Memory Map
@@ -31,7 +31,7 @@
 
 ## Instruction Set
 
-**Variable-length** between **1 to 5 bytes**.
+**Variable-length** between **1 to 3 bytes**.
 
 * First byte (Byte 0): **Opcode**.
 
@@ -265,6 +265,15 @@ At end of a function, `return_value` is on TOS.
 * one-byte duckyscript commands, rewrite upper byte lower byte to 2ndLSB and LSB.
 * what does SP point to? next free byte or current entry?
 * reserved variable to switch signed or unsigned mode?
+* VM runtime traps
+	* stack underflow / overflow
+	* invalid opcode
+	* invalid PC
+	* invalid alignment
+	* version mismatch
+	* divide zero
+* `PUSHC16` zero extend or sign extend?
+* default signed or unsigned ?
 
 ## Changelog
 
