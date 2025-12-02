@@ -199,3 +199,16 @@ elif isinstance(node, ast.FunctionDef):
 		exit()
 
 """
+
+    # for func_name in ds_func_arg_lookup:
+    #     arg_count = ds_func_arg_lookup[func_name]
+    #     # func_proto = f"def {key}():\n    pass"
+    #     func_proto = f"def {make_dspy_func_name(func_name)}("
+    #     for x in range(arg_count):
+    #         func_proto += f"arg{x},"
+    #     func_proto = func_proto.rstrip(",")
+    #     func_proto += "):"
+    #     new_obj = ds_line(content=func_proto)
+    #     new_listing.append(new_obj)
+    #     new_obj = ds_line(content="pass", indent_lvl=1)
+    #     new_listing.append(new_obj)

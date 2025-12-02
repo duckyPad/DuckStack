@@ -3,18 +3,16 @@ from dsvm_common import *
 import ds3_preprocessor
 import copy
 
-def make_dspy_func_name(cmd_name):
-    DS_FUN_PREFIX = "DSFN_"
-    return f"{DS_FUN_PREFIX}{cmd_name}"
-
-def make_func_string(first_word, this_line):
+def make_str_func(first_word, this_line):
+    if first_word not in ds_str_func_lookup:
+        return "Error: make_str_func"
     str_content = this_line[len(first_word)+1:]
-    fun_name = make_dspy_func_name(first_word)
+    fun_name = ds_str_func_lookup[first_word]
     return f"{fun_name}({repr(str_content)})"
 
-def make_func_with_args(first_word, this_line):
+def make_arg_func(first_word, this_line):
     args = this_line[len(first_word)+1:].strip().split(" ")
-    final_str = make_dspy_func_name(first_word) + "("
+    final_str = ds_builtin_func_lookup[first_word][0] + "("
     for item in args:
         final_str += f"{item}, "
     final_str = final_str.rstrip(", ") + ")"
@@ -31,18 +29,18 @@ def run_all(program_listing):
 
         if first_word == cmd_VAR_DECLARE:
             line_obj.content = line_obj.content[len(cmd_VAR_DECLARE):].strip()
-        if first_word not in ds_string_funcs:
+        if first_word not in ds_str_func_lookup:
             line_obj.content = replace_operators(line_obj.content)
 
         this_line = line_obj.content
 
-        if first_word in ds_string_funcs:
+        if first_word in ds_str_func_lookup:
             new_obj = copy.deepcopy(line_obj)
-            new_obj.content = make_func_string(first_word, this_line)
+            new_obj.content = make_str_func(first_word, this_line)
             new_listing.append(new_obj)
-        elif first_word in ds_func_arg_lookup:
+        elif first_word in ds_builtin_func_lookup:
             new_obj = copy.deepcopy(line_obj)
-            new_obj.content = make_func_with_args(first_word, this_line)
+            new_obj.content = make_arg_func(first_word, this_line)
             new_listing.append(new_obj)
         elif first_word == cmd_IF:
             new_obj = copy.deepcopy(line_obj)
@@ -81,19 +79,6 @@ def run_all(program_listing):
             new_listing.append(new_obj)
         else:
             new_listing.append(line_obj)
-
-    # for func_name in ds_func_arg_lookup:
-    #     arg_count = ds_func_arg_lookup[func_name]
-    #     # func_proto = f"def {key}():\n    pass"
-    #     func_proto = f"def {make_dspy_func_name(func_name)}("
-    #     for x in range(arg_count):
-    #         func_proto += f"arg{x},"
-    #     func_proto = func_proto.rstrip(",")
-    #     func_proto += "):"
-    #     new_obj = ds_line(content=func_proto)
-    #     new_listing.append(new_obj)
-    #     new_obj = ds_line(content="pass", indent_lvl=1)
-    #     new_listing.append(new_obj)
 
     for index, line_obj in enumerate(new_listing):
         line_obj.py_lnum_sf1 = index+1

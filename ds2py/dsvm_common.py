@@ -429,28 +429,34 @@ valid_combo_chars = {'!', '"', '#', '$', '%', '&', "'", '(',
 STRING_MAX_SIZE = 256
 REPEAT_MAX_SIZE = 256
 
-ds_string_funcs = {cmd_STRING, cmd_STRINGLN, cmd_OLED_PRINT, cmd_KEYDOWN, cmd_KEYUP}
+ds_str_func_lookup = {
+    cmd_STRING : "print",
+    cmd_STRINGLN : "println",
+    cmd_OLED_PRINT : "oled_print",
+    cmd_KEYDOWN : "ku",
+    cmd_KEYUP : "kd",
+}
 
-ds_func_arg_lookup = {
-    cmd_DELAY : 1,
-    cmd_DP_SLEEP : 0,
-    cmd_PREV_PROFILE : 0,
-    cmd_NEXT_PROFILE : 0,
-    cmd_GOTO_PROFILE : 1,
-    cmd_SWCC : 4,
-    cmd_SWCF : 3,
-    cmd_SWCR : 1,
-    cmd_OLED_UPDATE : 0,
-    cmd_OLED_CURSOR : 2,
-    cmd_OLED_BLANK : 0,
-    cmd_OLED_RESTORE : 0,
-    cmd_OLED_LINE : 4,
-    cmd_OLED_RECT : 5,
-    cmd_OLED_CIRCLE : 4,
-    cmd_SWQC : 0,
-    cmd_MOUSE_MOVE : 2,
-    cmd_MOUSE_WHEEL : 1,
-    cmd_HALT : 0,
+ds_builtin_func_lookup = {
+    cmd_DELAY : ("delay", 1),
+    cmd_DP_SLEEP : ("sleep", 0),
+    cmd_PREV_PROFILE : ("ppf", 0),
+    cmd_NEXT_PROFILE : ("npf", 0),
+    cmd_GOTO_PROFILE : ("gpf", 1),
+    cmd_SWCC : ("swcc", 4),
+    cmd_SWCF : ("swcf", 3),
+    cmd_SWCR : ("swcr", 1),
+    cmd_OLED_UPDATE : ("oled_update", 0),
+    cmd_OLED_CURSOR : ("oled_cursor", 2),
+    cmd_OLED_BLANK : ("oled_clear", 0),
+    cmd_OLED_RESTORE : ("oled_restore", 0),
+    cmd_OLED_LINE : ("oled_line", 4),
+    cmd_OLED_RECT : ("oled_rect", 5),
+    cmd_OLED_CIRCLE : ("oled_circle", 4),
+    cmd_SWQC : ("swqc", 0),
+    cmd_MOUSE_MOVE : ("mmov", 2),
+    cmd_MOUSE_WHEEL : ("mscl", 1),
+    cmd_HALT : ("halt", 0),
 }
 
 ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
