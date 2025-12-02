@@ -4,15 +4,12 @@ import ds3_preprocessor
 import copy
 
 def make_str_func(first_word, this_line):
-    if first_word not in ds_str_func_lookup:
-        return "Error: make_str_func"
     str_content = this_line[len(first_word)+1:]
-    fun_name = ds_str_func_lookup[first_word]
-    return f"{fun_name}({repr(str_content)})"
+    return f"{first_word}({repr(str_content)})"
 
 def make_arg_func(first_word, this_line):
     args = this_line[len(first_word)+1:].strip().split(" ")
-    final_str = ds_builtin_func_lookup[first_word][0] + "("
+    final_str = first_word + "("
     for item in args:
         final_str += f"{item}, "
     final_str = final_str.rstrip(", ") + ")"

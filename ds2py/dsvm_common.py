@@ -30,7 +30,7 @@ cmd_SWCR = "SWC_RESET"
 cmd_OLED_PRINT = "OLED_PRINT"
 cmd_OLED_UPDATE = "OLED_UPDATE"
 cmd_OLED_CURSOR = "OLED_CURSOR"
-cmd_OLED_BLANK = "OLED_CLEAR"
+cmd_OLED_CLEAR = "OLED_CLEAR"
 cmd_OLED_RESTORE = "OLED_RESTORE"
 
 cmd_OLED_LINE = "OLED_LINE"
@@ -349,6 +349,74 @@ cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
 cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
+
+# CPU instructions
+OP_VMVER = ("VMVER", 255)
+OP_NOP = ("NOP", 0)
+OP_PUSHC16 = ("PUSHC16", 1)
+OP_PUSHI = ("PUSHI", 2)
+OP_PUSHR = ("PUSHR", 3)
+OP_POPI = ("POPI", 4)
+OP_POPR = ("POPR", 5)
+OP_BRZ = ("BRZ", 6)
+OP_JMP = ("JMP", 7)
+OP_CALL = ("CALL", 8)
+OP_RET = ("RET", 9)
+OP_HALT = ("HALT", 10)
+
+OP_PUSHSTR = ("PUSHSTR", 11)
+
+# Binary Operators
+OP_EQ = ("EQ", 32)
+OP_NOTEQ = ("NOTEQ", 33)
+OP_LT = ("LT", 34)
+OP_LTE = ("LTE", 35)
+OP_GT = ("GT", 36)
+OP_GTE = ("GTE", 37)
+OP_ADD = ("ADD", 38)
+OP_SUB = ("SUB", 39)
+OP_MULT = ("MULT", 40)
+OP_DIV = ("DIV", 41)
+OP_MOD = ("MOD", 42)
+OP_POW = ("POW", 43)
+OP_LSHIFT = ("LSHIFT", 44)
+OP_RSHIFT = ("RSHIFT", 45)
+OP_BITOR = ("BITOR", 46)
+OP_BITXOR = ("BITXOR", 47)
+OP_BITAND = ("BITAND", 48)
+OP_LOGIAND = ("LOGIAND", 49)
+OP_LOGIOR = ("LOGIOR", 50)
+
+# Unary Operators
+OP_BITINV = ("BITINV", 55)
+OP_LOGINOT = ("LOGINOT", 56)
+OP_USUB = ("USUB", 57)
+
+# duckyScript Commands
+OP_DELAY = ("DELAY",64)
+OP_KUP = ("KUP",65)
+OP_KDOWN = ("KDOWN",66)
+OP_MSCL = ("MSCL",67)
+OP_MMOV = ("MMOV",68)
+OP_SWCF = ("SWCF",69)
+OP_SWCC = ("SWCC",70)
+OP_SWCR = ("SWCR",71)
+OP_STR = ("STR",72)
+OP_STRLN = ("STRLN",73)
+OP_OLED_CUSR = ("OLED_CUSR",74)
+OP_OLED_PRNT = ("OLED_PRNT",75)
+OP_OLED_UPDE = ("OLED_UPDE",76)
+OP_OLED_CLR = ("OLED_CLR",77)
+OP_OLED_REST = ("OLED_REST",78)
+OP_SWQC = ("SWQC",79)
+OP_PREVP = ("PREVP",80)
+OP_NEXTP = ("NEXTP",81)
+OP_GOTOP = ("GOTOP",82)
+OP_SLEEP = ("SLEEP",83)
+OP_OLED_LINE = ("OLED_LINE",84)
+OP_OLED_RECT = ("OLED_RECT",85)
+OP_OLED_CIRC = ("OLED_CIRC",86)
+
 INSTRUCTION_SIZE_BYTES = 3
 USER_VAR_START_ADDRESS = 0xFA00
 USER_VAR_BYTE_WIDTH = 4
@@ -430,40 +498,36 @@ STRING_MAX_SIZE = 256
 REPEAT_MAX_SIZE = 256
 
 ds_str_func_lookup = {
-    cmd_STRING : "print",
-    cmd_STRINGLN : "println",
-    cmd_OLED_PRINT : "oled_print",
-    cmd_KEYDOWN : "ku",
-    cmd_KEYUP : "kd",
-}
+    cmd_STRING : (OP_STR, 1),
+    cmd_STRINGLN : (OP_STRLN, 1),
+    cmd_OLED_PRINT : (OP_OLED_PRNT, 1),
+    cmd_KEYDOWN : (OP_KDOWN, 1),
+    cmd_KEYUP : (OP_KUP, 1),
+    }
 
 ds_builtin_func_lookup = {
-    cmd_DELAY : ("delay", 1),
-    cmd_DP_SLEEP : ("sleep", 0),
-    cmd_PREV_PROFILE : ("ppf", 0),
-    cmd_NEXT_PROFILE : ("npf", 0),
-    cmd_GOTO_PROFILE : ("gpf", 1),
-    cmd_SWCC : ("swcc", 4),
-    cmd_SWCF : ("swcf", 3),
-    cmd_SWCR : ("swcr", 1),
-    cmd_OLED_UPDATE : ("oled_update", 0),
-    cmd_OLED_CURSOR : ("oled_cursor", 2),
-    cmd_OLED_BLANK : ("oled_clear", 0),
-    cmd_OLED_RESTORE : ("oled_restore", 0),
-    cmd_OLED_LINE : ("oled_line", 4),
-    cmd_OLED_RECT : ("oled_rect", 5),
-    cmd_OLED_CIRCLE : ("oled_circle", 4),
-    cmd_SWQC : ("swqc", 0),
-    cmd_MOUSE_MOVE : ("mmov", 2),
-    cmd_MOUSE_WHEEL : ("mscl", 1),
-    cmd_HALT : ("halt", 0),
+    cmd_DELAY : (OP_DELAY, 1),
+    cmd_DP_SLEEP : (OP_SLEEP, 0),
+    cmd_PREV_PROFILE : (OP_PREVP, 0),
+    cmd_NEXT_PROFILE : (OP_NEXTP, 0),
+    cmd_GOTO_PROFILE : (OP_GOTOP, 1),
+    cmd_SWCC : (OP_SWCC, 4),
+    cmd_SWCF : (OP_SWCF, 3),
+    cmd_SWCR : (OP_SWCR, 1),
+    cmd_OLED_UPDATE : (OP_OLED_UPDE, 0),
+    cmd_OLED_CURSOR : (OP_OLED_CUSR, 2),
+    cmd_OLED_CLEAR : (OP_OLED_CLR, 0),
+    cmd_OLED_RESTORE : (OP_OLED_REST, 0),
+    cmd_OLED_LINE : (OP_OLED_LINE, 4),
+    cmd_OLED_RECT : (OP_OLED_RECT, 5),
+    cmd_OLED_CIRCLE : (OP_OLED_CIRC, 4),
+    cmd_SWQC : (OP_SWQC, 0),
+    cmd_MOUSE_MOVE : (OP_MMOV, 2),
+    cmd_MOUSE_WHEEL : (OP_MSCL, 1),
+    cmd_HALT : (OP_HALT, 0),
 }
 
-ds_reserved_func_names = set()
-for key in ds_str_func_lookup:
-    ds_reserved_func_names.add(ds_str_func_lookup[key])
-for key in ds_builtin_func_lookup:
-    ds_reserved_func_names.add(ds_builtin_func_lookup[key][0])
+ds_reserved_funcs = ds_str_func_lookup | ds_builtin_func_lookup
 
 ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
 

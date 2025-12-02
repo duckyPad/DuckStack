@@ -33,71 +33,6 @@ single stack
 """
 DS_VM_VERSION = 2
 
-# CPU instructions
-OP_VMVER = ("VMVER", 255)
-OP_NOP = ("NOP", 0)
-OP_PUSHC16 = ("PUSHC16", 1)
-OP_PUSHI = ("PUSHI", 2)
-OP_PUSHR = ("PUSHR", 3)
-OP_POPI = ("POPI", 4)
-OP_POPR = ("POPR", 5)
-OP_BRZ = ("BRZ", 6)
-OP_JMP = ("JMP", 7)
-OP_CALL = ("CALL", 8)
-OP_RET = ("RET", 9)
-OP_HALT = ("HALT", 10)
-
-# Binary Operators
-OP_EQ = ("EQ", 32)
-OP_NOTEQ = ("NOTEQ", 33)
-OP_LT = ("LT", 34)
-OP_LTE = ("LTE", 35)
-OP_GT = ("GT", 36)
-OP_GTE = ("GTE", 37)
-OP_ADD = ("ADD", 38)
-OP_SUB = ("SUB", 39)
-OP_MULT = ("MULT", 40)
-OP_DIV = ("DIV", 41)
-OP_MOD = ("MOD", 42)
-OP_POW = ("POW", 43)
-OP_LSHIFT = ("LSHIFT", 44)
-OP_RSHIFT = ("RSHIFT", 45)
-OP_BITOR = ("BITOR", 46)
-OP_BITXOR = ("BITXOR", 47)
-OP_BITAND = ("BITAND", 48)
-OP_LOGIAND = ("LOGIAND", 49)
-OP_LOGIOR = ("LOGIOR", 50)
-
-# Unary Operators
-OP_BITINV = ("BITINV", 55)
-OP_LOGINOT = ("LOGINOT", 56)
-OP_USUB = ("USUB", 57)
-
-# duckyScript Commands
-OP_DELAY = ("DELAY",64)
-OP_KUP = ("KUP",65)
-OP_KDOWN = ("KDOWN",66)
-OP_MSCL = ("MSCL",67)
-OP_MMOV = ("MMOV",68)
-OP_SWCF = ("SWCF",69)
-OP_SWCC = ("SWCC",70)
-OP_SWCR = ("SWCR",71)
-OP_STR = ("STR",72)
-OP_STRLN = ("STRLN",73)
-OP_OLED_CUSR = ("OLED_CUSR",74)
-OP_OLED_PRNT = ("OLED_PRNT",75)
-OP_OLED_UPDE = ("OLED_UPDE",76)
-OP_OLED_CLR = ("OLED_CLR",77)
-OP_OLED_REST = ("OLED_REST",78)
-OP_SWQC = ("SWQC",79)
-OP_PREVP = ("PREVP",80)
-OP_NEXTP = ("NEXTP",81)
-OP_GOTOP = ("GOTOP",82)
-OP_SLEEP = ("SLEEP",83)
-OP_OLED_LINE = ("OLED_LINE",84)
-OP_OLED_RECT = ("OLED_RECT",85)
-OP_OLED_CIRC = ("OLED_CIRC",86)
-
 arith_lookup = {
     "Eq" : OP_EQ,
     "NotEq" : OP_NOTEQ,
@@ -130,7 +65,7 @@ arith_lookup = {
 def get_empty_instruction(comment="", orig_lnum_sf1=None, py_lnum_sf1=None):
     return {
     'opcode':OP_NOP,
-    'oparg':None,
+    'payload':None,
     'label':None,
     'comment':comment,
     'addr':None,
@@ -144,16 +79,16 @@ def make_instruction_pushc32(value, comment=""):
     inst_list = []
     this_instruction = get_empty_instruction(comment=comment)
     this_instruction['opcode'] = OP_PUSHC16
-    this_instruction['oparg'] = node_value_low
+    this_instruction['payload'] = node_value_low
     inst_list.append(this_instruction)
     if node_value_high:
         this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = node_value_high
+        this_instruction['payload'] = node_value_high
         inst_list.append(this_instruction)
         this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = 16
+        this_instruction['payload'] = 16
         inst_list.append(this_instruction)
         this_instruction = get_empty_instruction(comment=comment)
         this_instruction['opcode'] = OP_LSHIFT
@@ -171,10 +106,13 @@ def print_instruction(instruction):
         print(str(instruction['addr']).ljust(5), end='')
     print(instruction['opcode'][0].ljust(10), end='')
     tempstr = ""
-    if instruction['oparg'] is not None:
-        tempstr = f"{instruction['oparg']}".ljust(6)
-        if isinstance(instruction['oparg'], int):
-            tempstr += f"{hex(instruction['oparg'])}".ljust(6)
+    this_payload = instruction['payload']
+    if this_payload is not None:
+        if len(this_payload) > 14:
+            this_payload = f"{this_payload[:14]}..."
+        tempstr = f"{this_payload}".ljust(6)
+        if isinstance(this_payload, int):
+            tempstr += f"{hex(this_payload)}".ljust(6)
     print(tempstr.ljust(20), end='')
     tempstr = ""
     if len(instruction['comment']) > 0:
@@ -250,7 +188,7 @@ def visit_name_node(node, goodies, inst_list):
             this_instruction['opcode'] = OP_POPR
         else:
             this_instruction['opcode'] = OP_POPI
-        this_instruction['oparg'] = str(node.id)
+        this_instruction['payload'] = str(node.id)
         inst_list.append(this_instruction)
     elif isinstance(node.ctx, ast.Load):
         this_instruction = get_empty_instruction(comment=og_ds_line)
@@ -258,7 +196,7 @@ def visit_name_node(node, goodies, inst_list):
             this_instruction['opcode'] = OP_PUSHR
         else:
             this_instruction['opcode'] = OP_PUSHI
-        this_instruction['oparg'] = str(node.id)
+        this_instruction['payload'] = str(node.id)
         inst_list.append(this_instruction)
 
 def visit_node(node, goodies):
@@ -276,7 +214,15 @@ def visit_node(node, goodies):
     if isinstance(node, ast.Name):
         visit_name_node(node, goodies, instruction_list)
     elif isinstance(node, ast.Constant):
-        instruction_list += make_instruction_pushc32(node.value, og_ds_line)
+        if isinstance(node.value, str):
+            this_instruction = get_empty_instruction(comment=og_ds_line)
+            this_instruction['opcode'] = OP_PUSHSTR
+            this_instruction['payload'] = node.value
+            instruction_list.append(this_instruction)
+        elif isinstance(node.value, int):
+            instruction_list += make_instruction_pushc32(node.value, og_ds_line)
+        else:
+            raise ValueError("Unknown type:", type(node.value))
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
         if op_name not in arith_lookup:
@@ -287,27 +233,31 @@ def visit_node(node, goodies):
     elif isinstance(node, ast.If):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_BRZ
-        this_instruction['oparg'] = goodies['if_destination_label']
+        this_instruction['payload'] = goodies['if_destination_label']
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.While):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_BRZ
-        this_instruction['oparg'] = goodies['while_end_label']
+        this_instruction['payload'] = goodies['while_end_label']
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Continue):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_JMP
-        this_instruction['oparg'] = goodies['while_start_label']
+        this_instruction['payload'] = goodies['while_start_label']
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Break):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_JMP
-        this_instruction['oparg'] = goodies['while_end_label']
+        this_instruction['payload'] = goodies['while_end_label']
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Call):
+        func_name = node.func.id
         this_instruction = get_empty_instruction(comment=og_ds_line)
-        this_instruction['opcode'] = OP_CALL
-        this_instruction['oparg'] = f"func_{node.func.id}"
+        if func_name in ds_reserved_funcs:
+            this_instruction['opcode'] = ds_reserved_funcs[func_name][0]
+        else:
+            this_instruction['opcode'] = OP_CALL
+            this_instruction['payload'] = f"func_{func_name}"
         instruction_list.append(this_instruction)
     elif isinstance(node, ast.Return):
         this_instruction = get_empty_instruction(comment=og_ds_line)
@@ -315,7 +265,7 @@ def visit_node(node, goodies):
         arg_count = myast.how_many_args(current_function, goodies['symtable_root'])
         if arg_count == None:
             raise ValueError("Invalid arg count")
-        this_instruction['oparg'] = arg_count
+        this_instruction['payload'] = arg_count
         instruction_list.append(this_instruction)
     elif isinstance(node, myast.add_nop):
         this_instruction = get_empty_instruction(comment=og_ds_line)
@@ -325,12 +275,12 @@ def visit_node(node, goodies):
     elif isinstance(node, myast.add_jmp):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_JMP
-        this_instruction['oparg'] = node.label
+        this_instruction['payload'] = node.label
         instruction_list.append(this_instruction)
     elif isinstance(node, myast.add_push0):
         this_instruction = get_empty_instruction(comment=og_ds_line)
         this_instruction['opcode'] = OP_PUSHC16
-        this_instruction['oparg'] = 0
+        this_instruction['payload'] = 0
         this_instruction['label'] = node.label
         instruction_list.append(this_instruction)
     else:
@@ -386,14 +336,13 @@ save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 my_tree = ast.parse(source, mode="exec", optimize=-1)
 symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
-print_symtable(symtable_root)
+# print_symtable(symtable_root)
 rdict["root_assembly_list"] = []
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}
 
 for statement in my_tree.body:
     rdict["this_func_name"] = None
-    # print(statement)
     myast.postorder_walk(statement, visit_node, rdict)
 
 print()

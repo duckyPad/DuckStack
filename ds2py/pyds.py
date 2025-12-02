@@ -1,3 +1,1 @@
-_NEEDS_EPILOGUE = 2
-test = -1
-swcc(1, 2, 3, 4)
+STRING('this is a really long message')
