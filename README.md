@@ -129,7 +129,7 @@ Binary as in **involving two operands**.
 |SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop ONE item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
 |STR|`72`/`0x48`|**Type String**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR`|None||
 |STRLN|`73`/`0x49`|**Type Line**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR`<br>**Press ENTER at end**|
-|OLED_CUSR|`74`/`0x4a`|**Set OLED Cursor**<br>Pop ONE item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|X\|Y\|`|
+|OLED_CUSR|`74`/`0x4a`|**OLED Set Cursor**<br>Pop ONE item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|X\|Y\|`|
 |OLED_PRNT|`75`/`0x4b`|**OLED Print**<br>Pop ONE item as `ADDR`<br>Print zero-terminated string at `ADDR` to OLED|None|
 |OLED_UPDE|`76`/`0x4c`|**OLED Update**|
 |OLED_CLR|`77`/`0x4d`|**OLED Clear**|
@@ -247,24 +247,24 @@ At end of a function, `return_value` is on TOS.
 |`FP ->`|Bottom (`F000`)|
 
 
-## TODO
+## To Change on C VM
 
-new opcode values
-new opcode names
-calling convention
-single stack
-internal registers
-PUSHC16 zero extension or sign extension?
-PUSHI POPI make sure little endian
-binOPs: Signed or unsigned?
-RSHIFT: logical or arithmetic?
-comparison instructions: signed or unsigned?
-new OLED instruction names
-generate PGV save flag on DSVM itself not compiler
-watch out for unused function return value clogging up stack, discard if no assign? in compiler
-one-byte duckyscript commands, rewrite upper byte lower byte to 2ndLSB and LSB.
-what does SP point to? next free byte or current entry?
-reserved variable to switch signed or unsigned mode?
+* new opcode values
+* new opcode names
+* calling convention
+* single stack
+* internal registers
+* PUSHC16 zero extension or sign extension?
+* PUSHI POPI make sure little endian
+* binOPs: Signed or unsigned?
+* RSHIFT: logical or arithmetic?
+* comparison instructions: signed or unsigned?
+* new OLED instruction names
+* generate PGV save flag on DSVM itself not compiler
+* watch out for unused function return value clogging up stack, discard if no assign? in compiler
+* one-byte duckyscript commands, rewrite upper byte lower byte to 2ndLSB and LSB.
+* what does SP point to? next free byte or current entry?
+* reserved variable to switch signed or unsigned mode?
 
 ## Changelog
 
