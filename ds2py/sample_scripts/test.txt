@@ -1,1 +1,1 @@
-STRING this is a really long message
+OLED_PRINT this is a really long message

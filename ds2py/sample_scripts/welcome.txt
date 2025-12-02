@@ -27,8 +27,8 @@ OLED_UPDATE
 blink()
 
 VAR $temp = 0
-VAR $is_win = $_BLOCKING_READKEY == PLUS_BUTTON
-
+//VAR $is_win = $_BLOCKING_READKEY == PLUS_BUTTON
+VAR $is_win = 1
 IF $is_win THEN
     SWC_FILL 0 128 0
     WINDOWS R
@@ -42,7 +42,7 @@ ELSE
     OLED_CURSOR 0 65
     OLED_PRINT Anykey when ready
     OLED_UPDATE
-    $temp = $_BLOCKING_READKEY
+    //$temp = $_BLOCKING_READKEY
     SWC_FILL 0 128 0
 END_IF
 
@@ -71,18 +71,7 @@ END_IF
 
 SWC_RESET 99
 
-LOOP0:
-STRING first action
-ENTER
 
-LOOP1:
-STRING second action
-ENTER
-
-LOOP2:
-STRING third action
-ENTER
-ALT
 STRINGLN_BLOCK
 dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec.
 pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 

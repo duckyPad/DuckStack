@@ -108,14 +108,17 @@ def print_instruction(instruction):
     tempstr = ""
     this_payload = instruction['payload']
     if this_payload is not None:
-        if len(this_payload) > 14:
+        if isinstance(this_payload, str) and len(this_payload) > 14:
             this_payload = f"{this_payload[:14]}..."
         tempstr = f"{this_payload}".ljust(6)
         if isinstance(this_payload, int):
             tempstr += f"{hex(this_payload)}".ljust(6)
     print(tempstr.ljust(20), end='')
     tempstr = ""
-    if len(instruction['comment']) > 0:
+    this_comment = str(instruction['comment'])
+    if len(this_comment) > 32:
+        tempstr = ";" + str(instruction['comment'].strip())[:32] + "..."
+    elif len(this_comment) > 0:
         tempstr = ";" + str(instruction['comment'].strip())
     print(tempstr)
 
