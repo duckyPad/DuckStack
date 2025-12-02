@@ -142,7 +142,8 @@ def postorder_walk(node, action, goodies):
         for item in node.args:
             postorder_walk(item, action, goodies)
         action(node, goodies)
- 
+        dummy_return = ast.Return()
+        action(dummy_return, goodies)
     elif is_leaf(node):
         action(node, goodies)
     else:

@@ -1,1 +1,3 @@
-OLED_PRINT this is a really long message
+FUNCTION blink(sdfsd)
+    DELAY 200
+END_FUNCTION

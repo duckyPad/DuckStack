@@ -113,6 +113,9 @@ def classify_name(name: str,
                   current_function: str | None,
                   root_table: symtable.SymbolTable) -> int:
     
+    if name in internal_variable_dict:
+        return SYM_TYPE_GLOBAL_VAR
+    
     function_names = {child.get_name() for child in root_table.get_children()
                       if child.get_type() == 'function'}
 
