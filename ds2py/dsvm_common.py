@@ -37,7 +37,7 @@ cmd_OLED_LINE = "OLED_LINE"
 cmd_OLED_RECT = "OLED_RECT"
 cmd_OLED_CIRCLE = "OLED_CIRCLE"
 
-cmd_SWQC = "BCLR"
+cmd_BCLR = "BCLR"
 
 cmd_LMOUSE = "LMOUSE"
 cmd_RMOUSE = "RMOUSE"
@@ -46,7 +46,7 @@ cmd_MOUSE_MOVE = "MOUSE_MOVE"
 cmd_MOUSE_WHEEL = "MOUSE_WHEEL"
 
 cmd_VAR_DECLARE = "VAR"
-cmd_VAR_ASSIGN = "$"
+cmd_VAR_PREFIX = "$"
 cmd_DEFINE = "DEFINE"
 
 cmd_IF = "IF"
@@ -408,7 +408,7 @@ OP_OLED_PRNT = ("OLED_PRNT",75)
 OP_OLED_UPDE = ("OLED_UPDE",76)
 OP_OLED_CLR = ("OLED_CLR",77)
 OP_OLED_REST = ("OLED_REST",78)
-OP_SWQC = ("SWQC",79)
+OP_BCLR = ("BCLR",79)
 OP_PREVP = ("PREVP",80)
 OP_NEXTP = ("NEXTP",81)
 OP_GOTOP = ("GOTOP",82)
@@ -553,7 +553,7 @@ ds_builtin_func_lookup = {
     cmd_OLED_LINE : (OP_OLED_LINE, 4),
     cmd_OLED_RECT : (OP_OLED_RECT, 5),
     cmd_OLED_CIRCLE : (OP_OLED_CIRC, 4),
-    cmd_SWQC : (OP_SWQC, 0),
+    cmd_BCLR : (OP_BCLR, 0),
     cmd_MOUSE_MOVE : (OP_MMOV, 2),
     cmd_MOUSE_WHEEL : (OP_MSCL, 1),
     cmd_HALT : (OP_HALT, 0),

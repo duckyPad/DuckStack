@@ -1,11 +1,10 @@
 
-FUNCTION test()
-    IF test THEN
-        RETURN $outside
-    END_IF
-END_FUNCTION
+function add(a, b)
+var c = a + b
+return var
+end_function
 
+var foo = 0
+var bar = 5
+var result = add(0, 5)
 
-VAR $outside = 4
-VAR $test = 0
-test()
