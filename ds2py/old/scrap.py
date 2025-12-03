@@ -237,3 +237,70 @@ def print_instruction(instruction):
     elif len(this_comment) > 0:
         tempstr = ";" + str(instruction['comment'].strip())
     print(tempstr)
+	
+
+try:
+        sym = table.lookup(name)
+        print(sym)
+        # exit()
+        if sym.is_local() is False:
+            raise ValueError(f"Symbol \"{name}\" not found")
+    except KeyError:
+        # name is not known in this scope at all
+        raise ValueError(f"Symbol \"{name}\" not found: {e}")
+
+
+    print(
+    "symbol_info:\n"
+    f"  name:        {name!r}\n"
+    f"  function:    {current_function!r}\n"
+    f"  global:      {sym_global_scope!r}\n"
+    f"  func_scope:  {sym_func_scope!r}"
+)
+
+def search_in_symtable(name:str,table:symtable.SymbolTable):
+    try:
+        return table.lookup(name)
+    except KeyError as e:
+        print(f"search_in_symtable: {e}")
+    return None
+
+def search_in_symtable(name:str,table:symtable.SymbolTable):
+    try:
+        return table.lookup(name)
+    except KeyError as e:
+        print(f"search_in_symtable: {e}")
+    return None
+
+def classify_name(name: str,
+                  current_function: str | None,
+                  root_table: symtable.SymbolTable) -> int:
+    if name in internal_variable_dict:
+        return SYM_TYPE_GLOBAL_VAR
+    
+    function_names = {child.get_name() for child in root_table.get_children()
+                      if child.get_type() == 'function'}
+
+    if name in function_names and name != current_function:
+        raise ValueError(f"Variable \"{name}\" conflicts with function \"{name}()\"")
+    
+    if current_function is None:
+        table = root_table
+    else:
+        table = myast.find_function_table(root_table, current_function)
+        if table is None:
+            raise ValueError(f"No symtable for function {current_function!r}")
+    sym_func_scope = search_in_symtable(name, table)
+    sym_global_scope = search_in_symtable(name, root_table)
+    if sym_global_scope is None:
+        raise ValueError(f"Symbol \"{name}\" not found")
+    if current_function is not None and sym_func_scope.is_parameter():
+        return SYM_TYPE_FUNC_ARG
+    # Anything else that *does* exist (local / global / free / imported)
+    return SYM_TYPE_GLOBAL_VAR
+
+    function_names = {child.get_name() for child in root_table.get_children() if child.get_type() == 'function'}
+
+    # print(name, current_function, function_names)
+    # if name in function_names and name != current_function: # throw error only on second conflict?
+    #     raise ValueError(f"Variable \"{name}\" conflicts with function \"{name}()\"")

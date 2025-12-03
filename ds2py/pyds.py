@@ -1,3 +1,6 @@
-def blink(a, b, c, d):
-    DELAY(200)
-blink(1,2,3,4)
+def test():
+    if test:
+        return outside
+outside = 4
+test = 0
+test()

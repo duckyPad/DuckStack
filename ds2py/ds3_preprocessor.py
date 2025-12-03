@@ -369,6 +369,20 @@ def parse_combo(line_obj):
         new_lines.append(new_obj)
     return PARSE_OK, 'Success', new_lines
 
+def check_var_declare(pgm_line, vt):
+    try:
+        var_sides = pgm_line.split(cmd_VAR_DECLARE, 1)[-1].split('=')
+        lvalue = var_sides[0].split("$")[-1].rstrip()
+    except Exception as e:
+        return PARSE_ERROR, "Invalid var name"
+    if_valid_vn, vn_comment = is_valid_var_name(lvalue)
+    if if_valid_vn is False:
+        return PARSE_ERROR, vn_comment
+    if lvalue in vt:
+        return PARSE_ERROR, "Duplicate var name",
+    vt.add(lvalue)
+    return PARSE_OK, ''
+
 # this makes sure the code is suitable for converting into python
 def single_pass(program_listing):
     loop_numbers = set()
@@ -391,6 +405,7 @@ def single_pass(program_listing):
     strlen_block_table = {}
     str_block_search_stack = []
     str_block_table = {}
+    user_declared_var_table = set()
 
     return_dict = {
     'is_success':False,
@@ -447,6 +462,8 @@ def single_pass(program_listing):
             pcomment = ''
         elif first_word == cmd_DEFINE:
             presult, pcomment = new_define(this_line, define_dict)
+        elif first_word == cmd_VAR_DECLARE:
+            presult, pcomment = check_var_declare(this_line, user_declared_var_table)
         elif first_word == cmd_FUNCTION:
             presult, pcomment = new_func_check(this_line, line_number_starting_from_1, func_search_stack, func_table)
         elif first_word == cmd_END_FUNCTION:
@@ -596,6 +613,7 @@ def single_pass(program_listing):
     return_dict['strlen_block_table'] = strlen_block_table
     return_dict['str_block_table'] = str_block_table
     return_dict['dspp_listing_with_indent_level'] = program_listing
+    return_dict['user_declared_var_table'] = user_declared_var_table
 
     if len(loop_numbers) > 0:
         return_dict['loop_size'] = max(loop_numbers)

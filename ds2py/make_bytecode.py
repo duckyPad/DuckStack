@@ -109,43 +109,39 @@ def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
 SYM_TYPE_GLOBAL_VAR = 0
 SYM_TYPE_FUNC_ARG = 1
 
-def classify_name(name: str,
-                  current_function: str | None,
-                  root_table: symtable.SymbolTable) -> int:
-    
+def search_in_symtable(name:str,table:symtable.SymbolTable):
+    try:
+        return table.lookup(name)
+    except KeyError as e:
+        print(f"search_in_symtable: {e}")
+    return None
+
+"""
+rdict['user_declared_var_table'] is more a crutch
+Really should spend more time figuring out how to determine
+global variables just from symbol tables themselves
+"""
+def classify_name(name: str, current_function: str | None, goodies) -> int:
     if name in internal_variable_dict:
         return SYM_TYPE_GLOBAL_VAR
-    
-    function_names = {child.get_name() for child in root_table.get_children()
-                      if child.get_type() == 'function'}
-
-    if name in function_names and name != current_function:
-        raise ValueError(f"Variable \"{name}\" conflicts with function \"{name}()\"")
-    
+    root_table = goodies['symtable_root']
+    if name in goodies['user_declared_var_table']:
+        return SYM_TYPE_GLOBAL_VAR
     if current_function is None:
-        table = root_table
-    else:
-        table = myast.find_function_table(root_table, current_function)
-        if table is None:
-            raise ValueError(f"No symtable for function {current_function!r}")
-    try:
-        sym = table.lookup(name)
-        if sym.is_local() is False:
-            raise ValueError(f"Symbol \"{name}\" not found")
-    except KeyError:
-        # name is not known in this scope at all
         raise ValueError(f"Symbol {name} not found")
-    if current_function is not None and sym.is_parameter():
+    this_table = myast.find_function_table(root_table, current_function)
+    if this_table is None:
+        raise ValueError(f"No symtable for {current_function!r}()")
+    this_sym = search_in_symtable(name, this_table)
+    if this_sym is not None and this_sym.is_parameter():
         return SYM_TYPE_FUNC_ARG
-    # Anything else that *does* exist (local / global / free / imported)
-    return SYM_TYPE_GLOBAL_VAR
+    raise ValueError(f"Unknown symbol \"{name}\" in function \"{current_function}()\"")
 
 def visit_name_node(node, goodies, inst_list):
     og_ds_line = goodies["og_ds_line"]
     current_function = goodies["this_func_name"]
-    symtable_root = goodies["symtable_root"]
 
-    sym_type = classify_name(node.id, current_function, symtable_root)
+    sym_type = classify_name(node.id, current_function, goodies)
     name = str(node.id)
 
     if isinstance(node.ctx, ast.Store):
@@ -272,6 +268,9 @@ if rdict['is_success'] is False:
     print(f"\t{rdict['comments']}")
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
+
+# print(rdict['user_declared_var_table'])
+# exit()
 
 rdict["orig_listing"] = orig_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]

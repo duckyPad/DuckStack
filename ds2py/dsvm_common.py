@@ -37,7 +37,7 @@ cmd_OLED_LINE = "OLED_LINE"
 cmd_OLED_RECT = "OLED_RECT"
 cmd_OLED_CIRCLE = "OLED_CIRCLE"
 
-cmd_SWQC = "SWQC"
+cmd_SWQC = "BCLR"
 
 cmd_LMOUSE = "LMOUSE"
 cmd_RMOUSE = "RMOUSE"
@@ -464,6 +464,38 @@ internal_variable_dict = {
     "_RTC_YDAY": (INTERAL_VAR_START_ADDRESS + 29 * INTERAL_VAR_BYTE_WIDTH),
     "_STR_PRINT_FORMAT": (INTERAL_VAR_START_ADDRESS + 30 * INTERAL_VAR_BYTE_WIDTH),
     "_STR_PRINT_PADDING": (INTERAL_VAR_START_ADDRESS + 31 * INTERAL_VAR_BYTE_WIDTH),
+    "_GV0": (0xffff),
+    "_GV1": (0xffff),
+    "_GV2": (0xffff),
+    "_GV3": (0xffff),
+    "_GV4": (0xffff),
+    "_GV5": (0xffff),
+    "_GV6": (0xffff),
+    "_GV7": (0xffff),
+    "_GV8": (0xffff),
+    "_GV9": (0xffff),
+    "_GV10": (0xffff),
+    "_GV11": (0xffff),
+    "_GV12": (0xffff),
+    "_GV13": (0xffff),
+    "_GV14": (0xffff),
+    "_GV15": (0xffff),
+    "_GV16": (0xffff),
+    "_GV17": (0xffff),
+    "_GV18": (0xffff),
+    "_GV19": (0xffff),
+    "_GV20": (0xffff),
+    "_GV21": (0xffff),
+    "_GV22": (0xffff),
+    "_GV23": (0xffff),
+    "_GV24": (0xffff),
+    "_GV25": (0xffff),
+    "_GV26": (0xffff),
+    "_GV27": (0xffff),
+    "_GV28": (0xffff),
+    "_GV29": (0xffff),
+    "_GV30": (0xffff),
+    "_GV31": (0xffff),
 }
 
 class ds_line:

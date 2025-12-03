@@ -11,7 +11,7 @@
 	* 16-bit byte-addressed
 * Stack Pointer (SP)
 	* 16-bit byte-addressed
-	* Points to **the next free slot above TOS (Top of stack)**
+	* Points to **the next free stack slot**
 * Frame Pointer (FP)
 	* Points to current function base frame
 
@@ -51,7 +51,8 @@
 * All multi-byte operations are **Little-endian**
 
 * `PUSHR` / `POPR` **Offset** is a **byte-addressed signed 16-bit integer**
-	* Positive: Towards larger address / TOS
+	* Positive: Towards larger address / Base of Stack
+	* Negative: Towards smaller address / Top of Stack (TOS)
 
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
@@ -302,3 +303,11 @@ POW negative exponent?
 * Opcode New Values
 
 variable instruction length
+
+## Symbol searching
+
+first pass: treat as valid as long as is in any symbol table
+
+when generating address, double check against global variable table?  classify_name()
+
+error if try to read a variable name without it being ever assigned to?
