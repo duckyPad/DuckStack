@@ -45,13 +45,13 @@ def replace_DEFINE(pgm_line, dd):
 def replace_delay_statements(pgm_line):
     first_word = pgm_line.split()[0]
     if first_word == cmd_DEFAULTDELAY:
-        pgm_line = pgm_line.replace(cmd_DEFAULTDELAY, f"$_{cmd_DEFAULTDELAY} =")
+        pgm_line = pgm_line.replace(cmd_DEFAULTDELAY, f"_{cmd_DEFAULTDELAY} =")
         first_word = pgm_line.split()[0]
     elif first_word == cmd_DEFAULTCHARDELAY:
-        pgm_line = pgm_line.replace(cmd_DEFAULTCHARDELAY, f"$_{cmd_DEFAULTCHARDELAY} =")
+        pgm_line = pgm_line.replace(cmd_DEFAULTCHARDELAY, f"_{cmd_DEFAULTCHARDELAY} =")
         first_word = pgm_line.split()[0]
     elif first_word == cmd_CHARJITTER:
-        pgm_line = pgm_line.replace(cmd_CHARJITTER, f"$_{cmd_CHARJITTER} =")
+        pgm_line = pgm_line.replace(cmd_CHARJITTER, f"_{cmd_CHARJITTER} =")
         first_word = pgm_line.split()[0]
     return first_word, pgm_line
 
@@ -371,8 +371,9 @@ def parse_combo(line_obj):
 
 def check_var_declare(pgm_line, vt):
     try:
+        pgm_line = replace_operators(pgm_line)
         var_sides = pgm_line.split(cmd_VAR_DECLARE, 1)[-1].split('=')
-        lvalue = var_sides[0].split("$")[-1].rstrip()
+        lvalue = var_sides[0].strip()
     except Exception as e:
         return PARSE_ERROR, "Invalid var name"
     if_valid_vn, vn_comment = is_valid_var_name(lvalue)
@@ -694,6 +695,8 @@ def run_all(program_listing, profile_list=None):
         # remove INJECT_MOD
         if first_word == cmd_INJECT_MOD:
             line_obj.content = line_obj.content.replace(cmd_INJECT_MOD, "", 1)
+        if first_word not in ds_str_func_lookup:
+            line_obj.content = replace_operators(line_obj.content)
         line_obj.content = line_obj.content.lstrip(" \t")
         new_program_listing.append(line_obj)
 
@@ -721,9 +724,9 @@ def run_all(program_listing, profile_list=None):
     # 0x10 is pgv_save_needed, generated on duckypad itself
 
     if epilogue != 0:
-        second_pass_program_listing.append(ds_line(content=f"$_NEEDS_EPILOGUE = {epilogue}"))
+        second_pass_program_listing.append(ds_line(content=f"_NEEDS_EPILOGUE = {epilogue}"))
     if rdict['loop_size'] is not None:
-        second_pass_program_listing.append(ds_line(content=f"$_LOOP_SIZE = {rdict['loop_size']+1}"))
+        second_pass_program_listing.append(ds_line(content=f"_LOOP_SIZE = {rdict['loop_size']+1}"))
     
     for line_obj in program_listing:
         line_number_starting_from_1 = line_obj.orig_lnum_sf1
@@ -770,7 +773,7 @@ def run_all(program_listing, profile_list=None):
             presult, pcomment, value = check_loop(this_line)
             if needs_end_if:
                 second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
-            loop_str = f'{cmd_IF} $_KEYPRESS_COUNT % $_LOOP_SIZE == {value} {cmd_THEN}'
+            loop_str = f'{cmd_IF} _KEYPRESS_COUNT % _LOOP_SIZE == {value} {cmd_THEN}'
             second_pass_program_listing.append(ds_line(loop_str, line_number_starting_from_1))
             needs_end_if = True
         else:

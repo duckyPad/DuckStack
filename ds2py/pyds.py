@@ -1,6 +1,2 @@
-def test():
-    if test:
-        return outside
-outside = 4
-test = 0
-test()
+_DEFAULTDELAY = 29
+foo = 9 + 3

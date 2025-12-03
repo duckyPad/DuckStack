@@ -16,7 +16,7 @@ def make_arg_func(first_word, this_line):
     return final_str
 
 def replace_operators(this_line):
-    return this_line.replace("$", "").replace("||", " or ").replace("&&", " and ")
+    return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
 
 def run_all(program_listing):
     new_listing = []

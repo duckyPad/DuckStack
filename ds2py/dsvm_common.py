@@ -638,3 +638,6 @@ class dsvm_instruction:
 
         lines.append("".join(parts))
         return "\n".join(lines)
+
+def replace_operators(this_line):
+    return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
