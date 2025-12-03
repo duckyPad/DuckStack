@@ -22,11 +22,11 @@
 
 |Address|Purpose|Size|Comment|
 |:-:|:--:|:--:|:--:|
-|`0000`<br>`F800` |Shared<br>**Executable**<br>and **Stack**|63489 Bytes|`Bin exe @ 0x0`<br>`Stack @ 0xF800`<br>`Grows towards`<br>`smaller address`|
+|`0000`<br>`F800` |**Executable**<br>and **Stack**|63489 Bytes|Shared area:<br>`Bin_exec @ 0x0`<br>`Stack @ 0xF800`|
 |`F801`<br>`F9FF` |Unused|511 Bytes||
 |`FA00`<br>`FBFF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|ZI Data|
 |`FC00`<br>`FCFF`|VM Scratch<br>Memory|256 Bytes<br>4 Bytes/Entry<br>64 Entries|Internal Use|
-|`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |NV Data|
+|`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |NV Data<br>Saved on SD card|
 |`FE00`<br>`FFFF` |Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries||
 
 * Binary executable is loaded at `0x0`
