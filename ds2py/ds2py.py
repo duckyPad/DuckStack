@@ -15,9 +15,6 @@ def make_arg_func(first_word, this_line):
     final_str = final_str.rstrip(", ") + ")"
     return final_str
 
-def replace_operators(this_line):
-    return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
-
 def run_all(program_listing):
     new_listing = []
     for line_obj in program_listing:

@@ -96,52 +96,74 @@ AST_ARITH_NODES = (
 def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
     if this_pylnum_sf1 is None:
         return ""
-    # print("this_pylnum_sf1:", this_pylnum_sf1)
     og_index_sf0 = None
     for line_obj in rdict['ds2py_listing']:
         if line_obj.py_lnum_sf1 == this_pylnum_sf1:
             og_index_sf0 = line_obj.orig_lnum_sf1 - 1
     if og_index_sf0 is None:
         return ""
-    # print(rdict['orig_listing'])
     return rdict['orig_listing'][og_index_sf0].content
 
 SYM_TYPE_GLOBAL_VAR = 0
 SYM_TYPE_FUNC_ARG = 1
+SYM_TYPE_FUNC_LOCAL_VAR = 2
 
-def search_in_symtable(name:str,table:symtable.SymbolTable):
+def search_in_symtable(name: str, table: symtable.SymbolTable):
     try:
         return table.lookup(name)
-    except KeyError as e:
-        print(f"search_in_symtable: {e}")
-    return None
+    except KeyError:
+        return None
 
-"""
-rdict['user_declared_var_table'] is more a crutch
-Really should spend more time figuring out how to determine
-global variables just from symbol tables themselves
-"""
-def classify_name(name: str, current_function: str | None, goodies) -> int:
+def is_known_global(name: str, goodies) -> bool:
+    root_table = goodies["symtable_root"]
     if name in internal_variable_dict:
+        return True
+    if name in goodies["user_declared_var_table"]:
+        return True
+    if name in root_table.get_identifiers():
+        return True
+    return False
+
+SYM_TYPE_GLOBAL_VAR = 0
+SYM_TYPE_FUNC_ARG = 1
+SYM_TYPE_FUNC_LOCAL_VAR = 2
+
+def classify_name(name: str, current_function: str | None, goodies) -> int:
+    root_table = goodies["symtable_root"]
+
+    if current_function is not None:
+        this_table = myast.find_function_table(root_table, current_function)
+        if this_table is None:
+            raise ValueError(f"No symtable for {current_function!r}()")
+
+        sym = search_in_symtable(name, this_table)
+        if sym is not None:
+            if sym.is_parameter():
+                return SYM_TYPE_FUNC_ARG
+
+            if sym.is_local() and sym.is_assigned():
+                return SYM_TYPE_FUNC_LOCAL_VAR
+
+            # referenced from this function but resolved outside it
+            if sym.is_global() or sym.is_declared_global() or sym.is_free() or sym.is_nonlocal():
+                if is_known_global(name, goodies):
+                    return SYM_TYPE_GLOBAL_VAR
+                raise ValueError(f'Undefined symbol "{name}" (referenced in "{current_function}()")')
+
+    if is_known_global(name, goodies):
         return SYM_TYPE_GLOBAL_VAR
-    root_table = goodies['symtable_root']
-    if name in goodies['user_declared_var_table']:
-        return SYM_TYPE_GLOBAL_VAR
+    
     if current_function is None:
-        raise ValueError(f"Symbol {name} not found")
-    this_table = myast.find_function_table(root_table, current_function)
-    if this_table is None:
-        raise ValueError(f"No symtable for {current_function!r}()")
-    this_sym = search_in_symtable(name, this_table)
-    if this_sym is not None and this_sym.is_parameter():
-        return SYM_TYPE_FUNC_ARG
-    raise ValueError(f"Unknown symbol \"{name}\" in function \"{current_function}()\"")
+        raise ValueError(f'Symbol "{name}" not found')
+    
+    raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
 
 def visit_name_node(node, goodies, inst_list):
     og_ds_line = goodies["og_ds_line"]
     current_function = goodies["this_func_name"]
 
     sym_type = classify_name(node.id, current_function, goodies)
+    # print("symtype:", node.id, current_function, sym_type)
     name = str(node.id)
 
     if isinstance(node.ctx, ast.Store):
