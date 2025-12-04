@@ -1,163 +1,265 @@
+REM ============================================================
+REM duckyScript "kitchen sink" compiler workout
+REM Recommended: run while a plain text editor is focused.
+REM ============================================================
+
+// Single-line comments (must start the line)
+
+// ------------------------------------------------------------
+// Comment block
 REM_BLOCK
-    DuckyScript Compiler Test Suite
-    Version: 1.0
-    Target: Comprehensive Syntax & Logic Check
+Anything in here should be ignored by the parser/executor.
+Try tricky tokens: IF WHILE FUNCTION $spam ** << >> etc.
 END_REM
 
-// ------------------------------------------
-// 1. PREPROCESSOR & CONSTANTS
-// ------------------------------------------
-DEFINE APP_VERSION 100
-DEFINE TEST_NAME Compiler_Test
-DEFINE TARGET_SCORE 50
+// ------------------------------------------------------------
+// Preprocessor constants
+DEFINE TEST_TITLE duckyScript Compiler Workout
+DEFINE NUM_REPEATS 3
+DEFINE PAD2 2
 
-// ------------------------------------------
-// 2. SETUP & CONFIGURATION
-// ------------------------------------------
-DEFAULTDELAY 10
+// ------------------------------------------------------------
+// Timing knobs
+DEFAULTDELAY 20
 DEFAULTCHARDELAY 5
-CHARJITTER 2
+CHARJITTER 10
 
-// ------------------------------------------
-// 3. VARIABLE DECLARATION & ARITHMETIC
-// ------------------------------------------
-VAR score = 0
-VAR multiplier = 2
-VAR bitmask = 255
-VAR complex_calc = 0
+// Also test alias-style reserved vars (if you support them as aliases)
+_ALLOW_ABORT = 1
+_DONT_REPEAT = 0
 
-// Test basic arithmetic and precedence
-complex_calc = (10 + 5) * 2
-score = complex_calc / 3
+// Give you a moment to click into a text box
+DELAY 600
 
-// Test Bitwise operations
-VAR flags = 1
-flags = flags << 2   // Shift left (4)
-flags = flags | 1    // Bitwise OR (5)
-flags = flags & 7    // Bitwise AND (5)
-
-// ------------------------------------------
-// 4. OLED DISPLAY TESTS
-// ------------------------------------------
+// ------------------------------------------------------------
+// OLED + RGB (device-side features)
 OLED_CLEAR
-
-// Drawing primitives
-OLED_CIRCLE 64 32 10 1
-OLED_RECT 0 0 127 63 0
-OLED_LINE 0 0 127 63
-
-// Text on OLED
 OLED_CURSOR 0 0
-OLED_PRINT Running: //TEST_NAME
-OLED_CURSOR 0 10
-OLED_PRINT Ver: $APP_VERSION
-
+OLED_PRINT TEST_TITLE
+OLED_CURSOR 0 12
+OLED_PRINT KeyID=$_THIS_KEYID
+OLED_CURSOR 0 24
+OLED_PRINT Model=$_DP_MODEL
+OLED_CURSOR 0 36
+OLED_PRINT t(ms)=$_TIME_MS
+OLED_LINE 0 49 127 49
+OLED_RECT 0 52 45 63 1
+OLED_CIRCLE 105 57 5 0
 OLED_UPDATE
-DELAY 500
 
-// ------------------------------------------
-// 5. KEYBOARD & STRING OUTPUT
-// ------------------------------------------
-// Basic String
-STRINGLN Starting keyboard test...
+SWC_FILL 8 8 8
+SWC_SET 1 255 0 0
+SWC_SET 2 0 255 0
+SWC_SET 3 0 0 255
+DELAY 120
+SWC_RESET 1
+SWC_RESET 2
+SWC_RESET 3
 
-// Block String
+// ------------------------------------------------------------
+// Basic typing
+STRINGLN ==== TEST_TITLE ====
+STRINGLN If you can read this, typing works.
+
 STRINGLN_BLOCK
-    Line 1: Testing //Block
-    Line 2: Still testing
+This is a STRINGLN_BLOCK.
+Each line should type and press ENTER.
+Line 3: symbols !@#$%^&*()_+-=[]{};':",.<>/?
 END_STRINGLN
 
-// Special Keys & Combos
-WINDOWS r
-DELAY 200
-STRING notepad
-ENTER
-DELAY 500
-
-// Key Hold/Release logic
-KEYDOWN SHIFT // dsffsd
-STRING hello //uppercase
-KEYUP SHIFT
+STRING_BLOCK
+This is a STRING_BLOCK: it should not press ENTER between lines,
+but it *should* type all text as-is.
+END_STRING
 ENTER
 
-// Repeat command
-STRING a
-REPEAT 5
+// ------------------------------------------------------------
+// Variables + operators (arith, compare, logical, bitwise, exponent)
+VAR a = 7
+VAR b = 3
 
-// ------------------------------------------
-// 6. CONTROL FLOW (LOOPS & CONDITIONALS)
-// ------------------------------------------
+VAR add = a + b
+VAR sub = a - b
+VAR mul = a * b
+VAR div = a / b
+VAR mod = a % b
+VAR pow = a ** b
+
+VAR bit_and = a & b
+VAR bit_or  = a | b
+VAR bit_xor = a ^ b
+VAR shl = a << 2
+VAR shr = 128 >> 3
+
+VAR gt0 = a > 0
+VAR lt0 = b < 0
+VAR logic_and = gt0 && lt0
+VAR logic_or  = gt0 || lt0
+
+STRINGLN a=$a b=$b
+STRINGLN add=$add sub=$sub mul=$mul div=$div mod=$mod pow=$pow
+STRINGLN and=$bit_and or=$bit_or xor=$bit_xor shl=$shl shr=$shr
+STRINGLN gt0=$gt0 lt0=$lt0 &&=$logic_and ||=$logic_or
+
+// ------------------------------------------------------------
+// Advanced numeric printing formats + padding
+VAR foo = 65409
+VAR neg = 0 - 127
+
+_STR_PRINT_FORMAT = 0
+STRINGLN fmt0 unsigned foo=$foo
+
+_STR_PRINT_FORMAT = 1
+STRINGLN fmt1 signed foo=$foo neg=$neg
+
+_STR_PRINT_FORMAT = 2
+STRINGLN fmt2 hex-lower foo=$foo
+
+_STR_PRINT_FORMAT = 3
+STRINGLN fmt3 HEX-UPPER foo=$foo
+
+_STR_PRINT_FORMAT = 0
+_STR_PRINT_PADDING = PAD2
+VAR year = 2025
+VAR month = 8
+VAR day = 5
+STRINGLN padded date $year-$month-$day
+_STR_PRINT_PADDING = 0
+
+// ------------------------------------------------------------
+// Expressions as command arguments
+VAR amount = 100
+DELAY amount*2+5
+
+// ------------------------------------------------------------
+// REPEAT (repeats last line N times)
+STRINGLN REPEAT demo line
+REPEAT NUM_REPEATS
+
+// ------------------------------------------------------------
+// Randomisation + persistent globals
+_RANDOM_MIN = 10
+_RANDOM_MAX = 20
+VAR r = _RANDOM_INT
+STRINGLN random[10..20]=$r
+
+_GV0 = _GV0 + 1
+STRINGLN persistent _GV0 now=$_GV0
+
+// Keypress counter (RW): reset then print (printing uses $-prefix form in strings)
+_KEYPRESS_COUNT = 0
+STRINGLN keypress_count reset to $_KEYPRESS_COUNT
+
+// ------------------------------------------------------------
+// IF / ELSE IF / ELSE
+VAR spam = mod
+IF spam == 0 THEN
+    STRINGLN spam==0 branch
+ELSE IF spam == 1 THEN
+    STRINGLN spam==1 branch
+ELSE
+    STRINGLN spam==other branch (spam=$spam)
+END_IF
+
+// ------------------------------------------------------------
+// WHILE + CONTINUE + LBREAK
 VAR i = 0
-VAR loop_check = 0
-
-WHILE i < 5
-    // Test logic operators inside expression
-    IF i == 2 || i == 4 THEN
-        STRINGLN Iteration $i: Even(ish)
-    END_IF
+WHILE i < 8
+    i = i + 1
 
     IF i == 3 THEN
-        // Test LBREAK
+        STRINGLN i=$i -> CONTINUE
+        CONTINUE
+    END_IF
+
+    STRINGLN loop i=$i
+
+    IF i == 6 THEN
+        STRINGLN i=$i -> LBREAK
         LBREAK
     END_IF
-    
-    i = i + 1
-    loop_check = loop_check + 1
 END_WHILE
 
-// ------------------------------------------
-// 7. FUNCTIONS & SCOPE
-// ------------------------------------------
-FUNCTION calculate_area(width, height)
-    VAR area = 0
-    area = width * height
-    // Test formatting inside function
-    _STR_PRINT_FORMAT = 2 // Hex
-    STRINGLN Hex Area: $area
-    _STR_PRINT_FORMAT = 0 // Reset to Decimal
-    RETURN
+// ------------------------------------------------------------
+// Functions (args + return value + locals)
+FUNCTION clamp(v, lo, hi)
+    IF v < lo THEN
+        RETURN lo
+    END_IF
+    IF v > hi THEN
+        RETURN hi
+    END_IF
+    RETURN v
 END_FUNCTION
 
-// Call the function
-calculate_area(10, 5)
+FUNCTION fib(n)
+    VAR fa = 0
+    VAR fb = 1
+    VAR k = 0
+    WHILE k < n
+        VAR t = fa + fb
+        fa = fb
+        fb = t
+        k = k + 1
+    END_WHILE
+    RETURN fa
+END_FUNCTION
 
-// ------------------------------------------
-// 8. MOUSE AUTOMATION
-// ------------------------------------------
-// Move in a square pattern
-MOUSE_MOVE 100 0
-DELAY 50
-MOUSE_MOVE 0 100
-DELAY 50
-MOUSE_MOVE -100 0
-DELAY 50
-MOUSE_MOVE 0 -100
+FUNCTION is_even(x)
+    IF x % 2 == 0 THEN
+        RETURN TRUE
+    END_IF
+    RETURN FALSE
+END_FUNCTION
 
-// Scroll and Click
-MOUSE_WHEEL 5
-LMOUSE
-RMOUSE
+VAR c1 = clamp(5, 0, 10)
+VAR c2 = clamp(0 - 5, 0, 10)
+VAR c3 = clamp(50, 0, 10)
+STRINGLN clamp: $c1 $c2 $c3
 
-// ------------------------------------------
-// 9. RGB LED CONTROL
-// ------------------------------------------
-SWC_FILL 255 0 0       // Red background
-SWC_SET 1 0 255 0      // Green on key 1
-DELAY 100
-SWC_RESET 0            // Reset current key
+VAR f10 = fib(10)
+STRINGLN fib(10)=$f10
 
-// ------------------------------------------
-// 10. SYSTEM VARIABLES & RANDOM
-// ------------------------------------------
-_RANDOM_MIN = 1
-_RANDOM_MAX = 100
-VAR rand_val = _RANDOM_INT
+VAR e7 = is_even(7)
+VAR e8 = is_even(8)
+STRINGLN even(7)=$e7 even(8)=$e8
 
-STRINGLN Random Value: $rand_val
-STRINGLN System Time ms: $_TIME_MS
+// ------------------------------------------------------------
+// Keys / mouse / profile switching / sleep (PARSE-ONLY by default)
+IF FALSE THEN
+    REM ---- chorded special keys
+    CTRL c
+    CTRL v
+    WINDOWS
+    TAB
+    ESC
+    F1
+    MK_MUTE
 
-// Test Print Padding
-_STR_PRINT_PADDING = 5
-STRINGLN Padded Score: $score
+    REM ---- KEYDOWN/KEYUP with numpad example
+    KEYDOWN ALT
+    KP_1
+    KP_7
+    KP_2
+    KEYUP ALT
 
-STRINGLN Test Complete.
+    REM ---- mouse
+    MOUSE_MOVE 20 10
+    LMOUSE
+    MOUSE_WHEEL -3
+    RMOUSE
+
+    REM ---- profiles (note: GOTO_PROFILE ends execution)
+    NEXT_PROFILE
+    PREV_PROFILE
+    GOTO_PROFILE NumPad
+
+    REM ---- sleep
+    DP_SLEEP
+END_IF
+
+// ------------------------------------------------------------
+OLED_RESTORE
+SWC_RESET 99
+STRINGLN ==== DONE ====
+HALT

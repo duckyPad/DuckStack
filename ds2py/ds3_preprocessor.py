@@ -742,8 +742,6 @@ def run_all(program_listing, profile_list=None):
             continue
         if needs_rstrip(first_word):
             line_obj.content = this_line.rstrip(" \t")
-        if first_word == cmd_REM or this_line.startswith(cmd_C_COMMENT):
-            continue
         if first_word != cmd_DEFINE:
             is_success, replaced_str = replace_DEFINE(this_line, rdict['define_dict'])
             if is_success is False:
@@ -754,6 +752,7 @@ def run_all(program_listing, profile_list=None):
                 line_obj.content = replaced_str
         else:
             continue
+        this_line = line_obj.content.lstrip(' \t')
 
         if first_word == cmd_REPEAT:
             if len(second_pass_program_listing) == 0:
