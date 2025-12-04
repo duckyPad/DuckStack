@@ -1,8 +1,163 @@
+REM_BLOCK
+    DuckyScript Compiler Test Suite
+    Version: 1.0
+    Target: Comprehensive Syntax & Logic Check
+END_REM
 
-VAR $outside = 4
+// ------------------------------------------
+// 1. PREPROCESSOR & CONSTANTS
+// ------------------------------------------
+DEFINE APP_VERSION 100
+DEFINE TEST_NAME Compiler_Test
+DEFINE TARGET_SCORE 50
 
-FUNCTION my_fun(arg)
-    VAR local = arg*2 + outside
-    RETURN local45
+// ------------------------------------------
+// 2. SETUP & CONFIGURATION
+// ------------------------------------------
+DEFAULTDELAY 10
+DEFAULTCHARDELAY 5
+CHARJITTER 2
+
+// ------------------------------------------
+// 3. VARIABLE DECLARATION & ARITHMETIC
+// ------------------------------------------
+VAR score = 0
+VAR multiplier = 2
+VAR bitmask = 255
+VAR complex_calc = 0
+
+// Test basic arithmetic and precedence
+complex_calc = (10 + 5) * 2
+score = complex_calc / 3
+
+// Test Bitwise operations
+VAR flags = 1
+flags = flags << 2   // Shift left (4)
+flags = flags | 1    // Bitwise OR (5)
+flags = flags & 7    // Bitwise AND (5)
+
+// ------------------------------------------
+// 4. OLED DISPLAY TESTS
+// ------------------------------------------
+OLED_CLEAR
+
+// Drawing primitives
+OLED_CIRCLE 64 32 10 1
+OLED_RECT 0 0 127 63 0
+OLED_LINE 0 0 127 63
+
+// Text on OLED
+OLED_CURSOR 0 0
+OLED_PRINT Running: //TEST_NAME
+OLED_CURSOR 0 10
+OLED_PRINT Ver: $APP_VERSION
+
+OLED_UPDATE
+DELAY 500
+
+// ------------------------------------------
+// 5. KEYBOARD & STRING OUTPUT
+// ------------------------------------------
+// Basic String
+STRINGLN Starting keyboard test...
+
+// Block String
+STRINGLN_BLOCK
+    Line 1: Testing //Block
+    Line 2: Still testing
+END_STRINGLN
+
+// Special Keys & Combos
+WINDOWS r
+DELAY 200
+STRING notepad
+ENTER
+DELAY 500
+
+// Key Hold/Release logic
+KEYDOWN SHIFT // dsffsd
+STRING hello //uppercase
+KEYUP SHIFT
+ENTER
+
+// Repeat command
+STRING a
+REPEAT 5
+
+// ------------------------------------------
+// 6. CONTROL FLOW (LOOPS & CONDITIONALS)
+// ------------------------------------------
+VAR i = 0
+VAR loop_check = 0
+
+WHILE i < 5
+    // Test logic operators inside expression
+    IF i == 2 || i == 4 THEN
+        STRINGLN Iteration $i: Even(ish)
+    END_IF
+
+    IF i == 3 THEN
+        // Test LBREAK
+        LBREAK
+    END_IF
+    
+    i = i + 1
+    loop_check = loop_check + 1
+END_WHILE
+
+// ------------------------------------------
+// 7. FUNCTIONS & SCOPE
+// ------------------------------------------
+FUNCTION calculate_area(width, height)
+    VAR area = 0
+    area = width * height
+    // Test formatting inside function
+    _STR_PRINT_FORMAT = 2 // Hex
+    STRINGLN Hex Area: $area
+    _STR_PRINT_FORMAT = 0 // Reset to Decimal
+    RETURN
 END_FUNCTION
 
+// Call the function
+calculate_area(10, 5)
+
+// ------------------------------------------
+// 8. MOUSE AUTOMATION
+// ------------------------------------------
+// Move in a square pattern
+MOUSE_MOVE 100 0
+DELAY 50
+MOUSE_MOVE 0 100
+DELAY 50
+MOUSE_MOVE -100 0
+DELAY 50
+MOUSE_MOVE 0 -100
+
+// Scroll and Click
+MOUSE_WHEEL 5
+LMOUSE
+RMOUSE
+
+// ------------------------------------------
+// 9. RGB LED CONTROL
+// ------------------------------------------
+SWC_FILL 255 0 0       // Red background
+SWC_SET 1 0 255 0      // Green on key 1
+DELAY 100
+SWC_RESET 0            // Reset current key
+
+// ------------------------------------------
+// 10. SYSTEM VARIABLES & RANDOM
+// ------------------------------------------
+_RANDOM_MIN = 1
+_RANDOM_MAX = 100
+VAR rand_val = _RANDOM_INT
+
+STRINGLN Random Value: $rand_val
+STRINGLN System Time ms: $_TIME_MS
+
+// Test Print Padding
+_STR_PRINT_PADDING = 5
+STRINGLN Padded Score: $score
+
+STRINGLN Test Complete.

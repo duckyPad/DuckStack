@@ -650,7 +650,6 @@ def run_all(program_listing, profile_list=None):
     program_listing = new_program_listing
 
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
-
     rdict = single_pass(program_listing)
     if rdict['is_success'] is False:
         return rdict
@@ -696,6 +695,9 @@ def run_all(program_listing, profile_list=None):
         if first_word == cmd_INJECT_MOD:
             line_obj.content = line_obj.content.replace(cmd_INJECT_MOD, "", 1)
         if first_word not in ds_str_func_lookup:
+            cpos = line_obj.content.find(cmd_C_COMMENT)
+            if cpos != -1:
+                line_obj.content = line_obj.content[:cpos].rstrip(" \t")
             line_obj.content = replace_operators(line_obj.content)
         line_obj.content = line_obj.content.lstrip(" \t")
         new_program_listing.append(line_obj)
