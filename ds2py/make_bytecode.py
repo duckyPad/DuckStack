@@ -308,9 +308,14 @@ rdict["root_assembly_list"] = []
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}
 
-for statement in my_tree.body:
-    rdict["this_func_name"] = None
-    myast.postorder_walk(statement, visit_node, rdict)
+
+try:
+    for statement in my_tree.body:
+        rdict["this_func_name"] = None
+        myast.postorder_walk(statement, visit_node, rdict)
+except Exception as e:
+    print(f"Line {rdict["latest_orig_ds_lnum_sf1"]}: {e}")
+    exit()
 
 print()
 print_assembly_list(rdict['root_assembly_list'])

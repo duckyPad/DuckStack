@@ -202,7 +202,7 @@ def if_check(pgm_line, lnum, iss):
     iss.append({lnum:{"else_if":[], "else":None, "end_if":None}})
     return PARSE_OK, ''
 
-def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table, ifraw_list):
+def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table):
     if pgm_line != cmd_END_IF:
         return PARSE_ERROR, "missing END_IF at end"
     if len(iss) == 0:
@@ -240,7 +240,6 @@ def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table, ifraw_list):
             if_take_table[item] = ifdict[if_root]['end_if']
     # print("if_skip_table", if_skip_table)
     # print("if_take_table", if_take_table)
-    ifraw_list.append(ifdict)
     return PARSE_OK, ''
 
 def elseif_check(pgm_line, lnum, iss):
@@ -285,22 +284,20 @@ def end_while_check(pgm_line, lnum, wss, wdict):
     wdict[while_start_line] = lnum
     return PARSE_OK, '' 
 
-def break_check(pgm_line, lnum, wss, bdict):
+def break_check(pgm_line, lnum, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
     if len(split) != 1:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "BREAK outside WHILE"
-    bdict[lnum] = wss[-1]
     return PARSE_OK, '' 
 
-def continue_check(pgm_line, lnum, wss, cdict):
+def continue_check(pgm_line, lnum, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
     if len(split) != 1:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "CONTINUE outside WHILE"
-    cdict[lnum] = wss[-1]
     return PARSE_OK, '' 
 
 def is_within_rem_block(lnum, rbdict):
@@ -396,10 +393,7 @@ def single_pass(program_listing):
     func_search_stack = []
     if_search_stack = []
     while_search_stack = []
-    if_raw_info = []
     define_dict = {}
-    break_dict = {}
-    continue_dict = {}
     rem_block_search_stack = []
     rem_block_table = {}
     strlen_block_search_stack = []
@@ -415,8 +409,6 @@ def single_pass(program_listing):
     'error_line_str':"",
     'define_dict':None,
     'loop_state_save_needed':False,
-    'color_state_save_needed':False,
-    'oled_restore_needed':False,
     'loop_size':None,
     }
 
@@ -480,16 +472,16 @@ def single_pass(program_listing):
             presult, pcomment = else_check(this_line, line_number_starting_from_1, if_search_stack)
         elif first_word == cmd_END_IF:
             this_indent_level -= 1
-            presult, pcomment = end_if_check(this_line, line_number_starting_from_1, if_search_stack, if_skip_table, if_take_table, if_raw_info)
+            presult, pcomment = end_if_check(this_line, line_number_starting_from_1, if_search_stack, if_skip_table, if_take_table)
         elif first_word == cmd_WHILE:
             presult, pcomment = new_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
         elif first_word == cmd_END_WHILE:
             this_indent_level -= 1
             presult, pcomment = end_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
         elif first_word == cmd_LOOP_BREAK:
-            presult, pcomment = break_check(this_line, line_number_starting_from_1, while_search_stack, break_dict)
+            presult, pcomment = break_check(this_line, line_number_starting_from_1, while_search_stack)
         elif first_word == cmd_CONTINUE:
-            presult, pcomment = continue_check(this_line, line_number_starting_from_1, while_search_stack, continue_dict)
+            presult, pcomment = continue_check(this_line, line_number_starting_from_1, while_search_stack)
         elif first_word == cmd_REM_BLOCK:
             presult, pcomment = new_rem_block_check(this_line, line_number_starting_from_1, rem_block_search_stack, rem_block_table)
         elif first_word == cmd_STRINGLN_BLOCK:
@@ -504,16 +496,12 @@ def single_pass(program_listing):
                 presult = PARSE_OK
                 pcomment = ''
         elif first_word == cmd_SWCC:
-            return_dict['color_state_save_needed'] = True
             presult, pcomment = PARSE_OK, ''
         elif first_word == cmd_SWCF:
-            return_dict['color_state_save_needed'] = True
             presult, pcomment = PARSE_OK, ''
         elif first_word == cmd_SWCR:
-            return_dict['color_state_save_needed'] = True
             presult, pcomment = PARSE_OK, ''
         elif first_word == cmd_OLED_UPDATE:
-            return_dict['oled_restore_needed'] = True
             presult, pcomment = ensure_zero_arg(this_line)
         elif first_word == cmd_OLED_CLEAR:
             presult, pcomment = ensure_zero_arg(this_line)
@@ -528,7 +516,6 @@ def single_pass(program_listing):
         elif first_word == cmd_DP_SLEEP:
             presult, pcomment = ensure_zero_arg(this_line)
         elif this_line.startswith(cmd_SWCOLOR):
-            return_dict['color_state_save_needed'] = True
             presult, pcomment = PARSE_OK, ''
         elif this_line.startswith(cmd_LOOP):
             presult, pcomment, value = check_loop(this_line)
@@ -605,11 +592,6 @@ def single_pass(program_listing):
     return_dict['error_line_number_starting_from_1'] = None
     return_dict['error_line_str'] = ""
     return_dict['define_dict'] = define_dict
-    return_dict['func_table'] = func_table
-    return_dict['if_take_table'] = if_take_table
-    return_dict['if_skip_table'] = if_skip_table
-    return_dict['break_dict'] = break_dict
-    return_dict['continue_dict'] = continue_dict
     return_dict['rem_block_table'] = rem_block_table
     return_dict['strlen_block_table'] = strlen_block_table
     return_dict['str_block_table'] = str_block_table
@@ -718,10 +700,8 @@ def run_all(program_listing, profile_list=None):
     epilogue = 0
     if rdict['loop_state_save_needed']:
         epilogue |= 0x1
-    if rdict['color_state_save_needed']:
-        epilogue |= 0x2
-    if rdict['oled_restore_needed']:
-        epilogue |= 0x4
+    # 0x2 is color_state_save_needed, generate on duckypad itself
+    # 0x4 is oled_restore_needed, generate on duckypad itself
     # 0x8 is disable_autorepeat, generated on duckypad itself
     # 0x10 is pgv_save_needed, generated on duckypad itself
 
