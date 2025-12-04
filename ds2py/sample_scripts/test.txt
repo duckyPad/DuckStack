@@ -3,6 +3,6 @@ VAR $outside = 4
 
 FUNCTION my_fun(arg)
     VAR local = arg*2 + outside
-    RETURN local45
+    RETURN local
 END_FUNCTION
 

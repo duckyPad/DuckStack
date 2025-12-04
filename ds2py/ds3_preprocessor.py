@@ -202,7 +202,7 @@ def if_check(pgm_line, lnum, iss):
     iss.append({lnum:{"else_if":[], "else":None, "end_if":None}})
     return PARSE_OK, ''
 
-def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table, ifraw_list):
+def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table):
     if pgm_line != cmd_END_IF:
         return PARSE_ERROR, "missing END_IF at end"
     if len(iss) == 0:
@@ -240,7 +240,6 @@ def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table, ifraw_list):
             if_take_table[item] = ifdict[if_root]['end_if']
     # print("if_skip_table", if_skip_table)
     # print("if_take_table", if_take_table)
-    ifraw_list.append(ifdict)
     return PARSE_OK, ''
 
 def elseif_check(pgm_line, lnum, iss):
@@ -285,22 +284,20 @@ def end_while_check(pgm_line, lnum, wss, wdict):
     wdict[while_start_line] = lnum
     return PARSE_OK, '' 
 
-def break_check(pgm_line, lnum, wss, bdict):
+def break_check(pgm_line, lnum, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
     if len(split) != 1:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "BREAK outside WHILE"
-    bdict[lnum] = wss[-1]
     return PARSE_OK, '' 
 
-def continue_check(pgm_line, lnum, wss, cdict):
+def continue_check(pgm_line, lnum, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
     if len(split) != 1:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "CONTINUE outside WHILE"
-    cdict[lnum] = wss[-1]
     return PARSE_OK, '' 
 
 def is_within_rem_block(lnum, rbdict):
@@ -396,10 +393,7 @@ def single_pass(program_listing):
     func_search_stack = []
     if_search_stack = []
     while_search_stack = []
-    if_raw_info = []
     define_dict = {}
-    break_dict = {}
-    continue_dict = {}
     rem_block_search_stack = []
     rem_block_table = {}
     strlen_block_search_stack = []
@@ -422,6 +416,7 @@ def single_pass(program_listing):
 
     for line_obj in program_listing:
         line_number_starting_from_1 = line_obj.orig_lnum_sf1
+        # we are only parsing for correctness, no need to preserve indents and leading spaces
         this_line = line_obj.content.lstrip(' \t')
         if len(this_line) == 0:
             continue
@@ -480,16 +475,16 @@ def single_pass(program_listing):
             presult, pcomment = else_check(this_line, line_number_starting_from_1, if_search_stack)
         elif first_word == cmd_END_IF:
             this_indent_level -= 1
-            presult, pcomment = end_if_check(this_line, line_number_starting_from_1, if_search_stack, if_skip_table, if_take_table, if_raw_info)
+            presult, pcomment = end_if_check(this_line, line_number_starting_from_1, if_search_stack, if_skip_table, if_take_table)
         elif first_word == cmd_WHILE:
             presult, pcomment = new_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
         elif first_word == cmd_END_WHILE:
             this_indent_level -= 1
             presult, pcomment = end_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
         elif first_word == cmd_LOOP_BREAK:
-            presult, pcomment = break_check(this_line, line_number_starting_from_1, while_search_stack, break_dict)
+            presult, pcomment = break_check(this_line, line_number_starting_from_1, while_search_stack)
         elif first_word == cmd_CONTINUE:
-            presult, pcomment = continue_check(this_line, line_number_starting_from_1, while_search_stack, continue_dict)
+            presult, pcomment = continue_check(this_line, line_number_starting_from_1, while_search_stack)
         elif first_word == cmd_REM_BLOCK:
             presult, pcomment = new_rem_block_check(this_line, line_number_starting_from_1, rem_block_search_stack, rem_block_table)
         elif first_word == cmd_STRINGLN_BLOCK:
@@ -608,8 +603,6 @@ def single_pass(program_listing):
     return_dict['func_table'] = func_table
     return_dict['if_take_table'] = if_take_table
     return_dict['if_skip_table'] = if_skip_table
-    return_dict['break_dict'] = break_dict
-    return_dict['continue_dict'] = continue_dict
     return_dict['rem_block_table'] = rem_block_table
     return_dict['strlen_block_table'] = strlen_block_table
     return_dict['str_block_table'] = str_block_table
@@ -803,6 +796,26 @@ def run_all(program_listing, profile_list=None):
     # -----------------
     return single_pass(second_pass_program_listing)
 
+def convert_keywords(program_listing):
+    is_in_comment_block = 0
+    is_in_str_block = 0
+    is_in_strln_block = 0
+
+    new_listing = []
+    for line_obj in program_listing:
+        this_line_orig = line_obj.content
+        this_line_lstrip = this_line_orig.lstrip()
+        if len(this_line_lstrip) == 0:
+            new_listing.append(line_obj)
+            continue
+        first_word = this_line_lstrip.split()[0]
+        if first_word not in dsvm_keywords:
+            new_listing.append(line_obj)
+            continue
+
+    print(new_listing)
+    exit()
+
 if __name__ == "__main__":
     # Require at least input and output arguments
     if len(sys.argv) < 2:
@@ -817,6 +830,8 @@ if __name__ == "__main__":
     for index, line in enumerate(text_listing):
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
+
+    convert_keywords(program_listing)
 
     rdict = run_all(program_listing)
     

@@ -639,3 +639,5 @@ class dsvm_instruction:
 
 def replace_operators(this_line):
     return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
+
+dsvm_keywords = {value for name, value in globals().items() if name.startswith("cmd_")}
