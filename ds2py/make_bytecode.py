@@ -104,10 +104,6 @@ def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
         return ""
     return rdict['orig_listing'][og_index_sf0].content
 
-SYM_TYPE_GLOBAL_VAR = 0
-SYM_TYPE_FUNC_ARG = 1
-SYM_TYPE_FUNC_LOCAL_VAR = 2
-
 def search_in_symtable(name: str, table: symtable.SymbolTable):
     try:
         return table.lookup(name)
@@ -124,10 +120,6 @@ def is_known_global(name: str, goodies) -> bool:
         return True
     return False
 
-SYM_TYPE_GLOBAL_VAR = 0
-SYM_TYPE_FUNC_ARG = 1
-SYM_TYPE_FUNC_LOCAL_VAR = 2
-
 def classify_name(name: str, current_function: str | None, goodies) -> int:
     root_table = goodies["symtable_root"]
 
@@ -139,19 +131,19 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
         sym = search_in_symtable(name, this_table)
         if sym is not None:
             if sym.is_parameter():
-                return SYM_TYPE_FUNC_ARG
+                return SymType.FUNC_ARG
 
             if sym.is_local() and sym.is_assigned():
-                return SYM_TYPE_FUNC_LOCAL_VAR
+                return SymType.FUNC_LOCAL_VAR
 
             # referenced from this function but resolved outside it
             if sym.is_global() or sym.is_declared_global() or sym.is_free() or sym.is_nonlocal():
                 if is_known_global(name, goodies):
-                    return SYM_TYPE_GLOBAL_VAR
+                    return SymType.GLOBAL_VAR
                 raise ValueError(f'Undefined symbol "{name}" (referenced in "{current_function}()")')
 
     if is_known_global(name, goodies):
-        return SYM_TYPE_GLOBAL_VAR
+        return SymType.GLOBAL_VAR
     
     if current_function is None:
         raise ValueError(f'Symbol "{name}" not found')
@@ -163,17 +155,17 @@ def visit_name_node(node, goodies, inst_list):
     current_function = goodies["this_func_name"]
 
     sym_type = classify_name(node.id, current_function, goodies)
-    # print("symtype:", node.id, current_function, sym_type)
+    # print("symtype:", node.id, current_function, sym_type.name)
     name = str(node.id)
 
     if isinstance(node.ctx, ast.Store):
-        opcode = OP_POPR if sym_type == SYM_TYPE_FUNC_ARG else OP_POPI
-        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line))
+        opcode = OP_POPR if sym_type == SymType.FUNC_ARG else OP_POPI
+        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
         return
 
     if isinstance(node.ctx, ast.Load):
-        opcode = OP_PUSHR if sym_type == SYM_TYPE_FUNC_ARG else OP_PUSHI
-        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line))
+        opcode = OP_PUSHR if sym_type == SymType.FUNC_ARG else OP_PUSHI
+        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
 
 def visit_node(node, goodies):
     current_function = goodies.get("this_func_name")
@@ -266,6 +258,30 @@ def print_symtable(tbl, indent=0):
 
 # ---------------------------
 
+def compile_to_bin(rdict):
+    final_assembly_list = []
+
+    print()
+    print_assembly_list(rdict['root_assembly_list'])
+    print()
+
+    for key in rdict['func_assembly_dict']:
+        print(f'----FUNC: {key}----')
+        print_assembly_list(rdict['func_assembly_dict'][key])
+        print(f'----END {key}----')
+
+    """
+    dump everything into one list
+    first main code, then func code
+
+    go through each instruction:
+        collect all global variables, assign address to them
+        collect all strings, deduplicate, generate address
+
+    """
+
+# --------------------------
+
 if __name__ != "__main__":
     exit()
 
@@ -317,12 +333,5 @@ except Exception as e:
     print(f"Line {rdict["latest_orig_ds_lnum_sf1"]}: {e}")
     exit()
 
-print()
-print_assembly_list(rdict['root_assembly_list'])
-print()
 
-for key in rdict['func_assembly_dict']:
-    print(f'----FUNC: {key}----')
-    print_assembly_list(rdict['func_assembly_dict'][key])
-    print(f'----END {key}----')
-
+compile_to_bin(rdict)

@@ -1,3 +1,5 @@
+from enum import IntEnum
+
 cmd_REPEAT = "REPEAT"
 cmd_REM = "REM"
 cmd_C_COMMENT = "//"
@@ -347,73 +349,80 @@ cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
 cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
+from dataclasses import dataclass
+
+@dataclass(frozen=True, slots=True)
+class Opcode:
+    name: str
+    code: int
+    length: int
 
 # CPU instructions
-OP_VMVER = ("VMVER", 255)
-OP_NOP = ("NOP", 0)
-OP_PUSHC16 = ("PUSHC16", 1)
-OP_PUSHI = ("PUSHI", 2)
-OP_PUSHR = ("PUSHR", 3)
-OP_POPI = ("POPI", 4)
-OP_POPR = ("POPR", 5)
-OP_BRZ = ("BRZ", 6)
-OP_JMP = ("JMP", 7)
-OP_CALL = ("CALL", 8)
-OP_RET = ("RET", 9)
-OP_HALT = ("HALT", 10)
+OP_VMVER = Opcode("VMVER", 255, 3)
+OP_NOP = Opcode("NOP", 0, 1)
+OP_PUSHC16 = Opcode("PUSHC16", 1, 3)
+OP_PUSHI = Opcode("PUSHI", 2, 3)
+OP_PUSHR = Opcode("PUSHR", 3, 3)
+OP_POPI = Opcode("POPI", 4, 3)
+OP_POPR = Opcode("POPR", 5, 3)
+OP_BRZ = Opcode("BRZ", 6, 3)
+OP_JMP = Opcode("JMP", 7, 3)
+OP_CALL = Opcode("CALL", 8, 3)
+OP_RET = Opcode("RET", 9, 2)
+OP_HALT = Opcode("HALT", 10, 1)
 
-OP_PUSHSTR = ("PUSHSTR", 11)
+OP_PUSHSTR = Opcode("PUSHSTR", 11, 0)
 
 # Binary Operators
-OP_EQ = ("EQ", 32)
-OP_NOTEQ = ("NOTEQ", 33)
-OP_LT = ("LT", 34)
-OP_LTE = ("LTE", 35)
-OP_GT = ("GT", 36)
-OP_GTE = ("GTE", 37)
-OP_ADD = ("ADD", 38)
-OP_SUB = ("SUB", 39)
-OP_MULT = ("MULT", 40)
-OP_DIV = ("DIV", 41)
-OP_MOD = ("MOD", 42)
-OP_POW = ("POW", 43)
-OP_LSHIFT = ("LSHIFT", 44)
-OP_RSHIFT = ("RSHIFT", 45)
-OP_BITOR = ("BITOR", 46)
-OP_BITXOR = ("BITXOR", 47)
-OP_BITAND = ("BITAND", 48)
-OP_LOGIAND = ("LOGIAND", 49)
-OP_LOGIOR = ("LOGIOR", 50)
+OP_EQ = Opcode("EQ", 32, 1)
+OP_NOTEQ = Opcode("NOTEQ", 33, 1)
+OP_LT = Opcode("LT", 34, 1)
+OP_LTE = Opcode("LTE", 35, 1)
+OP_GT = Opcode("GT", 36, 1)
+OP_GTE = Opcode("GTE", 37, 1)
+OP_ADD = Opcode("ADD", 38, 1)
+OP_SUB = Opcode("SUB", 39, 1)
+OP_MULT = Opcode("MULT", 40, 1)
+OP_DIV = Opcode("DIV", 41, 1)
+OP_MOD = Opcode("MOD", 42, 1)
+OP_POW = Opcode("POW", 43, 1)
+OP_LSHIFT = Opcode("LSHIFT", 44, 1)
+OP_RSHIFT = Opcode("RSHIFT", 45, 1)
+OP_BITOR = Opcode("BITOR", 46, 1)
+OP_BITXOR = Opcode("BITXOR", 47, 1)
+OP_BITAND = Opcode("BITAND", 48, 1)
+OP_LOGIAND = Opcode("LOGIAND", 49, 1)
+OP_LOGIOR = Opcode("LOGIOR", 50, 1)
 
 # Unary Operators
-OP_BITINV = ("BITINV", 55)
-OP_LOGINOT = ("LOGINOT", 56)
-OP_USUB = ("USUB", 57)
+OP_BITINV = Opcode("BITINV", 55, 1)
+OP_LOGINOT = Opcode("LOGINOT", 56, 1)
+OP_USUB = Opcode("USUB", 57, 1)
 
 # duckyScript Commands
-OP_DELAY = ("DELAY",64)
-OP_KUP = ("KUP",65)
-OP_KDOWN = ("KDOWN",66)
-OP_MSCL = ("MSCL",67)
-OP_MMOV = ("MMOV",68)
-OP_SWCF = ("SWCF",69)
-OP_SWCC = ("SWCC",70)
-OP_SWCR = ("SWCR",71)
-OP_STR = ("STR",72)
-OP_STRLN = ("STRLN",73)
-OP_OLED_CUSR = ("OLED_CUSR",74)
-OP_OLED_PRNT = ("OLED_PRNT",75)
-OP_OLED_UPDE = ("OLED_UPDE",76)
-OP_OLED_CLR = ("OLED_CLR",77)
-OP_OLED_REST = ("OLED_REST",78)
-OP_BCLR = ("BCLR",79)
-OP_PREVP = ("PREVP",80)
-OP_NEXTP = ("NEXTP",81)
-OP_GOTOP = ("GOTOP",82)
-OP_SLEEP = ("SLEEP",83)
-OP_OLED_LINE = ("OLED_LINE",84)
-OP_OLED_RECT = ("OLED_RECT",85)
-OP_OLED_CIRC = ("OLED_CIRC",86)
+OP_DELAY = Opcode("DELAY", 64, 1)
+OP_KDOWN = Opcode("KDOWN", 65, 1)
+OP_KUP = Opcode("KUP", 66, 1)
+OP_MSCL = Opcode("MSCL", 67, 1)
+OP_MMOV = Opcode("MMOV", 68, 1)
+OP_SWCF = Opcode("SWCF", 69, 1)
+OP_SWCC = Opcode("SWCC", 70, 1)
+OP_SWCR = Opcode("SWCR", 71, 1)
+OP_STR = Opcode("STR", 72, 1)
+OP_STRLN = Opcode("STRLN", 73, 1)
+OP_OLED_CUSR = Opcode("OLED_CUSR", 74, 1)
+OP_OLED_PRNT = Opcode("OLED_PRNT", 75, 1)
+OP_OLED_UPDE = Opcode("OLED_UPDE", 76, 1)
+OP_OLED_CLR = Opcode("OLED_CLR", 77, 1)
+OP_OLED_REST = Opcode("OLED_REST", 78, 1)
+OP_OLED_LINE = Opcode("OLED_LINE", 79, 1)
+OP_OLED_RECT = Opcode("OLED_RECT", 80, 1)
+OP_OLED_CIRC = Opcode("OLED_CIRC", 81, 1)
+OP_BCLR = Opcode("BCLR", 82, 1)
+OP_PREVP = Opcode("PREVP", 83, 1)
+OP_NEXTP = Opcode("NEXTP", 84, 1)
+OP_GOTOP = Opcode("GOTOP", 85, 1)
+OP_SLEEP = Opcode("SLEEP", 86, 1)
 
 INSTRUCTION_SIZE_BYTES = 3
 USER_VAR_START_ADDRESS = 0xFA00
@@ -593,12 +602,22 @@ class dsvm_instruction:
     PAYLOAD_BLOCK_WIDTH = 20
     COMMENT_MAX = 32
 
-    def __init__(self, opcode=OP_NOP, payload=None, label=None, comment='', addr=None):
+    def __init__(self,\
+                opcode=OP_NOP,\
+                payload=None,\
+                label=None,\
+                comment='',\
+                addr=None,\
+                parent_func=None,\
+                var_type=None,\
+                ):
         self.opcode = opcode
         self.payload = payload
         self.label = label
         self.comment = comment
         self.addr = addr
+        self.parent_func = parent_func
+        self.var_type = var_type
 
     def __str__(self) -> str:
         lines = []
@@ -610,7 +629,7 @@ class dsvm_instruction:
         if self.addr is not None:
             parts.append(str(self.addr).ljust(self.ADDR_WIDTH))
 
-        parts.append(self.opcode[0].ljust(self.OPCODE_WIDTH))
+        parts.append(self.opcode.name.ljust(self.OPCODE_WIDTH))
 
         # payload section
         payload_block = ""
@@ -624,18 +643,32 @@ class dsvm_instruction:
 
         parts.append(payload_block.ljust(self.PAYLOAD_BLOCK_WIDTH))
 
-        # comment section
-        comment = str(self.comment)
+        # comment section (now includes parent_func + var_type)
+        comment_items = []
+        if self.parent_func:
+            comment_items.append(f"{self.parent_func}")
+        if self.var_type:
+            comment_items.append(f"{self.var_type.name}")
+        if self.comment:
+            comment_items.append(str(self.comment).strip())
+
+        comment = " | ".join(comment_items)
         comment_out = ""
         if len(comment) > self.COMMENT_MAX:
-            comment_out = ";" + comment.strip()[:self.COMMENT_MAX] + "..."
+            comment_out = ";" + comment[:self.COMMENT_MAX] + "..."
         elif len(comment) > 0:
-            comment_out = ";" + comment.strip()
+            comment_out = ";" + comment
 
         parts.append(comment_out)
 
         lines.append("".join(parts))
         return "\n".join(lines)
 
+
 def replace_operators(this_line):
     return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
+
+class SymType(IntEnum):
+    GLOBAL_VAR = 0
+    FUNC_ARG = 1
+    FUNC_LOCAL_VAR = 2
