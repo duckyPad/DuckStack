@@ -350,10 +350,12 @@ def split_str_cmd(cmd_type, line_obj):
         cmd_list.append(new_obj)
     return cmd_list
 
+MAX_COMBO = 10
+
 def parse_combo(line_obj):
     combo_keys = [x for x in line_obj.content.split(' ') if len(x) > 0]
-    if len(combo_keys) > 6:
-        return PARSE_ERROR, 'No more than 6 combos', None
+    if len(combo_keys) > MAX_COMBO:
+        return PARSE_ERROR, f'No more than {MAX_COMBO} combos', None
     for item in [x.lower() for x in combo_keys if x not in ds3_keyname_dict.keys()]:
         if item not in valid_combo_chars:
             return PARSE_ERROR, 'Invalid combo character', None
@@ -776,6 +778,8 @@ def run_all(program_listing, profile_list=None):
             if parse_result == PARSE_ERROR:
                 rdict['is_success'] = False
                 rdict['comments'] = comments
+                rdict['error_line_number_starting_from_1'] = line_obj.orig_lnum_sf1
+                rdict['error_line_str'] = line_obj.content
                 return rdict
             new_program_listing += new_lines
             continue

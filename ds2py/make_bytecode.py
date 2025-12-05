@@ -154,7 +154,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
 
 def visit_name_node(node, goodies, inst_list):
     og_ds_line = goodies["og_ds_line"]
-    current_function = goodies["this_func_name"]
+    current_function = goodies["func_def_name"]
 
     node_name = node.id
     sym_type = classify_name(node.id, current_function, goodies)
@@ -175,9 +175,18 @@ def visit_name_node(node, goodies, inst_list):
         opcode = OP_PUSHR if (sym_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]) else OP_PUSHI
         inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
 
-def visit_node(node, goodies):
-    current_function = goodies.get("this_func_name")
+def get_key_combined_value(keyname):
+    if keyname in ds3_keyname_dict:
+        key_code = ds3_keyname_dict[keyname][0]
+        key_type = ds3_keyname_dict[keyname][1]
+    else:
+        key_code = ord(keyname[0])
+        key_type = KEY_TYPE_CHAR
+    return ((key_type % 0xff) << 8) | (key_code % 0xff)
 
+def visit_node(node, goodies):
+    current_function = goodies.get("func_def_name")
+    caller_func_name = goodies["caller_func_name"]
     # Pick the right instruction list (root vs function)
     if current_function is None:
         instruction_list = goodies["root_assembly_list"]
@@ -196,14 +205,14 @@ def visit_node(node, goodies):
         visit_name_node(node, goodies, instruction_list)
 
     elif isinstance(node, ast.Constant):
-        if isinstance(node.value, str):
-            func_name = goodies["caller_func_name"]
-            print(func_name)
-            emit(OP_PUSHSTR, payload=node.value,)
+        if isinstance(node.value, str) and caller_func_name in ds_str_func_lookup:
+            emit(OP_PUSHSTR, payload=node.value)
+        elif isinstance(node.value, str) and caller_func_name in ds_keypress_func_lookup:
+            emit(OP_PUSHC16, payload=get_key_combined_value(node.value))
         elif isinstance(node.value, int):
             instruction_list.extend(make_instruction_pushc32(node.value, og_ds_line))
         else:
-            raise ValueError("Unknown type:", type(node.value))
+            raise ValueError("Unknown Constant:", node.value)
 
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
@@ -374,13 +383,13 @@ rdict['func_assembly_dict'] = {}
 rdict['var_info_set'] = set()
 
 for statement in my_tree.body:
-    rdict["this_func_name"] = None
+    rdict["func_def_name"] = None
     rdict["caller_func_name"] = None
     myast.postorder_walk(statement, visit_node, rdict)
 
 # try:
 #     for statement in my_tree.body:
-#         rdict["this_func_name"] = None
+#         rdict["func_def_name"] = None
 #         myast.postorder_walk(statement, visit_node, rdict)
 # except Exception as e:
 #     print(f"Line {rdict["latest_orig_ds_lnum_sf1"]}: {e}")

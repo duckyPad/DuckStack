@@ -95,7 +95,7 @@ def postorder_walk(node, action, goodies):
     elif isinstance(node, ast.FunctionDef):
         func_name = node.name
         this_func_label = f"func_{func_name}"
-        goodies['this_func_name'] = func_name
+        goodies['func_def_name'] = func_name
         action(add_nop(this_func_label), goodies)
         for item in node.body:
             postorder_walk(item, action, goodies)
