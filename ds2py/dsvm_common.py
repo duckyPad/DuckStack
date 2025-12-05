@@ -368,7 +368,7 @@ OP_POPR = Opcode("POPR", 5, 3)
 OP_BRZ = Opcode("BRZ", 6, 3)
 OP_JMP = Opcode("JMP", 7, 3)
 OP_CALL = Opcode("CALL", 8, 3)
-OP_RET = Opcode("RET", 9, 2)
+OP_RET = Opcode("RET", 9, 3)
 OP_HALT = Opcode("HALT", 10, 1)
 
 OP_PUSHSTR = Opcode("PUSHSTR", 11, 0)

@@ -276,8 +276,9 @@ def compile_to_bin(rdict):
 
     go through each instruction:
         collect all global variables, assign address to them
-        collect all strings, deduplicate, generate address
-
+        collect all strings, deduplicate, process, generate address
+        look at variables, figure out arg position and local var ordering
+        
     """
 
 # --------------------------
