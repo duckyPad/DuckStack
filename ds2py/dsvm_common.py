@@ -351,6 +351,17 @@ cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
 cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
+class SymType(IntEnum):
+    GLOBAL_VAR = 0
+    FUNC_ARG = 1
+    FUNC_LOCAL_VAR = 2
+    RESERVED_VAR = 3
+
+@dataclass(frozen=True, slots=True)
+class var_info:
+    name: str
+    type: SymType
+    func: str
 
 @dataclass(frozen=True, slots=True)
 class Opcode:
@@ -669,9 +680,3 @@ class dsvm_instruction:
 
 def replace_operators(this_line):
     return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
-
-class SymType(IntEnum):
-    GLOBAL_VAR = 0
-    FUNC_ARG = 1
-    FUNC_LOCAL_VAR = 2
-    RESERVED_VAR = 3

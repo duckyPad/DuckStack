@@ -1,9 +1,111 @@
-VAR myglobal = 4
-FUNCTION foo(myarg)
-    VAR local = myarg*2 + myglobal
-    RETURN local
+VAR ball_pos_x = _RANDOM_INT%100 + 10
+VAR ball_pos_y = _RANDOM_INT%100 + 10
+VAR ball_velocity_x = 4
+VAR ball_velocity_y = 3
+VAR paddle_pos = 64
+VAR active_key = 0
+VAR score = 0
+VAR paddle_upper_limit = 30/2
+VAR paddle_lower_limit = 127-30/2
+FUNCTION update_paddle_position()
+    IF active_key == 25 THEN
+        paddle_pos = paddle_pos + 6
+        IF paddle_pos > paddle_lower_limit THEN
+            paddle_pos = paddle_lower_limit
+        END_IF
+    END_IF
+    IF active_key == 24 THEN
+        paddle_pos = paddle_pos - 6
+        IF paddle_pos < paddle_upper_limit THEN
+            paddle_pos = paddle_upper_limit
+        END_IF
+    END_IF
 END_FUNCTION
-FUNCTION bar(myarg)
-    VAR local = myarg*2 + myglobal
-    RETURN local
+FUNCTION draw_court()
+    OLED_LINE 0 0 127 0
+    OLED_LINE 0 127 127 127
+    OLED_LINE 127 0 127 127
 END_FUNCTION
+FUNCTION draw_paddle()
+    VAR paddle_top_y = paddle_pos - 30/2
+    VAR paddle_bottom_y = paddle_pos + 30/2
+    OLED_RECT 0 paddle_top_y 2 paddle_bottom_y 1
+END_FUNCTION
+FUNCTION draw_ball()
+    VAR drawx = ball_pos_x
+    VAR drawy = ball_pos_y
+    IF drawx >= 127-2  or  drawx <= 2 THEN
+        RETURN
+    END_IF
+    IF drawy >= 127-2  or  drawy <= 2 THEN
+        RETURN
+    END_IF
+    OLED_CIRCLE drawx drawy 2 1
+END_FUNCTION
+FUNCTION draw_gameover()
+    SWC_FILL 255 0 0
+    OLED_CLEAR
+    draw_paddle()
+    draw_court()
+    draw_ball()
+    OLED_CURSOR 20 40
+    OLED_PRINT GAME OVER
+    OLED_CURSOR 20 60
+    OLED_PRINT Score: $score
+    OLED_UPDATE
+    BCLR
+    WHILE 1
+        IF _BLOCKING_READKEY <= 20 THEN
+            SWC_RESET 99
+            HALT
+        END_IF
+    END_WHILE
+END_FUNCTION
+FUNCTION speed_up_ball()
+    IF ball_velocity_x >= 0 THEN
+        ball_velocity_x = ball_velocity_x + (_RANDOM_INT % 2)
+    ELSE IF ball_velocity_x < 0 THEN
+        ball_velocity_x = ball_velocity_x - (_RANDOM_INT % 2)
+    END_IF
+    IF ball_velocity_y >= 0 THEN
+        ball_velocity_y = ball_velocity_y + (_RANDOM_INT % 2)
+    ELSE IF ball_velocity_y < 0 THEN
+        ball_velocity_y = ball_velocity_y - (_RANDOM_INT % 2)
+    END_IF
+END_FUNCTION
+FUNCTION update_ball_pos()
+    ball_pos_x = ball_pos_x + ball_velocity_x
+    ball_pos_y = ball_pos_y + ball_velocity_y
+    IF (ball_pos_y >= 127 - 2*2)  or  (ball_pos_y <= 2*2) THEN
+        ball_velocity_y = ball_velocity_y * -1
+    END_IF
+    IF ball_pos_x >= 127 - 2*2 THEN
+        ball_velocity_x = ball_velocity_x * -1
+    END_IF
+    IF ball_pos_x <= 2*2 THEN
+        VAR paddle_top = paddle_pos - 30/2
+        VAR paddle_bottom = paddle_pos + 30/2
+        IF ball_pos_y >= paddle_top  and  ball_pos_y <= paddle_bottom THEN
+            ball_velocity_x = ball_velocity_x * -1
+            score = score + 1
+            speed_up_ball()
+            SWC_FILL _RANDOM_INT%255 _RANDOM_INT%255 _RANDOM_INT%255
+        ELSE
+            ball_velocity_x = 0
+            ball_velocity_y = 0
+            draw_gameover()
+        END_IF
+    END_IF
+END_FUNCTION
+SWC_FILL 0 255 0
+WHILE 1
+    active_key = _READKEY
+    update_paddle_position()
+    update_ball_pos()
+    OLED_CLEAR
+    draw_paddle()
+    draw_court()
+    draw_ball()
+    OLED_UPDATE
+    DELAY 20
+END_WHILE

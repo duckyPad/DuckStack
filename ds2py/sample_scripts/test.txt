@@ -1,11 +1,12 @@
 VAR myglobal = 4
 
-FUNCTION global(myarg)
+FUNCTION foo(myarg)
     VAR local = myarg*2 + myglobal
     RETURN local
 END_FUNCTION
 
 FUNCTION bar(myarg)
     VAR local = myarg*2 + myglobal
+    VAR local = 9
     RETURN local
 END_FUNCTION

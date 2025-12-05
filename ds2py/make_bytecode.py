@@ -159,6 +159,12 @@ def visit_name_node(node, goodies, inst_list):
     sym_type = classify_name(node.id, current_function, goodies)
     # print("symtype:", node.id, current_function, sym_type.name)
 
+    vi_func = current_function
+    if sym_type in [SymType.GLOBAL_VAR, SymType.RESERVED_VAR]:
+        vi_func = None
+    this_var_info = var_info(node_name, sym_type, vi_func)
+    goodies['var_info_set'].add(this_var_info)
+
     if isinstance(node.ctx, ast.Store):
         opcode = OP_POPR if sym_type == SymType.FUNC_ARG else OP_POPI
         inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
@@ -281,6 +287,10 @@ def compile_to_bin(rdict):
         look at variables, figure out arg position and local var ordering
 
     """
+    for item in rdict['var_info_set']:
+        print(item)
+
+
 
 # --------------------------
 
@@ -325,14 +335,19 @@ symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
 rdict["root_assembly_list"] = []
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}
+rdict['var_info_set'] = set()
 
-try:
-    for statement in my_tree.body:
+for statement in my_tree.body:
         rdict["this_func_name"] = None
         myast.postorder_walk(statement, visit_node, rdict)
-except Exception as e:
-    print(f"Line {rdict["latest_orig_ds_lnum_sf1"]}: {e}")
-    exit()
+
+# try:
+#     for statement in my_tree.body:
+#         rdict["this_func_name"] = None
+#         myast.postorder_walk(statement, visit_node, rdict)
+# except Exception as e:
+#     print(f"Line {rdict["latest_orig_ds_lnum_sf1"]}: {e}")
+#     exit()
 
 
 compile_to_bin(rdict)
