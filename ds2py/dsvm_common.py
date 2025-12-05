@@ -369,10 +369,11 @@ OP_PUSHR = Opcode("PUSHR", 3, 3)
 OP_POPI = Opcode("POPI", 4, 3)
 OP_POPR = Opcode("POPR", 5, 3)
 OP_BRZ = Opcode("BRZ", 6, 3)
-OP_JMP = Opcode("JMP", 7, 3)
-OP_CALL = Opcode("CALL", 8, 3)
-OP_RET = Opcode("RET", 9, 3)
-OP_HALT = Opcode("HALT", 10, 1)
+OP_ALLOC = Opcode("ALOC", 7, 3)
+OP_JMP = Opcode("JMP", 8, 3)
+OP_CALL = Opcode("CALL", 9, 3)
+OP_RET = Opcode("RET", 10, 3)
+OP_HALT = Opcode("HALT", 11, 1)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators
@@ -625,7 +626,6 @@ class dsvm_instruction:
                 addr=None,\
                 parent_func=None,\
                 var_type=None,\
-                obj_name="",
                 ):
         self.opcode = opcode
         self.payload = payload
@@ -634,9 +634,6 @@ class dsvm_instruction:
         self.addr = addr
         self.parent_func = parent_func
         self.var_type = var_type
-        self.obj_name = obj_name
-        if isinstance(self.payload, str):
-            self.obj_name = self.payload
 
     def __str__(self) -> str:
         lines = []
@@ -664,12 +661,6 @@ class dsvm_instruction:
 
         # comment section (now includes parent_func + var_type)
         comment_items = []
-        # if self.parent_func:
-        #     comment_items.append(f"{self.parent_func}")
-        if len(self.obj_name):
-            comment_items.append(f"[{self.obj_name}]")
-        # if self.var_type:
-        #     comment_items.append(f"{self.var_type.name}")
         if self.comment:
             comment_items.append(str(self.comment).strip())
 

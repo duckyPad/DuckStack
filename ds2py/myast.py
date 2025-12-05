@@ -39,21 +39,25 @@ AST_LEAF_NODES = (
     ast.Name,
 )
 
+@dataclass(frozen=True, slots=True)
+class add_alloc:
+    func_name : str = ""
+
+@dataclass(frozen=True, slots=True)
 class add_nop:
-    def __init__(self, label=''):
-        self.label = label
+    label: str = ""
 
+@dataclass(frozen=True, slots=True)
 class add_jmp:
-    def __init__(self, label=''):
-        self.label = label
+    label: str = ""
 
+@dataclass(frozen=True, slots=True)
 class add_push0:
-    def __init__(self, label=''):
-        self.label = label
+    label: str = ""
 
+@dataclass(frozen=True, slots=True)
 class add_default_return:
-    def __init__(self, arg_count=0):
-        self.arg_count = arg_count
+    arg_count: int = 0
 
 def is_leaf(node):
     if isinstance(node, AST_LEAF_NODES):
@@ -95,12 +99,16 @@ def postorder_walk(node, action, goodies):
     elif isinstance(node, ast.FunctionDef):
         func_name = node.name
         this_func_label = f"func_{func_name}"
+        this_arg_count = how_many_args(func_name, goodies['symtable_root'])
+        if this_arg_count is None:
+            raise ValueError("Invalid args:", func_name)
         goodies['func_def_name'] = func_name
         action(add_nop(this_func_label), goodies)
+        action(add_alloc(func_name), goodies)
         for item in node.body:
             postorder_walk(item, action, goodies)
         action(add_push0(), goodies)
-        action(add_default_return(how_many_args(func_name, goodies['symtable_root'])), goodies)
+        action(add_default_return(this_arg_count), goodies)
     elif isinstance(node, ast.Return):
         if node.value is None:
             action(add_push0(), goodies)

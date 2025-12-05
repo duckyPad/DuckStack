@@ -64,9 +64,10 @@
 |`POPR`|3|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`BRZ`|3|`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`JMP`|3|`7`/`0x7` |Unconditional Jump|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
-|`CALL`|3|`8`/`0x8` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
-|`RET`|3|`9`/`0x9` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
-|`HALT`|1|`10`/`0xa` |Stop execution|None|
+|`ALLOC`|3|`8`/`0x8` |Push `n` blank entries to stack<br>Used to allocate local variables<br>on function entry|2 Bytes:<br>`n_LSB`<br>`n_MSB`|
+|`CALL`|3|`9`/`0x9` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
+|`RET`|3|`10`/`0xa` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
+|`HALT`|1|`11`/`0xb` |Stop execution|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ## Binary Operator Instructions
@@ -200,21 +201,21 @@ Caller then executes `CALL` instruction, which:
 
 ### Function Arguments
 
-Once in function, callee does required calculations.
+Once in function, callee uses `ALLOC n` to make space for local variables.
 
-To reference arguments, **FP + Byte_Offset** is used.
+To reference arguments and locals, **FP + Byte_Offset** is used.
 
-* **Negative** offset towards **smaller address / TOS**.
-* **Positive** offset towards **larger address / base of stack**.
-* `FP + 4` points to **leftmost argument**
-* `FP + 8` points to **second from left**, etc.
-* Use `PUSHR + Offset` and `POPR + Offset` to read/write to arguments.
-
+* **Negative** offset towards **smaller address / TOS / locals**.
+	* `FP - 4` points to **first local**, etc
+* **Positive** offset towards **larger address / base of stack / args**.
+	* `FP + 4` points to **leftmost argument**, etc
+* Use `PUSHR + Offset` and `POPR + Offset` to read/write to args and locals.
 
 |||
 |:--:|:--:|
 ||...|
-||`func_data`|
+|`FP - 8`|`localvar_2`|
+|`FP - 4`|`localvar_1`|
 |`FP ->`|`Prev_FP \| Return_addr`|
 |`FP + 4`|`a`|
 |`FP + 8`|`b`|
@@ -229,7 +230,9 @@ At end of a function, `return_value` is on TOS.
 |||
 |:--:|:--:|
 ||`return_value`|
-||`temp data (if any)`|
+||`temp data`|
+|`FP - 8`|`localvar_2`|
+|`FP - 4`|`localvar_1`|
 |`FP ->`|`Prev_FP \| Return_addr`|
 |`FP + 4`|`a`|
 |`FP + 8`|`b`|

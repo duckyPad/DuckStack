@@ -329,3 +329,60 @@ def group_vars(var_infos):
     # for item in rdict['var_info_set']:
     #     print(item)
     # exit()
+
+final_assembly_list = []
+
+    curr_inst_addr = 0
+    for this_inst in rdict['root_assembly_list']:
+        this_inst.addr = curr_inst_addr
+        curr_inst_addr += this_inst.opcode.length
+        print(this_inst)
+        if isinstance(this_inst.payload, int):
+            final_assembly_list.append(this_inst)
+            continue
+        # print(this_inst)
+        if this_inst.opcode in [OP_PUSHI, OP_POPI]:
+            this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)
+            final_assembly_list.append(this_inst)
+        elif this_inst.opcode in [OP_PUSHR, OP_POPR]:
+            # local / func args
+            pass
+
+        # lay out all instructions
+        # duckyscript commands absolutely not resolved, double check
+        # make label to address lookup dict
+
+    # print("\n----- FINAL ASS -----")
+    # print_assembly_list(final_assembly_list)
+
+
+    def __init__(self,\
+                opcode=OP_NOP,\
+                payload=None,\
+                label=None,\
+                comment='',\
+                addr=None,\
+                parent_func=None,\
+                var_type=None,\
+                # obj_name="",
+                ):
+        self.opcode = opcode
+        self.payload = payload
+        self.label = label
+        self.comment = comment
+        self.addr = addr
+        self.parent_func = parent_func
+        self.var_type = var_type
+        # self.obj_name = obj_name
+        # if isinstance(self.payload, str):
+        #     self.obj_name = self.payload
+
+
+
+            comment_items = []
+        # if self.parent_func:
+        #     comment_items.append(f"{self.parent_func}")
+        # if len(self.obj_name):
+        #     comment_items.append(f"[{self.obj_name}]")
+        # if self.var_type:
+        #     comment_items.append(f"{self.var_type.name}")

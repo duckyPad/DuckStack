@@ -257,6 +257,9 @@ def visit_node(node, goodies):
     elif isinstance(node, myast.add_default_return):
         emit(OP_RET, payload=node.arg_count)
 
+    elif isinstance(node, myast.add_alloc):
+        emit(OP_ALLOC, payload=node.func_name)
+
     else:
         raise ValueError("Unknown leaf node:", node)
 
@@ -284,15 +287,15 @@ def resolve_global_and_reserved_var_address(var_name, udgv_lookup):
     raise ValueError(f"Unknown variable: {var_name}")
 
 def compile_to_bin(rdict):
-    # print()
-    # print_assembly_list(rdict['root_assembly_list'])
-    # print()
+    print()
+    print_assembly_list(rdict['root_assembly_list'])
+    print()
 
-    # for key in rdict['func_assembly_dict']:
-    #     print(f'----FUNC: {key}----')
-    #     print_assembly_list(rdict['func_assembly_dict'][key])
-    #     print(f'----END {key}----')
-    # exit()
+    for key in rdict['func_assembly_dict']:
+        print(f'----FUNC: {key}----')
+        print_assembly_list(rdict['func_assembly_dict'][key])
+        print(f'----END {key}----')
+    exit()
 
 
     """
@@ -316,24 +319,8 @@ def compile_to_bin(rdict):
     for this_inst in rdict['root_assembly_list']:
         this_inst.addr = curr_inst_addr
         curr_inst_addr += this_inst.opcode.length
-        print(this_inst)
-        if isinstance(this_inst.payload, int):
-            final_assembly_list.append(this_inst)
-            continue
-        # print(this_inst)
-        if this_inst.opcode in [OP_PUSHI, OP_POPI]:
-            this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)
-            final_assembly_list.append(this_inst)
-        elif this_inst.opcode in [OP_PUSHR, OP_POPR]:
-            # local / func args
-            pass
-
-        # lay out all instructions
-        # duckyscript commands absolutely not resolved, double check
-        # make label to address lookup dict
-
-    # print("\n----- FINAL ASS -----")
-    # print_assembly_list(final_assembly_list)
+        final_assembly_list.append(this_inst)
+    print_assembly_list(final_assembly_list)
 
 
 # --------------------------
@@ -386,6 +373,8 @@ for statement in my_tree.body:
     rdict["func_def_name"] = None
     rdict["caller_func_name"] = None
     myast.postorder_walk(statement, visit_node, rdict)
+
+rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
 # try:
 #     for statement in my_tree.body:

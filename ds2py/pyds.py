@@ -1,22 +1,14 @@
-KEYDOWN('F1')
-KEYDOWN('F2')
-KEYDOWN('F3')
-KEYDOWN('F4')
-KEYDOWN('F5')
-KEYDOWN('F6')
-KEYDOWN('F7')
-KEYDOWN('F8')
-KEYDOWN('F9')
-KEYDOWN('F10')
-KEYUP('F10')
-KEYUP('F9')
-KEYUP('F8')
-KEYUP('F7')
-KEYUP('F6')
-KEYUP('F5')
-KEYUP('F4')
-KEYUP('F3')
-KEYUP('F2')
-KEYUP('F1')
-test = 4
-STRING('hello')
+def print_result(value):
+    STRINGLN('Value is: $value')
+def is_even(n):
+    mylocal = n%2
+    if mylocal == 0:
+        return 1
+    return 0
+i = 1
+sum = 0
+while i <= 6:
+    if is_even(i):
+        sum = sum + i
+    i = i + 1
+print_result(sum)

@@ -1,22 +1,19 @@
-KEYDOWN F1
-KEYDOWN F2
-KEYDOWN F3
-KEYDOWN F4
-KEYDOWN F5
-KEYDOWN F6
-KEYDOWN F7
-KEYDOWN F8
-KEYDOWN F9
-KEYDOWN F10
-KEYUP F10
-KEYUP F9
-KEYUP F8
-KEYUP F7
-KEYUP F6
-KEYUP F5
-KEYUP F4
-KEYUP F3
-KEYUP F2
-KEYUP F1
-VAR test = 4
-STRING hello
+FUNCTION print_result(value)
+    STRINGLN Value is: $value
+END_FUNCTION
+FUNCTION is_even(n)
+    VAR mylocal = n%2
+    IF mylocal == 0 THEN
+        RETURN 1
+    END_IF
+    RETURN 0
+END_FUNCTION
+VAR i = 1
+VAR sum = 0
+WHILE i <= 6
+    IF is_even(i) THEN
+        sum = sum + i
+    END_IF
+    i = i + 1
+END_WHILE
+print_result(sum)
