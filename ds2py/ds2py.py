@@ -23,12 +23,12 @@ def run_all(program_listing):
 
         if first_word == cmd_VAR_DECLARE:
             line_obj.content = line_obj.content[len(cmd_VAR_DECLARE):].strip()
-        if first_word not in ds_str_func_lookup:
+        if first_word not in ds_func_to_parse_as_str:
             line_obj.content = replace_operators(line_obj.content)
 
         this_line = line_obj.content
 
-        if first_word in ds_str_func_lookup:
+        if first_word in ds_func_to_parse_as_str:
             new_obj = copy.deepcopy(line_obj)
             new_obj.content = make_str_func(first_word, this_line)
             new_listing.append(new_obj)

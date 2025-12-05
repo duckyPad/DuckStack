@@ -70,12 +70,12 @@ def make_instruction_pushc32(value, comment: str = ""):
     inst_list: list[dsvm_instruction] = []
 
     # low 16
-    inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment, is_resolved=True))
+    inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment))
 
     # if high 16 is non-zero, build (high << 16) | low
     if node_value_high:
-        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_high, comment=comment, is_resolved=True))
-        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=16, comment=comment, is_resolved=True))
+        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_high, comment=comment))
+        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=16, comment=comment))
         inst_list.append(dsvm_instruction(opcode=OP_LSHIFT, comment=comment))
         inst_list.append(dsvm_instruction(opcode=OP_BITOR, comment=comment))
 
@@ -197,9 +197,10 @@ def visit_node(node, goodies):
 
     elif isinstance(node, ast.Constant):
         if isinstance(node.value, str):
-            emit(OP_PUSHSTR, payload=node.value)
+            func_name = goodies["caller_func_name"]
+            print(func_name)
+            emit(OP_PUSHSTR, payload=node.value,)
         elif isinstance(node.value, int):
-            # assumes make_instruction_pushc32 now returns list[dsvm_instruction]
             instruction_list.extend(make_instruction_pushc32(node.value, og_ds_line))
         else:
             raise ValueError("Unknown type:", type(node.value))
@@ -225,7 +226,7 @@ def visit_node(node, goodies):
     elif isinstance(node, ast.Call):
         func_name = node.func.id
         if func_name in ds_reserved_funcs:
-            emit(ds_reserved_funcs[func_name][0])
+            emit(ds_reserved_funcs[func_name].opcode)
         else:
             emit(OP_CALL, payload=f"func_{func_name}")
 
@@ -302,21 +303,28 @@ def compile_to_bin(rdict):
 
     final_assembly_list = []
 
+    curr_inst_addr = 0
     for this_inst in rdict['root_assembly_list']:
-        if this_inst.is_resolved:
+        this_inst.addr = curr_inst_addr
+        curr_inst_addr += this_inst.opcode.length
+        print(this_inst)
+        if isinstance(this_inst.payload, int):
             final_assembly_list.append(this_inst)
             continue
         # print(this_inst)
         if this_inst.opcode in [OP_PUSHI, OP_POPI]:
             this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)
-            this_inst.is_resolved = True
             final_assembly_list.append(this_inst)
         elif this_inst.opcode in [OP_PUSHR, OP_POPR]:
             # local / func args
             pass
 
-    print("\n----- FINAL ASS -----")
-    print_assembly_list(final_assembly_list)
+        # lay out all instructions
+        # duckyscript commands absolutely not resolved, double check
+        # make label to address lookup dict
+
+    # print("\n----- FINAL ASS -----")
+    # print_assembly_list(final_assembly_list)
 
 
 # --------------------------
@@ -360,12 +368,14 @@ my_tree = ast.parse(source, mode="exec", optimize=-1)
 symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
 # print_symtable(symtable_root)
 rdict["root_assembly_list"] = []
+rdict["root_assembly_list"].append(dsvm_instruction(OP_VMVER, payload=DS_VM_VERSION))
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}
 rdict['var_info_set'] = set()
 
 for statement in my_tree.body:
     rdict["this_func_name"] = None
+    rdict["caller_func_name"] = None
     myast.postorder_walk(statement, visit_node, rdict)
 
 # try:

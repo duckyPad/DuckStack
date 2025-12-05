@@ -548,37 +548,48 @@ valid_combo_chars = {'!', '"', '#', '$', '%', '&', "'", '(',
 STRING_MAX_SIZE = 256
 REPEAT_MAX_SIZE = 256
 
+
+@dataclass(frozen=True, slots=True)
+class reserved_func_info:
+    opcode: Opcode
+    arg_len: int
+
 ds_str_func_lookup = {
-    cmd_STRING : (OP_STR, 1),
-    cmd_STRINGLN : (OP_STRLN, 1),
-    cmd_OLED_PRINT : (OP_OLED_PRNT, 1),
-    cmd_KEYDOWN : (OP_KDOWN, 1),
-    cmd_KEYUP : (OP_KUP, 1),
+    cmd_STRING : reserved_func_info(OP_STR, 1),
+    cmd_STRINGLN : reserved_func_info(OP_STRLN, 1),
+    cmd_OLED_PRINT : reserved_func_info(OP_OLED_PRNT, 1),
     }
 
-ds_builtin_func_lookup = {
-    cmd_DELAY : (OP_DELAY, 1),
-    cmd_DP_SLEEP : (OP_SLEEP, 0),
-    cmd_PREV_PROFILE : (OP_PREVP, 0),
-    cmd_NEXT_PROFILE : (OP_NEXTP, 0),
-    cmd_GOTO_PROFILE : (OP_GOTOP, 1),
-    cmd_SWCC : (OP_SWCC, 4),
-    cmd_SWCF : (OP_SWCF, 3),
-    cmd_SWCR : (OP_SWCR, 1),
-    cmd_OLED_UPDATE : (OP_OLED_UPDE, 0),
-    cmd_OLED_CURSOR : (OP_OLED_CUSR, 2),
-    cmd_OLED_CLEAR : (OP_OLED_CLR, 0),
-    cmd_OLED_RESTORE : (OP_OLED_REST, 0),
-    cmd_OLED_LINE : (OP_OLED_LINE, 4),
-    cmd_OLED_RECT : (OP_OLED_RECT, 5),
-    cmd_OLED_CIRCLE : (OP_OLED_CIRC, 4),
-    cmd_BCLR : (OP_BCLR, 0),
-    cmd_MOUSE_MOVE : (OP_MMOV, 2),
-    cmd_MOUSE_WHEEL : (OP_MSCL, 1),
-    cmd_HALT : (OP_HALT, 0),
+ds_keypress_func_lookup = {
+    cmd_KEYDOWN : reserved_func_info(OP_KDOWN, 1),
+    cmd_KEYUP : reserved_func_info(OP_KUP, 1),
 }
 
-ds_reserved_funcs = ds_str_func_lookup | ds_builtin_func_lookup
+ds_builtin_func_lookup = {
+    cmd_DELAY : reserved_func_info(OP_DELAY, 1),
+    cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
+    cmd_PREV_PROFILE : reserved_func_info(OP_PREVP, 0),
+    cmd_NEXT_PROFILE : reserved_func_info(OP_NEXTP, 0),
+    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
+    cmd_SWCC : reserved_func_info(OP_SWCC, 4),
+    cmd_SWCF : reserved_func_info(OP_SWCF, 3),
+    cmd_SWCR : reserved_func_info(OP_SWCR, 1),
+    cmd_OLED_UPDATE : reserved_func_info(OP_OLED_UPDE, 0),
+    cmd_OLED_CURSOR : reserved_func_info(OP_OLED_CUSR, 2),
+    cmd_OLED_CLEAR : reserved_func_info(OP_OLED_CLR, 0),
+    cmd_OLED_RESTORE : reserved_func_info(OP_OLED_REST, 0),
+    cmd_OLED_LINE : reserved_func_info(OP_OLED_LINE, 4),
+    cmd_OLED_RECT : reserved_func_info(OP_OLED_RECT, 5),
+    cmd_OLED_CIRCLE : reserved_func_info(OP_OLED_CIRC, 4),
+    cmd_BCLR : reserved_func_info(OP_BCLR, 0),
+    cmd_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
+    cmd_MOUSE_WHEEL : reserved_func_info(OP_MSCL, 1),
+    cmd_HALT : reserved_func_info(OP_HALT, 0),
+}
+
+ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
+
+ds_reserved_funcs = ds_func_to_parse_as_str | ds_builtin_func_lookup 
 
 ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
 
@@ -623,7 +634,6 @@ class dsvm_instruction:
                 parent_func=None,\
                 var_type=None,\
                 obj_name="",
-                is_resolved=False,\
                 ):
         self.opcode = opcode
         self.payload = payload
@@ -633,10 +643,6 @@ class dsvm_instruction:
         self.parent_func = parent_func
         self.var_type = var_type
         self.obj_name = obj_name
-        if self.opcode.length == 1:
-            self.is_resolved = True
-        else:
-            self.is_resolved = is_resolved
         if isinstance(self.payload, str):
             self.obj_name = self.payload
 
@@ -668,8 +674,6 @@ class dsvm_instruction:
         comment_items = []
         # if self.parent_func:
         #     comment_items.append(f"{self.parent_func}")
-        if self.is_resolved is False:
-            comment_items.append("X")
         if len(self.obj_name):
             comment_items.append(f"[{self.obj_name}]")
         # if self.var_type:
@@ -692,3 +696,5 @@ class dsvm_instruction:
 
 def replace_operators(this_line):
     return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
+
+DSVM_VERSION = 2

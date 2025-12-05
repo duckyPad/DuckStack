@@ -678,7 +678,7 @@ def run_all(program_listing, profile_list=None):
         # remove INJECT_MOD
         if first_word == cmd_INJECT_MOD:
             line_obj.content = line_obj.content.replace(cmd_INJECT_MOD, "", 1)
-        if first_word not in ds_str_func_lookup:
+        if first_word not in ds_func_to_parse_as_str:
             cpos = line_obj.content.find(cmd_C_COMMENT)
             if cpos != -1:
                 line_obj.content = line_obj.content[:cpos].rstrip(" \t")

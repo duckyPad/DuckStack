@@ -141,13 +141,14 @@ def postorder_walk(node, action, goodies):
         func_name = node.func.id
         caller_arg_count = len(node.args)
         if func_name in ds_reserved_funcs:
-            callee_arg_count = ds_reserved_funcs[func_name][1]
+            callee_arg_count = ds_reserved_funcs[func_name].arg_len
         else:
             callee_arg_count = how_many_args(func_name, goodies['symtable_root'])
         if callee_arg_count is None:
             raise ValueError(f"Function {func_name}() not found")
         if caller_arg_count != callee_arg_count:
             raise ValueError("Wrong number of arguments")
+        goodies["caller_func_name"] = func_name
         for item in node.args:
             postorder_walk(item, action, goodies)
         action(node, goodies)

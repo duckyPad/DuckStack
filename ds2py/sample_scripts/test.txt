@@ -1,16 +1,3 @@
-VAR myglobal = 4
-
-FUNCTION foo(a, b)
-  VAR mylocal = a * b + myglobal
-  RETURN mylocal
-END_FUNCTION
-
-FUNCTION bar(c, d)
-  VAR mylocal = c + d
-  RETURN mylocal
-END_FUNCTION
-
-
-VAR test = foo(3, 5)
-
-test = bar(test, test)
+ENTER DOWN
+VAR test = 4
+STRING hello
