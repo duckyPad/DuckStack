@@ -437,7 +437,6 @@ OP_SLEEP = Opcode("SLEEP", 86, 1)
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 0)
 
-
 USER_VAR_START_ADDRESS = 0xFA00
 USER_VAR_BYTE_WIDTH = 4
 USER_VAR_END_ADDRESS_INCLUSIVE = 0xFBFF
@@ -451,7 +450,7 @@ INTERAL_VAR_START_ADDRESS = 0xFE00
 INTERAL_VAR_BYTE_WIDTH = 4
 INTERAL_VAR_END_ADDRESS_INCLUSIVE = 0xFFFF
 
-internal_variable_dict = {
+reserved_variables_dict = {
     '_DEFAULTDELAY': (INTERAL_VAR_START_ADDRESS + 0 * INTERAL_VAR_BYTE_WIDTH),
     '_DEFAULTCHARDELAY': (INTERAL_VAR_START_ADDRESS + 1 * INTERAL_VAR_BYTE_WIDTH),
     '_CHARJITTER': (INTERAL_VAR_START_ADDRESS + 2 * INTERAL_VAR_BYTE_WIDTH),
@@ -623,6 +622,8 @@ class dsvm_instruction:
                 addr=None,\
                 parent_func=None,\
                 var_type=None,\
+                obj_name="",
+                is_resolved=False,\
                 ):
         self.opcode = opcode
         self.payload = payload
@@ -631,6 +632,13 @@ class dsvm_instruction:
         self.addr = addr
         self.parent_func = parent_func
         self.var_type = var_type
+        self.obj_name = obj_name
+        if self.opcode.length == 1:
+            self.is_resolved = True
+        else:
+            self.is_resolved = is_resolved
+        if isinstance(self.payload, str):
+            self.obj_name = self.payload
 
     def __str__(self) -> str:
         lines = []
@@ -658,10 +666,14 @@ class dsvm_instruction:
 
         # comment section (now includes parent_func + var_type)
         comment_items = []
-        if self.parent_func:
-            comment_items.append(f"{self.parent_func}")
-        if self.var_type:
-            comment_items.append(f"{self.var_type.name}")
+        # if self.parent_func:
+        #     comment_items.append(f"{self.parent_func}")
+        if self.is_resolved is False:
+            comment_items.append("X")
+        if len(self.obj_name):
+            comment_items.append(f"[{self.obj_name}]")
+        # if self.var_type:
+        #     comment_items.append(f"{self.var_type.name}")
         if self.comment:
             comment_items.append(str(self.comment).strip())
 

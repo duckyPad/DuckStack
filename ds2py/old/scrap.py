@@ -304,3 +304,28 @@ def classify_name(name: str,
     # print(name, current_function, function_names)
     # if name in function_names and name != current_function: # throw error only on second conflict?
     #     raise ValueError(f"Variable \"{name}\" conflicts with function \"{name}()\"")
+
+
+def group_vars(var_infos):
+    result = defaultdict(lambda: {"args": [], "locals": []})
+    
+    for v in var_infos:
+        if v.type == SymType.FUNC_ARG and v.func is not None:
+            result[v.func]["args"].append(v.name)
+        elif v.type == SymType.FUNC_LOCAL_VAR and v.func is not None:
+            result[v.func]["locals"].append(v.name)
+
+    return {
+        func: {
+            "args": sorted(data["args"]),
+            "locals": sorted(data["locals"]),
+        }
+        for func, data in result.items()
+    }
+
+    print(group_vars(rdict['var_info_set']))
+
+    
+    # for item in rdict['var_info_set']:
+    #     print(item)
+    # exit()

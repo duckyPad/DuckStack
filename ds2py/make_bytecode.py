@@ -9,6 +9,7 @@ import sys
 import symtable
 import myast
 import copy
+from collections import defaultdict
 
 """
 duckyscript VM changelog
@@ -69,12 +70,12 @@ def make_instruction_pushc32(value, comment: str = ""):
     inst_list: list[dsvm_instruction] = []
 
     # low 16
-    inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment))
+    inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment, is_resolved=True))
 
     # if high 16 is non-zero, build (high << 16) | low
     if node_value_high:
-        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_high, comment=comment))
-        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=16, comment=comment))
+        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_high, comment=comment, is_resolved=True))
+        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=16, comment=comment, is_resolved=True))
         inst_list.append(dsvm_instruction(opcode=OP_LSHIFT, comment=comment))
         inst_list.append(dsvm_instruction(opcode=OP_BITOR, comment=comment))
 
@@ -122,7 +123,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
     if keyword.iskeyword(name):
         raise ValueError(f'"{name}" invalid variable name')
     
-    if name in internal_variable_dict:
+    if name in reserved_variables_dict:
         return SymType.RESERVED_VAR
     
     root_table = goodies["symtable_root"]
@@ -166,12 +167,12 @@ def visit_name_node(node, goodies, inst_list):
     goodies['var_info_set'].add(this_var_info)
 
     if isinstance(node.ctx, ast.Store):
-        opcode = OP_POPR if sym_type == SymType.FUNC_ARG else OP_POPI
+        opcode = OP_POPR if (sym_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]) else OP_POPI
         inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
         return
 
     if isinstance(node.ctx, ast.Load):
-        opcode = OP_PUSHR if sym_type == SymType.FUNC_ARG else OP_PUSHI
+        opcode = OP_PUSHR if (sym_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]) else OP_PUSHI
         inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
 
 def visit_node(node, goodies):
@@ -265,17 +266,24 @@ def print_symtable(tbl, indent=0):
 
 # ---------------------------
 
+def resolve_global_and_reserved_var_address(var_name, udgv_lookup):
+    if var_name in reserved_variables_dict:
+        return reserved_variables_dict[var_name]
+    if var_name in udgv_lookup:
+        return udgv_lookup[var_name]
+    raise ValueError(f"Unknown variable: {var_name}")
+
 def compile_to_bin(rdict):
-    final_assembly_list = []
+    # print()
+    # print_assembly_list(rdict['root_assembly_list'])
+    # print()
 
-    print()
-    print_assembly_list(rdict['root_assembly_list'])
-    print()
+    # for key in rdict['func_assembly_dict']:
+    #     print(f'----FUNC: {key}----')
+    #     print_assembly_list(rdict['func_assembly_dict'][key])
+    #     print(f'----END {key}----')
+    # exit()
 
-    for key in rdict['func_assembly_dict']:
-        print(f'----FUNC: {key}----')
-        print_assembly_list(rdict['func_assembly_dict'][key])
-        print(f'----END {key}----')
 
     """
     dump everything into one list
@@ -285,11 +293,30 @@ def compile_to_bin(rdict):
         collect all global variables, assign address to them
         collect all strings, deduplicate, process, generate address
         look at variables, figure out arg position and local var ordering
-
     """
-    for item in rdict['var_info_set']:
-        print(item)
 
+    user_declared_global_var_addr_lookup = {}
+    for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
+        user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
+        # print(f"{item}: {hex(user_declared_global_var_addr_lookup[item])}")
+
+    final_assembly_list = []
+
+    for this_inst in rdict['root_assembly_list']:
+        if this_inst.is_resolved:
+            final_assembly_list.append(this_inst)
+            continue
+        # print(this_inst)
+        if this_inst.opcode in [OP_PUSHI, OP_POPI]:
+            this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)
+            this_inst.is_resolved = True
+            final_assembly_list.append(this_inst)
+        elif this_inst.opcode in [OP_PUSHR, OP_POPR]:
+            # local / func args
+            pass
+
+    print("\n----- FINAL ASS -----")
+    print_assembly_list(final_assembly_list)
 
 
 # --------------------------
@@ -338,8 +365,8 @@ rdict['func_assembly_dict'] = {}
 rdict['var_info_set'] = set()
 
 for statement in my_tree.body:
-        rdict["this_func_name"] = None
-        myast.postorder_walk(statement, visit_node, rdict)
+    rdict["this_func_name"] = None
+    myast.postorder_walk(statement, visit_node, rdict)
 
 # try:
 #     for statement in my_tree.body:

@@ -1,12 +1,16 @@
 VAR myglobal = 4
 
-FUNCTION foo(myarg)
-    VAR local = myarg*2 + myglobal
-    RETURN local
+FUNCTION foo(a, b)
+  VAR mylocal = a * b + myglobal
+  RETURN mylocal
 END_FUNCTION
 
-FUNCTION bar(myarg)
-    VAR local = myarg*2 + myglobal
-    VAR local = 9
-    RETURN local
+FUNCTION bar(c, d)
+  VAR mylocal = c + d
+  RETURN mylocal
 END_FUNCTION
+
+
+VAR test = foo(3, 5)
+
+test = bar(test, test)
