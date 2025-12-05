@@ -1,6 +1,9 @@
 VAR myglobal = 4
-FUNCTION my_fun(myarg)
+FUNCTION foo(myarg)
     VAR local = myarg*2 + myglobal
     RETURN local
 END_FUNCTION
-STRING hello world
+FUNCTION bar(myarg)
+    VAR local = myarg*2 + myglobal
+    RETURN local
+END_FUNCTION

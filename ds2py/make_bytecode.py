@@ -112,8 +112,6 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
 
 def is_known_global(name: str, goodies) -> bool:
     root_table = goodies["symtable_root"]
-    if name in internal_variable_dict:
-        return True
     if name in goodies["user_declared_var_table"]:
         return True
     if name in root_table.get_identifiers():
@@ -121,6 +119,12 @@ def is_known_global(name: str, goodies) -> bool:
     return False
 
 def classify_name(name: str, current_function: str | None, goodies) -> int:
+    if keyword.iskeyword(name):
+        raise ValueError(f'"{name}" invalid variable name')
+    
+    if name in internal_variable_dict:
+        return SymType.RESERVED_VAR
+    
     root_table = goodies["symtable_root"]
 
     if current_function is not None:
@@ -144,28 +148,25 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
 
     if is_known_global(name, goodies):
         return SymType.GLOBAL_VAR
-    
-    if current_function is None:
-        raise ValueError(f'Symbol "{name}" not found')
-    
+        
     raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
 
 def visit_name_node(node, goodies, inst_list):
     og_ds_line = goodies["og_ds_line"]
     current_function = goodies["this_func_name"]
 
+    node_name = node.id
     sym_type = classify_name(node.id, current_function, goodies)
     # print("symtype:", node.id, current_function, sym_type.name)
-    name = str(node.id)
 
     if isinstance(node.ctx, ast.Store):
         opcode = OP_POPR if sym_type == SymType.FUNC_ARG else OP_POPI
-        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
+        inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
         return
 
     if isinstance(node.ctx, ast.Load):
         opcode = OP_PUSHR if sym_type == SymType.FUNC_ARG else OP_PUSHI
-        inst_list.append(dsvm_instruction(opcode=opcode, payload=name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
+        inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
 
 def visit_node(node, goodies):
     current_function = goodies.get("this_func_name")
@@ -278,7 +279,7 @@ def compile_to_bin(rdict):
         collect all global variables, assign address to them
         collect all strings, deduplicate, process, generate address
         look at variables, figure out arg position and local var ordering
-        
+
     """
 
 # --------------------------
@@ -324,7 +325,6 @@ symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
 rdict["root_assembly_list"] = []
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}
-
 
 try:
     for statement in my_tree.body:

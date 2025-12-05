@@ -1,4 +1,6 @@
 from enum import IntEnum
+from dataclasses import dataclass
+import keyword
 
 cmd_REPEAT = "REPEAT"
 cmd_REM = "REM"
@@ -349,7 +351,6 @@ cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
 cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
-from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class Opcode:
@@ -358,7 +359,6 @@ class Opcode:
     length: int
 
 # CPU instructions
-OP_VMVER = Opcode("VMVER", 255, 3)
 OP_NOP = Opcode("NOP", 0, 1)
 OP_PUSHC16 = Opcode("PUSHC16", 1, 3)
 OP_PUSHI = Opcode("PUSHI", 2, 3)
@@ -370,8 +370,7 @@ OP_JMP = Opcode("JMP", 7, 3)
 OP_CALL = Opcode("CALL", 8, 3)
 OP_RET = Opcode("RET", 9, 3)
 OP_HALT = Opcode("HALT", 10, 1)
-
-OP_PUSHSTR = Opcode("PUSHSTR", 11, 0)
+OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators
 OP_EQ = Opcode("EQ", 32, 1)
@@ -424,7 +423,10 @@ OP_NEXTP = Opcode("NEXTP", 84, 1)
 OP_GOTOP = Opcode("GOTOP", 85, 1)
 OP_SLEEP = Opcode("SLEEP", 86, 1)
 
-INSTRUCTION_SIZE_BYTES = 3
+# Virtual Opcodes, to be resolved during compilation
+OP_PUSHSTR = Opcode("PUSHSTR", 128, 0)
+
+
 USER_VAR_START_ADDRESS = 0xFA00
 USER_VAR_BYTE_WIDTH = 4
 USER_VAR_END_ADDRESS_INCLUSIVE = 0xFBFF
@@ -672,3 +674,4 @@ class SymType(IntEnum):
     GLOBAL_VAR = 0
     FUNC_ARG = 1
     FUNC_LOCAL_VAR = 2
+    RESERVED_VAR = 3

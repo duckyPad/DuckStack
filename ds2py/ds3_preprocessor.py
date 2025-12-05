@@ -74,6 +74,8 @@ def is_valid_var_name(varname):
         return False, 'empty name'
     if varname[0].isnumeric():
         return False, "name can't begin with a number"
+    if keyword.iskeyword(varname):
+        return False, "invalid name"
     for letter in varname:
         if letter not in valid_var_chars:
             return False, 'name contains invalid characters'
@@ -376,8 +378,8 @@ def check_var_declare(pgm_line, vt):
     if_valid_vn, vn_comment = is_valid_var_name(lvalue)
     if if_valid_vn is False:
         return PARSE_ERROR, vn_comment
-    if lvalue in vt:
-        return PARSE_ERROR, "Duplicate var name",
+    # if lvalue in vt:
+    #     return PARSE_ERROR, "Duplicate var name",
     vt.add(lvalue)
     return PARSE_OK, ''
 
