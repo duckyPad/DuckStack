@@ -2,7 +2,7 @@ def print_result(value):
     myloc = 20
     lo2 = 3
     value = value + 100
-    STRINGLN('Value is: $value, loc:$myloc, global:$sum')
+    STRINGLN('Value is: $value, loc:$myloc, global:$sum , $nothing')
 def is_even(n, b, c):
     mylocal = n%2 + n +b + c
     test = mylocal /2

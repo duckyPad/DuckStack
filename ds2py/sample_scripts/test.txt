@@ -2,7 +2,7 @@ FUNCTION print_result(value)
     VAR myloc = 20
     VAR lo2 = 3
     value = value + 100
-    STRINGLN Value is: $value, loc:$myloc, global:$sum
+    STRINGLN Value is: $value, loc:$myloc, global:$sum , $nothing
 END_FUNCTION
 
 FUNCTION is_even(n, b, c)

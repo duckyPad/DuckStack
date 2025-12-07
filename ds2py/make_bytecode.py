@@ -357,6 +357,7 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
             var_name, var_addr, var_type = get_partial_varname_addr(msg[curr+1:], instruction, arg_and_local_var_lookup, udgv_lookup)
             if var_addr is None:
                 bytearr += this_letter.encode()
+                curr += 1
                 continue
             if var_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]:
                 this_boundary = var_boundary_fp_rel
