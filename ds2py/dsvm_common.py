@@ -375,7 +375,7 @@ OP_PUSHR = Opcode("PUSHR", 3, 3)
 OP_POPI = Opcode("POPI", 4, 3)
 OP_POPR = Opcode("POPR", 5, 3)
 OP_BRZ = Opcode("BRZ", 6, 3)
-OP_ALLOC = Opcode("ALOC", 7, 3)
+OP_ALLOC = Opcode("ALLOC", 7, 3)
 OP_JMP = Opcode("JMP", 8, 3)
 OP_CALL = Opcode("CALL", 9, 3)
 OP_RET = Opcode("RET", 10, 3)
@@ -434,7 +434,7 @@ OP_GOTOP = Opcode("GOTOP", 85, 1)
 OP_SLEEP = Opcode("SLEEP", 86, 1)
 
 # Virtual Opcodes, to be resolved during compilation
-OP_PUSHSTR = Opcode("PUSHSTR", 128, 255)
+OP_PUSHSTR = Opcode("PUSHSTR", 128, 3)
 
 USER_VAR_START_ADDRESS = 0xFA00
 USER_VAR_BYTE_WIDTH = 4

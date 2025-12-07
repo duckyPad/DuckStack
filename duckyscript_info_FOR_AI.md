@@ -4,9 +4,7 @@
 
 ### `REM` and `//`
 
-Any line **starting with** those is ignored.
-
-**NO** inline comments!
+Any line starting with those is ignored.
 
 ```
 REM This is a comment

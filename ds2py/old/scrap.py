@@ -470,3 +470,45 @@ elif this_inst.opcode == OP_ALLOC:
             # print(this_inst.payload, local_vars_count)
             this_inst.payload = local_vars_count
             # print(this_inst)
+
+
+------
+
+
+FUNCTION print_result(value)
+    value = value + 100
+    STRINGLN Value is: $value
+END_FUNCTION
+
+FUNCTION is_even(n, b, c)
+    VAR mylocal = n%2 + n +b + c
+    VAR test = mylocal /2 
+    IF mylocal == 0 THEN
+        RETURN 1
+    END_IF
+    RETURN test
+END_FUNCTION
+
+FUNCTION nothing()
+    RETURN
+END_FUNCTION
+
+VAR i = 1
+VAR sum = 0
+VAR eq = 9
+
+WHILE i <= 6
+    IF is_even(i, i, i) THEN
+        sum = sum + i
+    END_IF
+    i = i + 1
+END_WHILE
+
+print_result(sum)
+
+
+----            
+
+
+            print(this_inst)
+            print(this_inst.payload, this_inst.parent_func)

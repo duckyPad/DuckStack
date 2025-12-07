@@ -196,9 +196,9 @@ def visit_node(node, goodies):
     og_ds_line = get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
     goodies["og_ds_line"] = og_ds_line
 
-    def emit(opcode, payload=None, label=None):
+    def emit(opcode, payload=None, label=None, parent_func=None):
         instruction_list.append(
-            dsvm_instruction(opcode=opcode, payload=payload, label=label, comment=og_ds_line)
+            dsvm_instruction(opcode=opcode, payload=payload, label=label, comment=og_ds_line, parent_func=parent_func)
         )
 
     if isinstance(node, ast.Name):
@@ -206,7 +206,7 @@ def visit_node(node, goodies):
 
     elif isinstance(node, ast.Constant):
         if isinstance(node.value, str) and caller_func_name in ds_str_func_lookup:
-            emit(OP_PUSHSTR, payload=node.value)
+            emit(OP_PUSHSTR, payload=node.value, parent_func=current_function)
         elif isinstance(node.value, str) and caller_func_name in ds_keypress_func_lookup:
             emit(OP_PUSHC16, payload=get_key_combined_value(node.value))
         elif isinstance(node.value, int):
@@ -312,6 +312,67 @@ def needs_resolving(inst):
         return False
     raise ValueError(f"needs_resolving: {inst}")
 
+def var_name_to_address_lookup_only_for_strprint(var_name, str_inst, arg_and_local_var_lookup, udgv_lookup):
+    parent_func = str_inst.parent_func
+    # priority: reserved vars, args, locals, globals
+    if var_name in reserved_variables_dict:
+        return reserved_variables_dict[var_name], SymType.RESERVED_VAR
+    if parent_func is not None and parent_func in arg_and_local_var_lookup:
+        fun_var_list = arg_and_local_var_lookup[parent_func]
+        if var_name in fun_var_list['args']:
+            return (fun_var_list['args'].index(var_name) + 1) * 4, SymType.FUNC_ARG
+        if var_name in fun_var_list['locals']:
+            return (fun_var_list['locals'].index(var_name) + 1) * -4, SymType.FUNC_LOCAL_VAR
+    if var_name in udgv_lookup:
+        return udgv_lookup[var_name], SymType.GLOBAL_VAR
+    return None, None
+
+def get_partial_varname_addr(msg, str_inst, arg_and_local_var_lookup, udgv_lookup):
+    if len(msg) == 0:
+        return None, None, None
+    last_name = None
+    last_addr = None
+    last_type = None
+    for x in range(len(msg)+1):
+        partial_name = msg[:x]
+        this_result = var_name_to_address_lookup_only_for_strprint(partial_name,str_inst, arg_and_local_var_lookup, udgv_lookup)
+        if this_result[0] is not None:
+            last_name = partial_name
+            last_addr, last_type = this_result
+    if last_addr is not None:
+        return last_name, last_addr, last_type
+    return None, None, None
+
+endianness = 'little'
+var_boundary_fp_rel = 0x1e
+var_boundary_udgv = 0x1f
+
+def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
+    bytearr = bytearray()
+    curr = 0
+    msg = instruction.payload
+    while curr < len(msg):
+        this_letter = msg[curr]
+        if this_letter == "$":
+            var_name, var_addr, var_type = get_partial_varname_addr(msg[curr+1:], instruction, arg_and_local_var_lookup, udgv_lookup)
+            if var_addr is None:
+                bytearr += this_letter.encode()
+                continue
+            if var_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]:
+                this_boundary = var_boundary_fp_rel
+                payload_bytes = var_addr.to_bytes(2, endianness, signed=True)
+            else:
+                this_boundary = var_boundary_udgv
+                payload_bytes = var_addr.to_bytes(2, endianness, signed=False)
+            curr += len(var_name)
+            bytearr += this_boundary.to_bytes(1, endianness)
+            bytearr += payload_bytes
+            bytearr += this_boundary.to_bytes(1, endianness)
+        else:
+            bytearr += this_letter.encode()
+        curr += 1
+    return bytearr
+
 def compile_to_bin(rdict):
     """
     this is generated from walking the nodes, not the symtable and AST.
@@ -353,19 +414,18 @@ def compile_to_bin(rdict):
     generate payload bytes
     generate str addresses?
     """
-
     for this_inst in final_assembly_list:
         if needs_resolving(this_inst) is False:
             continue
         if this_inst.payload in label_to_addr_dict:
             this_inst.payload = label_to_addr_dict[this_inst.payload]
         elif this_inst.opcode == OP_PUSHSTR:
-            print("parse str to be implemented")
-            pass
+            wtf = replace_var_in_str(this_inst, func_arg_and_local_var_lookup, user_declared_global_var_addr_lookup)
+            print(wtf)
         elif this_inst.opcode == OP_ALLOC:
             local_vars_count = 0
             try:
-                local_vars_count = len(func_arg_and_local_var_lookup[this_inst.payload]['args'])
+                local_vars_count = len(func_arg_and_local_var_lookup[this_inst.payload]['locals'])
             except Exception as e:
                 pass
             this_inst.payload = local_vars_count
@@ -393,8 +453,7 @@ def compile_to_bin(rdict):
         else:
             raise ValueError("unkown instruction:", this_inst)
 
-    print_assembly_list(final_assembly_list)
-
+    # print_assembly_list(final_assembly_list)
 
 # --------------------------
 
