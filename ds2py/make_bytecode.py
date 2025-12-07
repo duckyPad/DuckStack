@@ -348,31 +348,46 @@ var_boundary_fp_rel = 0x1e
 var_boundary_udgv = 0x1f
 
 def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
-    bytearr = bytearray()
-    curr = 0
+    result = bytearray()
     msg = instruction.payload
-    while curr < len(msg):
-        this_letter = msg[curr]
-        if this_letter == "$":
-            var_name, var_addr, var_type = get_partial_varname_addr(msg[curr+1:], instruction, arg_and_local_var_lookup, udgv_lookup)
+    i = 0
+    msg_len = len(msg)
+
+    while i < msg_len:
+        ch = msg[i]
+
+        if ch == "$":
+            var_name, var_addr, var_type = get_partial_varname_addr(
+                msg[i + 1:], instruction, arg_and_local_var_lookup, udgv_lookup
+            )
+
+            # If couldn't resolve the variable, treat '$' as a literal.
             if var_addr is None:
-                bytearr += this_letter.encode()
-                curr += 1
+                result.extend(ch.encode())
+                i += 1
                 continue
-            if var_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]:
-                this_boundary = var_boundary_fp_rel
+
+            if var_type in (SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR):
+                boundary = var_boundary_fp_rel
                 payload_bytes = var_addr.to_bytes(2, endianness, signed=True)
             else:
-                this_boundary = var_boundary_udgv
+                boundary = var_boundary_udgv
                 payload_bytes = var_addr.to_bytes(2, endianness, signed=False)
-            curr += len(var_name)
-            bytearr += this_boundary.to_bytes(1, endianness)
-            bytearr += payload_bytes
-            bytearr += this_boundary.to_bytes(1, endianness)
+
+            # Skip over '$' + variable name
+            i += 1 + len(var_name)
+
+            # Emit boundary, payload, boundary
+            result.extend(boundary.to_bytes(1, endianness))
+            result.extend(payload_bytes)
+            result.extend(boundary.to_bytes(1, endianness))
+
         else:
-            bytearr += this_letter.encode()
-        curr += 1
-    return bytearr
+            result.extend(ch.encode())
+            i += 1
+
+    return result
+
 
 def compile_to_bin(rdict):
     """

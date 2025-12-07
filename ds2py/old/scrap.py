@@ -512,3 +512,38 @@ print_result(sum)
 
             print(this_inst)
             print(this_inst.payload, this_inst.parent_func)
+
+
+-------
+
+
+
+def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
+    bytearr = bytearray()
+    curr = -1
+    msg = instruction.payload
+    while curr < len(msg)-1:
+        curr += 1
+        this_letter = msg[curr]
+        if this_letter == "$":
+            var_name, var_addr, var_type = get_partial_varname_addr(msg[curr+1:], instruction, arg_and_local_var_lookup, udgv_lookup)
+            if var_addr is None:
+                bytearr += this_letter.encode()
+                continue
+            if var_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]:
+                this_boundary = var_boundary_fp_rel
+                payload_bytes = var_addr.to_bytes(2, endianness, signed=True)
+            else:
+                this_boundary = var_boundary_udgv
+                payload_bytes = var_addr.to_bytes(2, endianness, signed=False)
+            curr += len(var_name)
+            bytearr += this_boundary.to_bytes(1, endianness)
+            bytearr += payload_bytes
+            bytearr += this_boundary.to_bytes(1, endianness)
+        else:
+            bytearr += this_letter.encode()
+    return bytearr
+
+
+-----------
+
