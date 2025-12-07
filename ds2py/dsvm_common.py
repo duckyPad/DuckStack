@@ -361,6 +361,12 @@ class Opcode:
     code: int
     length: int
 
+@dataclass(slots=True)
+class fun_info:
+    name: str
+    args: set
+    locals: set
+
 # CPU instructions
 OP_NOP = Opcode("NOP", 0, 1)
 OP_PUSHC16 = Opcode("PUSHC16", 1, 3)
@@ -428,7 +434,7 @@ OP_GOTOP = Opcode("GOTOP", 85, 1)
 OP_SLEEP = Opcode("SLEEP", 86, 1)
 
 # Virtual Opcodes, to be resolved during compilation
-OP_PUSHSTR = Opcode("PUSHSTR", 128, 0)
+OP_PUSHSTR = Opcode("PUSHSTR", 128, 255)
 
 USER_VAR_START_ADDRESS = 0xFA00
 USER_VAR_BYTE_WIDTH = 4
@@ -659,7 +665,7 @@ class dsvm_instruction:
 
         parts.append(payload_block.ljust(self.PAYLOAD_BLOCK_WIDTH))
 
-        # comment section (now includes parent_func + var_type)
+        # comment section
         comment_items = []
         if self.comment:
             comment_items.append(str(self.comment).strip())

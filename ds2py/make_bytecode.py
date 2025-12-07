@@ -286,40 +286,113 @@ def resolve_global_and_reserved_var_address(var_name, udgv_lookup):
         return udgv_lookup[var_name]
     raise ValueError(f"Unknown variable: {var_name}")
 
+def group_vars(var_infos):
+    result = defaultdict(lambda: {"args": [], "locals": []})
+    
+    for v in var_infos:
+        if v.type == SymType.FUNC_ARG and v.func is not None:
+            result[v.func]["args"].append(v.name)
+        elif v.type == SymType.FUNC_LOCAL_VAR and v.func is not None:
+            result[v.func]["locals"].append(v.name)
+
+    return {
+        func: {
+            "args": sorted(data["args"]),
+            "locals": sorted(data["locals"]),
+        }
+        for func, data in result.items()
+    }
+
+def needs_resolving(inst):
+    if inst.opcode.length == 1:
+        return False
+    if isinstance(inst.payload, str):
+        return True
+    if isinstance(inst.payload, int):
+        return False
+    raise ValueError(f"needs_resolving: {inst}")
+
 def compile_to_bin(rdict):
-    print()
-    print_assembly_list(rdict['root_assembly_list'])
-    print()
-
-    for key in rdict['func_assembly_dict']:
-        print(f'----FUNC: {key}----')
-        print_assembly_list(rdict['func_assembly_dict'][key])
-        print(f'----END {key}----')
-    exit()
-
-
     """
-    dump everything into one list
-    first main code, then func code
-
-    go through each instruction:
-        collect all global variables, assign address to them
-        collect all strings, deduplicate, process, generate address
-        look at variables, figure out arg position and local var ordering
+    this is generated from walking the nodes, not the symtable and AST.
+    that means if a function has args but none are referenced, those args wont show up
     """
-
+    func_arg_and_local_var_lookup = group_vars(rdict['var_info_set'])
+    print("func_arg_and_local_var_lookup", func_arg_and_local_var_lookup)
     user_declared_global_var_addr_lookup = {}
     for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
-        # print(f"{item}: {hex(user_declared_global_var_addr_lookup[item])}")
 
     final_assembly_list = []
-
+    """
+    Combine root level and function instructions
+    resolve their address in ROM.
+    Strings will come later
+    """
     curr_inst_addr = 0
     for this_inst in rdict['root_assembly_list']:
         this_inst.addr = curr_inst_addr
         curr_inst_addr += this_inst.opcode.length
         final_assembly_list.append(this_inst)
+
+    for func_name in rdict['func_assembly_dict']:
+        for this_inst in rdict['func_assembly_dict'][func_name]:
+            this_inst.addr = curr_inst_addr
+            curr_inst_addr += this_inst.opcode.length
+            final_assembly_list.append(this_inst)
+
+
+    # Build label -> addr dict
+    label_to_addr_dict = {}
+    for this_inst in final_assembly_list:
+        if this_inst.label is not None:
+            label_to_addr_dict[this_inst.label] = this_inst.addr
+
+    """
+    Go over each instruction, resolve indirect addresses
+    generate payload bytes
+    generate str addresses?
+    """
+
+    for this_inst in final_assembly_list:
+        if needs_resolving(this_inst) is False:
+            continue
+        if this_inst.payload in label_to_addr_dict:
+            this_inst.payload = label_to_addr_dict[this_inst.payload]
+        elif this_inst.opcode == OP_PUSHSTR:
+            print("parse str to be implemented")
+            pass
+        elif this_inst.opcode == OP_ALLOC:
+            local_vars_count = 0
+            try:
+                local_vars_count = len(func_arg_and_local_var_lookup[this_inst.payload]['args'])
+            except Exception as e:
+                pass
+            this_inst.payload = local_vars_count
+        elif this_inst.opcode in [OP_PUSHI, OP_POPI]: # global variables
+            this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)
+        elif this_inst.opcode in [OP_PUSHR, OP_POPR]: # local var or func args
+            var_name = this_inst.payload
+            parent_func = this_inst.parent_func
+            var_type = this_inst.var_type
+            if parent_func is None\
+                or len(parent_func) == 0\
+                or var_type not in [SymType.FUNC_LOCAL_VAR, SymType.FUNC_ARG]:
+                raise ValueError(f"Insufficient info for {var_name} in {parent_func}()")
+            fun_info_dict = func_arg_and_local_var_lookup[parent_func]
+            if var_type == SymType.FUNC_ARG:
+                arg_list = fun_info_dict['args']
+                if var_name not in arg_list:
+                    raise ValueError(f"Not an arg: {var_name} in {parent_func}()")
+                this_inst.payload = (arg_list.index(var_name) + 1) * 4
+            if var_type == SymType.FUNC_LOCAL_VAR:
+                local_list = fun_info_dict['locals']
+                if var_name not in local_list:
+                    raise ValueError(f"Not an local: {var_name} in {parent_func}()")
+                this_inst.payload = (local_list.index(var_name) + 1) * -4
+        else:
+            raise ValueError("unkown instruction:", this_inst)
+
     print_assembly_list(final_assembly_list)
 
 

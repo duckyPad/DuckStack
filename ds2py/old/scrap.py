@@ -386,3 +386,87 @@ final_assembly_list = []
         #     comment_items.append(f"[{self.obj_name}]")
         # if self.var_type:
         #     comment_items.append(f"{self.var_type.name}")
+
+# -------------
+
+
+def group_vars(var_infos):
+    this_fun = fun_info()
+    result = defaultdict(lambda: {"args": set(), "locals": set()})
+    
+    for v in var_infos:
+        if v.type == SymType.FUNC_ARG and v.func is not None:
+            result[v.func]["args"].add(v.name)
+        elif v.type == SymType.FUNC_LOCAL_VAR and v.func is not None:
+            result[v.func]["locals"].add(v.name)
+
+    # return {
+    #     func: {
+    #         "args": sorted(data["args"]),
+    #         "locals": sorted(data["locals"]),
+    #     }
+    #     for func, data in result.items()
+    # }
+
+    print(result)
+    exit()
+
+    return {
+        func: (sorted(data["args"]),sorted(data["locals"])) for func, data in result.items()
+    }
+
+
+    # ------------------------------
+
+
+
+def make_fun_info(info_list):
+    fun_dict = {}
+    for this_var in info_list:
+        fun_name = this_var.func
+        if fun_name is None:
+            continue
+        if fun_name not in fun_dict:
+            fun_dict[fun_name]
+        if this_var.type == SymType.FUNC_ARG:
+            pass
+        print(this_var)
+    exit()
+
+---------------------
+
+print()
+    print_assembly_list(rdict['root_assembly_list'])
+    print()
+
+    for key in rdict['func_assembly_dict']:
+        print(f'----FUNC: {key}----')
+        print_assembly_list(rdict['func_assembly_dict'][key])
+        print(f'----END {key}----')
+    exit()
+
+-------------------
+
+"""
+dump everything into one list
+first main code, then func code
+
+go through each instruction:
+    collect all global variables, assign address to them
+    collect all strings, deduplicate, process, generate address
+    look at variables, figure out arg position and local var ordering
+"""
+
+        # print(f"{item}: {hex(user_declared_global_var_addr_lookup[item])}")
+
+
+elif this_inst.opcode == OP_ALLOC:
+            #find out how many locals
+            local_vars_count = 0
+            try:
+                local_vars_count = len(func_arg_and_local_var_lookup[this_inst.payload]['args'])
+            except Exception as e:
+                pass
+            # print(this_inst.payload, local_vars_count)
+            this_inst.payload = local_vars_count
+            # print(this_inst)
