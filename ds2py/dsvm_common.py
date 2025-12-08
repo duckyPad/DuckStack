@@ -661,7 +661,8 @@ class dsvm_instruction:
                 payload = f"{payload[:self.PAYLOAD_STR_MAX]}..."
             payload_block = f"{payload}".ljust(self.PAYLOAD_FIELD_WIDTH)
             if isinstance(payload, int):
-                payload_block += f"{hex(payload)}".ljust(self.PAYLOAD_FIELD_WIDTH)
+                value_16bit = payload & 0xFFFF
+                payload_block += f"{value_16bit:x}".ljust(self.PAYLOAD_FIELD_WIDTH)
 
         parts.append(payload_block.ljust(self.PAYLOAD_BLOCK_WIDTH))
 

@@ -1,5 +1,3 @@
-_NEEDS_EPILOGUE = 1
-_LOOP_SIZE = 3
 _DEFAULTCHARDELAY = 25
 _DEFAULTDELAY = 25
 FUNCTION blink()
@@ -46,12 +44,33 @@ OLED_CLEAR
 OLED_CURSOR 30 50
 OLED_PRINT Typing...
 OLED_UPDATE
-STRING dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla c
-STRING onsequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
-KEYDOWN ENTER
-KEYUP ENTER
-STRING dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla c
-STRING onsequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
+STRINGLN Welcome to duckyPad Pro!
+STRINGLN  _
+STRINGLN <(.)__
+STRINGLN  (___/
+STRINGLN 
+STRINGLN I can automate any keyboard/mouse task you want.
+STRINGLN From simple shortcuts to complex scripts (like this one!)
+STRINGLN 
+STRINGLN ----
+STRINGLN 
+STRINGLN duckyPad uses duckyScript. It's very powerful but can get pretty complex. 
+STRINGLN 
+STRINGLN Let's start simple!
+STRINGLN 
+STRINGLN This row has a few shortcuts. Easy to write but still very useful.
+STRINGLN 
+STRINGLN Try out each row to see what duckyPad can do!
+STRINGLN 
+STRINGLN ----
+STRINGLN 
+STRINGLN Full instructions:
+STRINGLN 
+STRINGLN duckyPad.com
+STRINGLN 
+STRINGLN Questions or comments? Join our Discord!
+STRINGLN 
+STRINGLN https://discord.gg/4sJCBx5
 IF is_win THEN
     KEYDOWN CTRL
     KEYDOWN +
@@ -79,28 +98,3 @@ IF is_win THEN
     KEYUP WINDOWS
 END_IF
 SWC_RESET 99
-IF _KEYPRESS_COUNT % _LOOP_SIZE == 0 THEN
-    STRING first action
-    KEYDOWN ENTER
-    KEYUP ENTER
-END_IF
-IF _KEYPRESS_COUNT % _LOOP_SIZE == 1 THEN
-    STRING second action
-    KEYDOWN ENTER
-    KEYUP ENTER
-END_IF
-IF _KEYPRESS_COUNT % _LOOP_SIZE == 2 THEN
-    STRING third action
-    KEYDOWN ENTER
-    KEYUP ENTER
-    KEYDOWN ALT
-    KEYUP ALT
-    STRINGLN dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec.
-    STRINGLN pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. 
-    KEYDOWN OPTION
-    KEYUP OPTION
-    KEYDOWN LMOUSE
-    KEYUP LMOUSE
-    KEYDOWN MMOUSE
-    KEYUP MMOUSE
-END_IF

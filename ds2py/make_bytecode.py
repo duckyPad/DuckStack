@@ -475,17 +475,23 @@ def compile_to_bin(rdict):
     user_str_addr = final_assembly_list[-1].addr + final_assembly_list[-1].opcode.length
     # Figrue out starting address of each string
 
+    # for key in user_strings_dict:
+    #     print(f"{user_strings_dict[key]}  DATA: {key}")
+    # exit()
+
     for key in user_strings_dict:
-        print(user_str_addr, key)
         user_strings_dict[key] = user_str_addr
         user_str_addr += len(key)
 
     for this_inst in final_assembly_list:
         if this_inst.opcode == OP_PUSHSTR:
+            print(this_inst)
             this_inst.opcode = OP_PUSHC16
             this_inst.payload = user_strings_dict[this_inst.payload]
 
     print_assembly_list(final_assembly_list)
+    for key in user_strings_dict:
+        print(f"{user_strings_dict[key]}  DATA: {key}")
 
 # --------------------------
 
