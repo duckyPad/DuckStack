@@ -326,11 +326,15 @@ def is_within_str_block(lnum, sbdict):
             return True
     return False
 
-def ensure_zero_arg(pgm_line):
-    split = [x for x in pgm_line.split(' ') if len(x) > 0]
-    if len(split) != 1:
-        return PARSE_ERROR, "No args needed"
+def ensure_arg_count(pgm_line, expected_args):
+    tokens = [x for x in pgm_line.split() if len(x) > 0]
+    arg_count = len(tokens) - 1
+    if arg_count != expected_args:
+        return PARSE_ERROR, f"Expected {expected_args} args, got {arg_count}"
     return PARSE_OK, ''
+
+def ensure_zero_arg(pgm_line):
+    return ensure_arg_count(pgm_line, 0)
 
 def split_string(input_string, max_length=STRING_MAX_SIZE):
     if len(input_string) <= max_length:
@@ -428,7 +432,7 @@ def single_pass(program_listing):
         this_indent_level = len(if_search_stack) + len(func_search_stack) + len(while_search_stack)
 
         presult = PARSE_ERROR
-        pcomment = f"empty comment"
+        pcomment = f"single_pass: Unknown error"
 
         if first_word != cmd_DEFINE:
             is_success, replaced_str = replace_DEFINE(this_line, define_dict)
@@ -519,6 +523,8 @@ def single_pass(program_listing):
             presult, pcomment = ensure_zero_arg(this_line)
         elif first_word == cmd_DP_SLEEP:
             presult, pcomment = ensure_zero_arg(this_line)
+        elif first_word == cmd_KEYDOWN or first_word == cmd_KEYUP:
+            presult, pcomment = ensure_arg_count(this_line, 1)
         elif this_line.startswith(cmd_SWCOLOR):
             presult, pcomment = PARSE_OK, ''
         elif this_line.startswith(cmd_LOOP):

@@ -65,7 +65,7 @@ def is_leaf(node):
     return not any(ast.iter_child_nodes(node))
 
 def postorder_walk(node, action, goodies):
-    print_node_info(node)
+    # print_node_info(node)
     this_pylnum_sf1 = getattr(node, "lineno", None)
     this_orig_ds_lnum_sf1 = get_orig_ds_lnumsf1_from_py_lnumsf1(goodies, this_pylnum_sf1)
     if this_orig_ds_lnum_sf1 is not None:

@@ -111,9 +111,12 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
     except KeyError:
         return None
 
+def is_known_global(name, goodies):
+    return name in goodies["user_declared_var_table"]
+
 def classify_name(name: str, current_function: str | None, goodies) -> int:
-    if keyword.iskeyword(name):
-        raise ValueError(f'"{name}" invalid variable name')
+    if keyword.iskeyword(name) or name in ds_reserved_funcs:
+        raise ValueError(f'Invalid variable name: "{name}"')
     
     if name in reserved_variables_dict:
         return SymType.RESERVED_VAR
@@ -139,7 +142,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
                     return SymType.GLOBAL_VAR
                 raise ValueError(f'Undefined symbol "{name}" (referenced in "{current_function}()")')
 
-    if name in goodies["user_declared_var_table"]:
+    if is_known_global(name, goodies):
         return SymType.GLOBAL_VAR
         
     raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
@@ -171,9 +174,11 @@ def get_key_combined_value(keyname):
     if keyname in ds3_keyname_dict:
         key_code = ds3_keyname_dict[keyname][0]
         key_type = ds3_keyname_dict[keyname][1]
-    else:
+    elif len(keyname) == 1:
         key_code = ord(keyname[0])
         key_type = KEY_TYPE_CHAR
+    else:
+        raise ValueError(f"Invalid Key: {keyname}")
     return ((key_type % 0xff) << 8) | (key_code % 0xff)
 
 def visit_node(node, goodies):
@@ -545,6 +550,6 @@ for statement in my_tree.body:
 
 rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
-print_assembly_list(rdict["root_assembly_list"])
+# print_assembly_list(rdict["root_assembly_list"])
 
-# compile_to_bin(rdict)
+compile_to_bin(rdict)
