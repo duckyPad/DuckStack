@@ -1,47 +1,39 @@
-unused_global = 12345
-gShadow = -1
-_GV0 = 42
-def unused_fn(a, b, c, d, e, f, g, h):
-    never_used = a + b + c + d + e + f + g + h
-    return 0
-def noop():
-    dead = 1
+g = 10
+unused_global = 123
+def no_args():
+    local = 1
+    unused_local = 999
     return 
-    dead = 2
-def fact(n, unused1, unused2):
-    tmp_unused = 999
-    if n <= 1:
-        return 1
-    return n * fact(n - 1, unused2, unused1)
-def mix8(a, b, c, d, e, f, g, h):
-    unused_local = d + e
-    t = 0
-    u = 0
-    u = f << 1
-    t = a + b * 2 - c
-    t = t ^ u
-    if t == 0:
-        return 7
-    return (t + h) >> 1
-def sum_skip(limit, step, junk):
-    i = 0
-    acc = 0
-    while 1:
-        i = i + step
-        if i > limit:
-            break
-        if i % 3 == 0:
+    local = 42
+def add(a, b, unused_arg):
+    tmp = a + b
+    if tmp == 0:
+        return 0
+    return tmp
+def factorial(n):
+    acc = 1
+    while n > 1:
+        acc = acc * n
+        n = n - 1
+        if n == 2:
+            n = n - 1
             continue
-        acc = acc + i
     return acc
-x = mix8(1, 2, fact(4, 0, 0), 4, 5, 6, 7, 8)
-y = fact(5, 111, 222)
-z = sum_skip(10, 1, 999)
-fact(3, 0, 0)
-noop()
-if x != 0  and  y > 0:
-    STRINGLN('x=$x y=$y z=$z gv0=$_GV0 magic=7')
-never = 0
-while never:
-    STRINGLN('unreachable loop body')
+i = 0
+result = 0
+unused_main_local = -1
+no_args()
+result = add(1, 2, 3)
+STRINGLN('add(1,2,3) = $result')
+result = add(-1, 1, 0)
+STRINGLN('add(-1,1,0) = $result')
+result = add(g, 1, unused_global)
+STRINGLN('add(g,1,unused_global) = $result')
+result = factorial(5)
+STRINGLN('factorial(5) = $result')
+factorial(0)
+while i < 5  and  result != 0:
+    i = i + 1
+    if i == 3:
+        break
 HALT()

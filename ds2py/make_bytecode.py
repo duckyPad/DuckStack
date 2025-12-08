@@ -497,6 +497,11 @@ def compile_to_bin(rdict):
     for key in user_strings_dict:
         print(f"{user_strings_dict[key]}  DATA: {key}")
 
+    # ------------------ generate binary ------------------
+
+    output_bin_array = bytearray()
+    
+
 # --------------------------
 
 if __name__ != "__main__":

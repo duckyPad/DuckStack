@@ -1,59 +1,47 @@
-VAR unused_global = 12345
-VAR gShadow = -1
-_GV0 = 42
-FUNCTION unused_fn(a, b, c, d, e, f, g, h)
-    VAR never_used = a + b + c + d + e + f + g + h
-    RETURN 0
-END_FUNCTION
-FUNCTION noop()
-    VAR dead = 1
+VAR g = 10
+VAR unused_global = 123
+FUNCTION no_args()
+    VAR local = 1
+    VAR unused_local = 999
     RETURN
-    dead = 2
+    local = 42
 END_FUNCTION
-FUNCTION fact(n, unused1, unused2)
-    VAR tmp_unused = 999
-    IF n <= 1 THEN
-        RETURN 1
+FUNCTION add(a, b, unused_arg)
+    VAR tmp = a + b
+    IF tmp == 0 THEN
+        RETURN 0
     END_IF
-    RETURN n * fact(n - 1, unused2, unused1)
+    RETURN tmp
 END_FUNCTION
-FUNCTION mix8(a, b, c, d, e, f, g, h)
-    VAR unused_local = d + e
-    VAR t = 0
-    VAR u = 0
-    u = f << 1
-    t = a + b * 2 - c
-    t = t ^ u
-    IF t == 0 THEN
-        RETURN 7
-    END_IF
-    RETURN (t + h) >> 1
-END_FUNCTION
-FUNCTION sum_skip(limit, step, junk)
-    VAR i = 0
-    VAR acc = 0
-    WHILE 1
-        i = i + step
-        IF i > limit THEN
-            LBREAK
-        END_IF
-        IF i % 3 == 0 THEN
+FUNCTION factorial(n)
+    VAR acc = 1
+    WHILE n > 1
+        acc = acc * n
+        n = n - 1
+        IF n == 2 THEN
+            n = n - 1
             CONTINUE
         END_IF
-        acc = acc + i
     END_WHILE
     RETURN acc
 END_FUNCTION
-VAR x = mix8(1, 2, fact(4, 0, 0), 4, 5, 6, 7, 8)
-VAR y = fact(5, 111, 222)
-VAR z = sum_skip(10, 1, 999)
-fact(3, 0, 0)
-noop()
-IF x != 0  and  y > 0 THEN
-    STRINGLN x=$x y=$y z=$z gv0=$_GV0 magic=7
-END_IF
-VAR never = 0
-WHILE never
-    STRINGLN unreachable loop body
+VAR i = 0
+VAR result = 0
+VAR unused_main_local = -1
+no_args()
+result = add(1, 2, 3)
+STRINGLN add(1,2,3) = $result
+result = add(-1, 1, 0)
+STRINGLN add(-1,1,0) = $result
+result = add(g, 1, unused_global)
+STRINGLN add(g,1,unused_global) = $result
+result = factorial(5)
+STRINGLN factorial(5) = $result
+factorial(0)
+WHILE i < 5  and  result != 0
+    i = i + 1
+    IF i == 3 THEN
+        LBREAK
+    END_IF
 END_WHILE
 HALT
