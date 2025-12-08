@@ -567,3 +567,24 @@ class bin_str:
     for key in user_strings_dict:
         print(f"{user_strings_dict[key]}  DATA: {key}")
     exit()
+
+---
+
+for statement in my_tree.body:
+    rdict["func_def_name"] = None
+    rdict["caller_func_name"] = None
+    # myast.postorder_walk(statement, visit_node, rdict)
+    myast.print_node_info(statement)
+
+---
+
+def line_has_unconsumed_stack_value(line_obj):
+    try:
+        ast_root = ast.parse(line_obj.content, mode="exec").body
+    except Exception as e:
+        return False
+    # goodies = {}
+    # myast.postorder_walk(ast_root, my_visit, goodies)
+    print(line_obj, ast_root)
+    # myast.print_node_info(ast_root)
+    return True

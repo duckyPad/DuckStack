@@ -1,47 +1,17 @@
-VAR g = 10
-VAR unused_global = 123
-FUNCTION no_args()
-    VAR local = 1
-    VAR unused_local = 999
-    RETURN
-    local = 42
+FUNCTION test()
+    KEYDOWN ENTER
+    KEYUP ENTER
+    KEYDOWN ENTER
+    KEYUP ENTER
+    KEYDOWN ENTER
+    KEYUP ENTER
+    KEYDOWN ENTER
+    KEYUP ENTER
+    RETURN 0
 END_FUNCTION
-FUNCTION add(a, b, unused_arg)
-    VAR tmp = a + b
-    IF tmp == 0 THEN
-        RETURN 0
-    END_IF
-    RETURN tmp
-END_FUNCTION
-FUNCTION factorial(n)
-    VAR acc = 1
-    WHILE n > 1
-        acc = acc * n
-        n = n - 1
-        IF n == 2 THEN
-            n = n - 1
-            CONTINUE
-        END_IF
-    END_WHILE
-    RETURN acc
-END_FUNCTION
-VAR i = 0
-VAR result = 0
-VAR unused_main_local = -1
-no_args()
-result = add(1, 2, 3)
-STRINGLN add(1,2,3) = $result
-result = add(-1, 1, 0)
-STRINGLN add(-1,1,0) = $result
-result = add(g, 1, unused_global)
-STRINGLN add(g,1,unused_global) = $result
-result = factorial(5)
-STRINGLN factorial(5) = $result
-factorial(0)
-WHILE i < 5  and  result != 0
-    i = i + 1
-    IF i == 3 THEN
-        LBREAK
-    END_IF
-END_WHILE
-HALT
+VAR foo = 0
+foo = 3 + test()
+test() + 2
+test()
+a=(2+4, thh)
+ddddd

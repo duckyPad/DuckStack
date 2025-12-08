@@ -111,14 +111,6 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
     except KeyError:
         return None
 
-def is_known_global(name: str, goodies) -> bool:
-    root_table = goodies["symtable_root"]
-    if name in goodies["user_declared_var_table"]:
-        return True
-    if name in root_table.get_identifiers():
-        return True
-    return False
-
 def classify_name(name: str, current_function: str | None, goodies) -> int:
     if keyword.iskeyword(name):
         raise ValueError(f'"{name}" invalid variable name')
@@ -147,7 +139,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
                     return SymType.GLOBAL_VAR
                 raise ValueError(f'Undefined symbol "{name}" (referenced in "{current_function}()")')
 
-    if is_known_global(name, goodies):
+    if name in goodies["user_declared_var_table"]:
         return SymType.GLOBAL_VAR
         
     raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
@@ -236,6 +228,7 @@ def visit_node(node, goodies):
         func_name = node.func.id
         if func_name in ds_reserved_funcs:
             emit(ds_reserved_funcs[func_name].opcode)
+            emit(OP_PUSHC16, payload=0)
         else:
             emit(OP_CALL, payload=f"func_{func_name}")
 
@@ -529,9 +522,6 @@ if rdict['is_success'] is False:
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
 
-# print(rdict['user_declared_var_table'])
-# exit()
-
 rdict["orig_listing"] = orig_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]
 save_lines_to_file(post_pp_listing, "ppds.txt")
@@ -541,7 +531,7 @@ save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 my_tree = ast.parse(source, mode="exec", optimize=-1)
 symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
-# print_symtable(symtable_root)
+print_symtable(symtable_root)
 rdict["root_assembly_list"] = []
 rdict["root_assembly_list"].append(dsvm_instruction(OP_VMVER, payload=DS_VM_VERSION))
 rdict["symtable_root"] = symtable_root
@@ -555,13 +545,6 @@ for statement in my_tree.body:
 
 rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
-# try:
-#     for statement in my_tree.body:
-#         rdict["func_def_name"] = None
-#         myast.postorder_walk(statement, visit_node, rdict)
-# except Exception as e:
-#     print(f"Line {rdict["latest_orig_ds_lnum_sf1"]}: {e}")
-#     exit()
+print_assembly_list(rdict["root_assembly_list"])
 
-
-compile_to_bin(rdict)
+# compile_to_bin(rdict)

@@ -2,6 +2,8 @@ import sys
 from dsvm_common import *
 import ds3_preprocessor
 import copy
+import ast
+import myast
 
 def make_str_func(first_word, this_line):
     str_content = this_line[len(first_word)+1:]
@@ -14,6 +16,17 @@ def make_arg_func(first_word, this_line):
         final_str += f"{item}, "
     final_str = final_str.rstrip(", ") + ")"
     return final_str
+
+def line_has_unconsumed_stack_value(line_obj):
+    try:
+        ast_root = ast.parse(line_obj.content, mode="exec").body
+    except Exception as e:
+        return False
+    try:
+        return isinstance(ast_root[0], ast.Expr)
+    except Exception as e:
+        print("line_has_unconsumed_stack_value:", e)
+    return False
 
 def run_all(program_listing):
     new_listing = []
@@ -76,7 +89,8 @@ def run_all(program_listing):
 
     for index, line_obj in enumerate(new_listing):
         line_obj.py_lnum_sf1 = index+1
-
+        if line_has_unconsumed_stack_value(line_obj):
+            line_obj.content = "_NULL = " + line_obj.content
     return new_listing
 
 if __name__ == "__main__":
