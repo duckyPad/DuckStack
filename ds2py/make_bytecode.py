@@ -389,10 +389,13 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
     return result
 
 def compile_to_bin(rdict):
-    # print()
-    # print_assembly_list(rdict['root_assembly_list'])
-    # print()
-    # exit()
+    print("\n\n--------- Assembly Listing, Unresolved: ---------")
+    print_assembly_list(rdict['root_assembly_list'])
+    for key in rdict['func_assembly_dict']:
+        print(f'----FUNC: {key}----')
+        print_assembly_list(rdict['func_assembly_dict'][key])
+        print(f'----END {key}----')
+
     """
     this is generated from walking the nodes, not the symtable and AST.
     that means if a function has args but none are referenced, those args wont show up
@@ -400,7 +403,6 @@ def compile_to_bin(rdict):
     user_strings_dict = {}
 
     func_arg_and_local_var_lookup = group_vars(rdict['var_info_set'])
-    print("func_arg_and_local_var_lookup", func_arg_and_local_var_lookup)
     user_declared_global_var_addr_lookup = {}
     for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
@@ -488,10 +490,9 @@ def compile_to_bin(rdict):
 
     for this_inst in final_assembly_list:
         if this_inst.opcode == OP_PUSHSTR:
-            print(this_inst)
             this_inst.opcode = OP_PUSHC16
             this_inst.payload = user_strings_dict[this_inst.payload]
-
+    print("\n\n--------- Assembly Listing, Resolved: ---------")
     print_assembly_list(final_assembly_list)
     for key in user_strings_dict:
         print(f"{user_strings_dict[key]}  DATA: {key}")

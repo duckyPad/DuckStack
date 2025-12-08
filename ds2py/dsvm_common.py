@@ -662,7 +662,7 @@ class dsvm_instruction:
             payload_block = f"{payload}".ljust(self.PAYLOAD_FIELD_WIDTH)
             if isinstance(payload, int):
                 value_16bit = payload & 0xFFFF
-                payload_block += f"{value_16bit:x}".ljust(self.PAYLOAD_FIELD_WIDTH)
+                payload_block += f"0x{value_16bit:x}".ljust(self.PAYLOAD_FIELD_WIDTH)
 
         parts.append(payload_block.ljust(self.PAYLOAD_BLOCK_WIDTH))
 

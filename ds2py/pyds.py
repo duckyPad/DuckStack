@@ -1,97 +1,47 @@
-_DEFAULTCHARDELAY = 25
-_DEFAULTDELAY = 25
-def blink():
-    count = 0
-    while count < 4:
-        SWC_FILL(100, 100, 100)
-        DELAY(200)
-        SWC_FILL(0, 0, 0)
-        DELAY(200)
-        count = count + 1
-OLED_CLEAR()
-OLED_CURSOR(20, 20)
-OLED_PRINT('Are you using')
-OLED_CURSOR(20, 35)
-OLED_PRINT('Windows?')
-OLED_CURSOR(20, 110)
-OLED_PRINT('-:No     +:Yes')
-OLED_UPDATE()
-blink()
-temp = 0
-is_win = _BLOCKING_READKEY == 28
-if is_win:
-    SWC_FILL(0, 128, 0)
-    KEYDOWN('WINDOWS')
-    KEYDOWN('R')
-    KEYUP('R')
-    KEYUP('WINDOWS')
-    DELAY(750)
-    STRINGLN('notepad')
-    DELAY(750)
-else:
-    OLED_CLEAR()
-    OLED_CURSOR(0, 50)
-    OLED_PRINT('Open a text editor')
-    OLED_CURSOR(0, 65)
-    OLED_PRINT('Anykey when ready')
-    OLED_UPDATE()
-    temp = _BLOCKING_READKEY
-    SWC_FILL(0, 128, 0)
-OLED_CLEAR()
-OLED_CURSOR(30, 50)
-OLED_PRINT('Typing...')
-OLED_UPDATE()
-STRINGLN('')
-STRINGLN('Welcome to duckyPad Pro!')
-STRINGLN(' _')
-STRINGLN('<(.)__')
-STRINGLN(' (___/')
-STRINGLN('')
-STRINGLN('I can automate any keyboard/mouse task you want.')
-STRINGLN('From simple shortcuts to complex scripts (like this one!)')
-STRINGLN('')
-STRINGLN('----')
-STRINGLN('')
-STRINGLN("duckyPad uses duckyScript. It's very powerful but can get pretty complex. ")
-STRINGLN('')
-STRINGLN("Let's start simple!")
-STRINGLN('')
-STRINGLN('This row has a few shortcuts. Easy to write but still very useful.')
-STRINGLN('')
-STRINGLN('Try out each row to see what duckyPad can do!')
-STRINGLN('')
-STRINGLN('----')
-STRINGLN('')
-STRINGLN('Full instructions:')
-STRINGLN('')
-STRINGLN('duckyPad.com')
-STRINGLN('')
-STRINGLN('Questions or comments? Join our Discord!')
-STRINGLN('')
-STRINGLN('https://discord.gg/4sJCBx5')
-if is_win:
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('WINDOWS')
-    KEYDOWN('UP')
-    KEYUP('UP')
-    KEYUP('WINDOWS')
-SWC_RESET(99)
+unused_global = 12345
+gShadow = -1
+_GV0 = 42
+def unused_fn(a, b, c, d, e, f, g, h):
+    never_used = a + b + c + d + e + f + g + h
+    return 0
+def noop():
+    dead = 1
+    return 
+    dead = 2
+def fact(n, unused1, unused2):
+    tmp_unused = 999
+    if n <= 1:
+        return 1
+    return n * fact(n - 1, unused2, unused1)
+def mix8(a, b, c, d, e, f, g, h):
+    unused_local = d + e
+    t = 0
+    u = 0
+    u = f << 1
+    t = a + b * 2 - c
+    t = t ^ u
+    if t == 0:
+        return 7
+    return (t + h) >> 1
+def sum_skip(limit, step, junk):
+    i = 0
+    acc = 0
+    while 1:
+        i = i + step
+        if i > limit:
+            break
+        if i % 3 == 0:
+            continue
+        acc = acc + i
+    return acc
+x = mix8(1, 2, fact(4, 0, 0), 4, 5, 6, 7, 8)
+y = fact(5, 111, 222)
+z = sum_skip(10, 1, 999)
+fact(3, 0, 0)
+noop()
+if x != 0  and  y > 0:
+    STRINGLN('x=$x y=$y z=$z gv0=$_GV0 magic=7')
+never = 0
+while never:
+    STRINGLN('unreachable loop body')
+HALT()
