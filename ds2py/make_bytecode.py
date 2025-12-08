@@ -389,6 +389,10 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
     return result
 
 def compile_to_bin(rdict):
+    # print()
+    # print_assembly_list(rdict['root_assembly_list'])
+    # print()
+    # exit()
     """
     this is generated from walking the nodes, not the symtable and AST.
     that means if a function has args but none are referenced, those args wont show up
@@ -419,12 +423,14 @@ def compile_to_bin(rdict):
             curr_inst_addr += this_inst.opcode.length
             final_assembly_list.append(this_inst)
 
-
     # Build label -> addr dict
     label_to_addr_dict = {}
     for this_inst in final_assembly_list:
-        if this_inst.label is not None:
-            label_to_addr_dict[this_inst.label] = this_inst.addr
+        if this_inst.label is None:
+            continue
+        if len(this_inst.label) == 0:
+            continue
+        label_to_addr_dict[this_inst.label] = this_inst.addr
 
     """
     Go over each instruction, resolve indirect addresses
@@ -434,13 +440,14 @@ def compile_to_bin(rdict):
     for this_inst in final_assembly_list:
         if needs_resolving(this_inst) is False:
             continue
-        if this_inst.payload in label_to_addr_dict:
-            this_inst.payload = label_to_addr_dict[this_inst.payload]
-        elif this_inst.opcode == OP_PUSHSTR:
+
+        if this_inst.opcode == OP_PUSHSTR:
             bytestr = replace_var_in_str(this_inst, func_arg_and_local_var_lookup, user_declared_global_var_addr_lookup)
             bytestr = bytes(bytestr)
             this_inst.payload = bytestr
             user_strings_dict[bytestr] = None
+        elif this_inst.payload in label_to_addr_dict:
+            this_inst.payload = label_to_addr_dict[this_inst.payload]
         elif this_inst.opcode == OP_ALLOC:
             local_vars_count = 0
             try:
@@ -474,10 +481,6 @@ def compile_to_bin(rdict):
 
     user_str_addr = final_assembly_list[-1].addr + final_assembly_list[-1].opcode.length
     # Figrue out starting address of each string
-
-    # for key in user_strings_dict:
-    #     print(f"{user_strings_dict[key]}  DATA: {key}")
-    # exit()
 
     for key in user_strings_dict:
         user_strings_dict[key] = user_str_addr

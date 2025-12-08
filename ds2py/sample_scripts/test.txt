@@ -51,6 +51,8 @@ OLED_CURSOR 30 50
 OLED_PRINT Typing...
 OLED_UPDATE
 
+STRINGLN 
+
 STRINGLN_BLOCK
 Welcome to duckyPad Pro!
  _

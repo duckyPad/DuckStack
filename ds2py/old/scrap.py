@@ -562,3 +562,8 @@ class bin_str:
                 if len(user_strings_lookup) == 0:
                     user
                 user_strings_lookup[bytestr]
+
+
+    for key in user_strings_dict:
+        print(f"{user_strings_dict[key]}  DATA: {key}")
+    exit()
