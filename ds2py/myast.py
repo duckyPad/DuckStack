@@ -157,7 +157,8 @@ def postorder_walk(node, action, goodies):
         if caller_arg_count != callee_arg_count:
             raise ValueError("Wrong number of arguments")
         goodies["caller_func_name"] = func_name
-        for item in node.args:
+        # Push args right-to-left
+        for item in reversed(node.args):
             postorder_walk(item, action, goodies)
         action(node, goodies)
     elif is_leaf(node):
