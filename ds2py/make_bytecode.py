@@ -112,6 +112,7 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
         return None
 
 def is_known_global(name, goodies):
+    print("!!!!!!!!", name)
     return name in goodies["user_declared_var_table"]
 
 def classify_name(name: str, current_function: str | None, goodies) -> int:

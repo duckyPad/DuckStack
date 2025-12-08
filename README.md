@@ -320,3 +320,12 @@ first pass: treat as valid as long as is in any symbol table
 when generating address, double check against global variable table?  classify_name()
 
 error if try to read a variable name without it being ever assigned to?
+
+
+## Variable Scoping
+
+A variable declared at root level has **global scope** and can be accessed inside functions.
+
+A variable declared **inside a function** only has scope **within that function**
+
+If a local variable has the same name as a global variable, **local variable** takes priority.

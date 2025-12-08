@@ -1,0 +1,6 @@
+VAR g_acc = 0       // Used global
+VAR g_dead = 999    // Unused global: Should not generate load/store ops
+
+FUNCTION test(a, b, c)
+    g_acc = g_acc + 1
+END_FUNCTION
