@@ -385,15 +385,16 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
         else:
             result.extend(ch.encode())
             i += 1
-
+    result.append(0)
     return result
-
 
 def compile_to_bin(rdict):
     """
     this is generated from walking the nodes, not the symtable and AST.
     that means if a function has args but none are referenced, those args wont show up
     """
+    user_strings_dict = {}
+
     func_arg_and_local_var_lookup = group_vars(rdict['var_info_set'])
     print("func_arg_and_local_var_lookup", func_arg_and_local_var_lookup)
     user_declared_global_var_addr_lookup = {}
@@ -436,8 +437,10 @@ def compile_to_bin(rdict):
         if this_inst.payload in label_to_addr_dict:
             this_inst.payload = label_to_addr_dict[this_inst.payload]
         elif this_inst.opcode == OP_PUSHSTR:
-            wtf = replace_var_in_str(this_inst, func_arg_and_local_var_lookup, user_declared_global_var_addr_lookup)
-            print(wtf)
+            bytestr = replace_var_in_str(this_inst, func_arg_and_local_var_lookup, user_declared_global_var_addr_lookup)
+            bytestr = bytes(bytestr)
+            this_inst.payload = bytestr
+            user_strings_dict[bytestr] = None
         elif this_inst.opcode == OP_ALLOC:
             local_vars_count = 0
             try:
@@ -469,7 +472,20 @@ def compile_to_bin(rdict):
         else:
             raise ValueError("unkown instruction:", this_inst)
 
-    # print_assembly_list(final_assembly_list)
+    user_str_addr = final_assembly_list[-1].addr + final_assembly_list[-1].opcode.length
+    # Figrue out starting address of each string
+
+    for key in user_strings_dict:
+        print(user_str_addr, key)
+        user_strings_dict[key] = user_str_addr
+        user_str_addr += len(key)
+
+    for this_inst in final_assembly_list:
+        if this_inst.opcode == OP_PUSHSTR:
+            this_inst.opcode = OP_PUSHC16
+            this_inst.payload = user_strings_dict[this_inst.payload]
+
+    print_assembly_list(final_assembly_list)
 
 # --------------------------
 

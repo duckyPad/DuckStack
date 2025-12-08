@@ -547,3 +547,18 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
 
 -----------
 
+
+
+@dataclass(slots=True)
+class bin_str:
+    content: str
+    start_addr: int
+
+---
+
+ elif this_inst.opcode == OP_PUSHSTR:
+            bytestr = replace_var_in_str(this_inst, func_arg_and_local_var_lookup, user_declared_global_var_addr_lookup)
+            if bytestr not in user_strings_lookup:
+                if len(user_strings_lookup) == 0:
+                    user
+                user_strings_lookup[bytestr]
