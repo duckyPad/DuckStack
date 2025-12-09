@@ -329,19 +329,14 @@ def var_name_to_address_lookup_only_for_strprint(var_name, str_inst, arg_and_loc
     return None, None
 
 def get_partial_varname_addr(msg, str_inst, arg_and_local_var_lookup, udgv_lookup):
-    if len(msg) == 0:
+    if not msg:
         return None, None, None
-    last_name = None
-    last_addr = None
-    last_type = None
-    for x in range(len(msg)+1):
+    for x in range(len(msg), -1, -1):
         partial_name = msg[:x]
-        this_result = var_name_to_address_lookup_only_for_strprint(partial_name, str_inst, arg_and_local_var_lookup, udgv_lookup)
-        if this_result[0] is not None:
-            last_name = partial_name
-            last_addr, last_type = this_result
-    if last_addr is not None:
-        return last_name, last_addr, last_type
+        addr, var_type = var_name_to_address_lookup_only_for_strprint(
+            partial_name, str_inst, arg_and_local_var_lookup, udgv_lookup)
+        if addr is not None:
+            return partial_name, addr, var_type
     return None, None, None
 
 endianness = 'little'
