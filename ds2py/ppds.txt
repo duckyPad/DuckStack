@@ -1,6 +1,16 @@
-VAR g_acc = 0
-VAR g_dead = 999
-FUNCTION test(a, b, c)
-    VAR loc = 9
-    g_acc = g_acc + 1
+VAR myVar = 100
+VAR counter = 1
+FUNCTION scopeCheck(myVard)
+    STRINGLN [FUNC] Arg myVard: $myVard
+    VAR localVar = 777
+    localVar = localVar + 1
+    counter = counter + 1
+    STRINGLN [FUNC] LocalVar: $localVar
+    STRINGLN [FUNC] Global Counter: $counter
+    RETURN
 END_FUNCTION
+STRINGLN [MAIN] Start Global: $myVar
+STRINGLN [MAIN] Start Counter: $counter
+scopeCheck(50)
+STRINGLN [MAIN] End Global: $myVar
+STRINGLN [MAIN] End Counter: $counter

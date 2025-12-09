@@ -112,9 +112,11 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
         return None
 
 def is_known_global(name, goodies):
-    print("!!!!!!!!", name)
-    # return name in goodies["user_declared_var_dict"]
-    raise ValueError("!!!!!!!!!")
+    try:
+        return name in goodies["user_declared_var_dict"][None]
+    except Exception as e:
+        print("is_known_global:", e)
+    return False
 
 def classify_name(name: str, current_function: str | None, goodies) -> int:
     if keyword.iskeyword(name) or name in ds_reserved_funcs:
@@ -127,26 +129,21 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
 
     if current_function is not None:
         this_table = myast.find_function_table(root_table, current_function)
-        if this_table is None:
-            raise ValueError(f"No symtable for {current_function!r}()")
+        user_declared_func_locals = goodies['user_declared_var_dict'].get(current_function)
+        if this_table is None or user_declared_func_locals is None:
+            raise ValueError(f"No symtable for {name} in {current_function!r}()")
 
         sym = search_in_symtable(name, this_table)
         if sym is not None:
+            if sym.is_parameter() and name in user_declared_func_locals:
+                raise ValueError(f"Variable clash: {name} cannot be both arg and local")
             if sym.is_parameter():
                 return SymType.FUNC_ARG
-
-            if sym.is_local() and sym.is_assigned():
+            if name in user_declared_func_locals:
                 return SymType.FUNC_LOCAL_VAR
-
-            # referenced from this function but resolved outside it
-            if sym.is_global() or sym.is_declared_global() or sym.is_free() or sym.is_nonlocal():
-                if is_known_global(name, goodies):
-                    return SymType.GLOBAL_VAR
-                raise ValueError(f'Undefined symbol "{name}" (referenced in "{current_function}()")')
-
+                
     if is_known_global(name, goodies):
         return SymType.GLOBAL_VAR
-        
     raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
 
 def visit_name_node(node, goodies, inst_list):
@@ -235,7 +232,6 @@ def visit_node(node, goodies):
         func_name = node.func.id
         if func_name in ds_reserved_funcs:
             emit(ds_reserved_funcs[func_name].opcode)
-            emit(OP_PUSHC16, payload=0)
         else:
             emit(OP_CALL, payload=f"func_{func_name}")
 
@@ -313,6 +309,8 @@ def needs_resolving(inst):
     raise ValueError(f"needs_resolving: {inst}")
 
 def var_name_to_address_lookup_only_for_strprint(var_name, str_inst, arg_and_local_var_lookup, udgv_lookup):
+    print("!!!!!!!")
+    print(var_name, str_inst, arg_and_local_var_lookup, udgv_lookup)
     parent_func = str_inst.parent_func
     # priority: reserved vars, args, locals, globals
     if var_name in reserved_variables_dict:
@@ -335,7 +333,7 @@ def get_partial_varname_addr(msg, str_inst, arg_and_local_var_lookup, udgv_looku
     last_type = None
     for x in range(len(msg)+1):
         partial_name = msg[:x]
-        this_result = var_name_to_address_lookup_only_for_strprint(partial_name,str_inst, arg_and_local_var_lookup, udgv_lookup)
+        this_result = var_name_to_address_lookup_only_for_strprint(partial_name, str_inst, arg_and_local_var_lookup, udgv_lookup)
         if this_result[0] is not None:
             last_name = partial_name
             last_addr, last_type = this_result
@@ -492,6 +490,7 @@ def compile_to_bin(rdict):
         if this_inst.opcode == OP_PUSHSTR:
             this_inst.opcode = OP_PUSHC16
             this_inst.payload = user_strings_dict[this_inst.payload]
+
     print("\n\n--------- Assembly Listing, Resolved: ---------")
     print_assembly_list(final_assembly_list)
     for key in user_strings_dict:
@@ -530,7 +529,6 @@ if rdict['is_success'] is False:
     exit()
 
 print(rdict['user_declared_var_dict'])
-exit()
 
 rdict["orig_listing"] = orig_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]
@@ -541,7 +539,7 @@ save_lines_to_file(pyout, "pyds.py")
 source = dsline_to_source(pyout)
 my_tree = ast.parse(source, mode="exec", optimize=-1)
 symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
-print_symtable(symtable_root)
+# print_symtable(symtable_root)
 rdict["root_assembly_list"] = []
 rdict["root_assembly_list"].append(dsvm_instruction(OP_VMVER, payload=DS_VM_VERSION))
 rdict["symtable_root"] = symtable_root
@@ -555,6 +553,6 @@ for statement in my_tree.body:
 
 rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
-# print_assembly_list(rdict["root_assembly_list"])
+print_assembly_list(rdict["root_assembly_list"])
 
 compile_to_bin(rdict)
