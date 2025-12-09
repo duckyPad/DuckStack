@@ -1,8 +1,8 @@
 myVar = 100
 counter = 1
-def scopeCheck(myVard):
-    STRINGLN('[FUNC] Arg myVard: $myVard')
-    localVar = 777
+def scopeCheck(myVar):
+    STRINGLN('[FUNC] Arg myVar: $myVar')
+    localVar = 777 + myVar
     localVar = localVar + 1
     counter = counter + 1
     STRINGLN('[FUNC] LocalVar: $localVar')

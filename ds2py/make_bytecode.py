@@ -152,7 +152,7 @@ def visit_name_node(node, goodies, inst_list):
 
     node_name = node.id
     sym_type = classify_name(node.id, current_function, goodies)
-    # print("symtype:", node.id, current_function, sym_type.name)
+    print("symtype:", node.id, current_function, sym_type.name)
 
     vi_func = current_function
     if sym_type in [SymType.GLOBAL_VAR, SymType.RESERVED_VAR]:
@@ -404,6 +404,10 @@ def compile_to_bin(rdict):
     user_declared_global_var_addr_lookup = {}
     for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
+
+    print(rdict['var_info_set'])
+    # print(func_arg_and_local_var_lookup)
+    exit()
 
     final_assembly_list = []
     """

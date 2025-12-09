@@ -1,8 +1,8 @@
 VAR myVar = 100
 VAR counter = 1
-FUNCTION scopeCheck(myVard)
-    STRINGLN [FUNC] Arg myVard: $myVard
-    VAR localVar = 777
+FUNCTION scopeCheck(myVar)
+    STRINGLN [FUNC] Arg myVar: $myVar
+    VAR localVar = 777 + myVar
     localVar = localVar + 1
     counter = counter + 1
     STRINGLN [FUNC] LocalVar: $localVar

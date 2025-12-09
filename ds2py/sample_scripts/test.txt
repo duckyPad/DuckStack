@@ -4,7 +4,6 @@ VAR counter = 1
 
 // 2. Define Function with argument naming conflict
 FUNCTION scopeCheck(myVar)
-    VAR myVar = 19
     // Print Argument (Should be the value passed in: 50)
     STRINGLN [FUNC] Arg myVar: $myVar
 
@@ -14,7 +13,7 @@ FUNCTION scopeCheck(myVar)
     // or creates a new one. For this test, let's declare a unique local 
     // to test strict local vs global.
     
-    VAR localVar = 777
+    VAR localVar = 777 + myVar
     
     // Modify the local variable
     localVar = localVar + 1
