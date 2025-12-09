@@ -282,22 +282,27 @@ def resolve_global_and_reserved_var_address(var_name, udgv_lookup):
         return udgv_lookup[var_name]
     raise ValueError(f"Unknown variable: {var_name}")
 
-def group_vars(var_infos):
-    result = defaultdict(lambda: {"args": [], "locals": []})
+def group_vars(context_dict):
+    grouped_data = defaultdict(lambda: {"args": [], "locals": []})
     
-    for v in var_infos:
-        if v.type == SymType.FUNC_ARG and v.func is not None:
-            result[v.func]["args"].append(v.name)
-        elif v.type == SymType.FUNC_LOCAL_VAR and v.func is not None:
-            result[v.func]["locals"].append(v.name)
+    for variable in context_dict['var_info_set']:
+        if variable.func is None:
+            continue
+        scope_data = grouped_data[variable.func]
+        
+        if variable.type == SymType.FUNC_ARG:
+            scope_data["args"].append(variable.name)
+        elif variable.type == SymType.FUNC_LOCAL_VAR:
+            scope_data["locals"].append(variable.name)
 
-    return {
-        func: {
-            "args": sorted(data["args"]),
-            "locals": sorted(data["locals"]),
+    final_result = {}
+    for func_name, data in grouped_data.items():
+        this_func_symtable_args = list(myast.get_func_parameters(func_name, context_dict['symtable_root']))
+        final_result[func_name] = {
+            "args": this_func_symtable_args,
+            "locals": sorted(data["locals"])
         }
-        for func, data in result.items()
-    }
+    return final_result
 
 def needs_resolving(inst):
     if inst.opcode.length == 1:
@@ -309,8 +314,6 @@ def needs_resolving(inst):
     raise ValueError(f"needs_resolving: {inst}")
 
 def var_name_to_address_lookup_only_for_strprint(var_name, str_inst, arg_and_local_var_lookup, udgv_lookup):
-    print("!!!!!!!")
-    print(var_name, str_inst, arg_and_local_var_lookup, udgv_lookup)
     parent_func = str_inst.parent_func
     # priority: reserved vars, args, locals, globals
     if var_name in reserved_variables_dict:
@@ -400,13 +403,14 @@ def compile_to_bin(rdict):
     """
     user_strings_dict = {}
 
-    func_arg_and_local_var_lookup = group_vars(rdict['var_info_set'])
+    func_arg_and_local_var_lookup = group_vars(rdict)
     user_declared_global_var_addr_lookup = {}
     for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
 
-    print(rdict['var_info_set'])
-    # print(func_arg_and_local_var_lookup)
+    # print(rdict['var_info_set'])
+    print(func_arg_and_local_var_lookup)
+    print(user_declared_global_var_addr_lookup)
     exit()
 
     final_assembly_list = []

@@ -1,16 +1,19 @@
-VAR myVar = 100
-VAR counter = 1
-FUNCTION scopeCheck(myVar)
-    STRINGLN [FUNC] Arg myVar: $myVar
-    VAR localVar = 777 + myVar
-    localVar = localVar + 1
-    counter = counter + 1
-    STRINGLN [FUNC] LocalVar: $localVar
-    STRINGLN [FUNC] Global Counter: $counter
-    RETURN
+VAR global_val = 100
+VAR shadow_me = 999
+VAR unused_global = 5555
+FUNCTION test_scope(arg_used, arg_unused4, arg_unused2, arg_unused1)
+    VAR unused_local = 777
+    VAR local_val = 50
+    VAR shadow_me = 111
+    STRINGLN TIME: $_RTC_HOUR
+    STRINGLN Read Global: $global_val
+    STRINGLN Read Arg: $arg_used
+    STRINGLN Read Shadowed Local: $shadow_me
+    shadow_me = shadow_me + 1
+    STRINGLN Modified Shadowed Local: $shadow_me
+    RETURN arg_used + local_val
 END_FUNCTION
-STRINGLN [MAIN] Start Global: $myVar
-STRINGLN [MAIN] Start Counter: $counter
-scopeCheck(50)
-STRINGLN [MAIN] End Global: $myVar
-STRINGLN [MAIN] End Counter: $counter
+VAR result = 0
+result = test_scope(10, 20, 0,0)
+STRINGLN Global Shadow Check: $shadow_me
+STRINGLN Function Return: $result

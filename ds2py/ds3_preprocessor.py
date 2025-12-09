@@ -380,8 +380,11 @@ def check_var_declare(pgm_line, var_dict, fss):
         pgm_line = replace_operators(pgm_line)
         var_sides = pgm_line.split(cmd_VAR_DECLARE, 1)[-1].split('=')
         this_var_name = var_sides[0].strip()
+        rightside = var_sides[1].strip()
     except Exception as e:
-        return PARSE_ERROR, "Invalid var name"
+        return PARSE_ERROR, "Invalid VAR declaration"
+    if len(rightside) == 0:
+        return PARSE_ERROR, "Empty VAR declaration"
     if_valid_vn, vn_comment = is_valid_var_name(this_var_name)
     if if_valid_vn is False:
         return PARSE_ERROR, vn_comment

@@ -600,3 +600,24 @@ func_arg_and_local_var_lookup = group_vars(rdict['var_info_set'])
     user_declared_global_var_addr_lookup = {}
     for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
+---
+
+
+def group_vars(var_infos):
+    result = defaultdict(lambda: {"args": [], "locals": []})
+    
+    for v in var_infos:
+        if v.type == SymType.FUNC_ARG and v.func is not None:
+            result[v.func]["args"].append(v.name)
+        elif v.type == SymType.FUNC_LOCAL_VAR and v.func is not None:
+            result[v.func]["locals"].append(v.name)
+
+    return {
+        func: {
+            "args": sorted(data["args"]),
+            "locals": sorted(data["locals"]),
+        }
+        for func, data in result.items()
+    }
+
+from collections import defaultdict

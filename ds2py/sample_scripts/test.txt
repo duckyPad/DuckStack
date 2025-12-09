@@ -1,42 +1,23 @@
-// 1. Declare Global Variables
-VAR myVar = 100
-VAR counter = 1
+VAR global_val = 100
+VAR shadow_me = 999
+VAR unused_global = 5555
 
-// 2. Define Function with argument naming conflict
-FUNCTION scopeCheck(myVar)
-    // Print Argument (Should be the value passed in: 50)
-    STRINGLN [FUNC] Arg myVar: $myVar
-
-    // 3. Declare Local Variable (Shadowing the Argument AND Global)
-    // Note: In C-like langs, you usually can't shadow an arg in the same scope, 
-    // but in dynamic stack scripting, this often overwrites the local stack slot 
-    // or creates a new one. For this test, let's declare a unique local 
-    // to test strict local vs global.
+FUNCTION test_scope(arg_used, arg_unused4, arg_unused2, arg_unused1)
+    VAR unused_local = 777
+    VAR local_val = 50
+    VAR shadow_me = 111
     
-    VAR localVar = 777 + myVar
-    
-    // Modify the local variable
-    localVar = localVar + 1
-    
-    // Modify the global variable 'counter' from inside function
-    counter = counter + 1
-
-    STRINGLN [FUNC] LocalVar: $localVar
-    STRINGLN [FUNC] Global Counter: $counter
-    
-    RETURN
+    STRINGLN TIME: $_RTC_HOUR
+    STRINGLN Read Global: $global_val
+    STRINGLN Read Arg: $arg_used
+    STRINGLN Read Shadowed Local: $shadow_me
+    shadow_me = shadow_me + 1
+    STRINGLN Modified Shadowed Local: $shadow_me
+    RETURN arg_used + local_val
 END_FUNCTION
 
-// --- Main Execution ---
+VAR result = 0
+result = test_scope(10, 20, 0,0)
 
-STRINGLN [MAIN] Start Global: $myVar
-STRINGLN [MAIN] Start Counter: $counter
-
-// Call function with value 50
-scopeCheck(50)
-
-// Check if Global was protected from argument/local changes
-STRINGLN [MAIN] End Global: $myVar
-
-// Check if Global Counter was successfully modified by function
-STRINGLN [MAIN] End Counter: $counter
+STRINGLN Global Shadow Check: $shadow_me
+STRINGLN Function Return: $result

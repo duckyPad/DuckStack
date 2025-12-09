@@ -3,8 +3,6 @@ import ast
 import symtable
 from dsvm_common import *
 
-import symtable
-
 def find_function_table(root: symtable.SymbolTable, func_name: str):
     for child in root.get_children():
         if child.get_type() == 'function' and child.get_name() == func_name:
