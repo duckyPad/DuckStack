@@ -374,7 +374,6 @@ def parse_combo(line_obj):
         new_lines.append(new_obj)
     return PARSE_OK, 'Success', new_lines
 
-# var_dict: {func_name:set(varnames)}
 def check_var_declare(pgm_line, var_dict, fss):
     try:
         pgm_line = replace_operators(pgm_line)

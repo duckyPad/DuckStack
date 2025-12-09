@@ -152,7 +152,7 @@ def visit_name_node(node, goodies, inst_list):
 
     node_name = node.id
     sym_type = classify_name(node.id, current_function, goodies)
-    print("symtype:", node.id, current_function, sym_type.name)
+    # print("symtype:", node.id, current_function, sym_type.name)
 
     parent_func = current_function
     if sym_type in [SymType.GLOBAL_VAR, SymType.RESERVED_VAR]:
@@ -409,9 +409,11 @@ def compile_to_bin(rdict):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
 
     # print(rdict['var_info_set'])
-    print(func_arg_and_local_var_lookup)
+    print("\n--------- Global Variables ---------")
     print(user_declared_global_var_addr_lookup)
-    exit()
+    print("\n--------- Func Args and Local Variables ---------")
+    for key in func_arg_and_local_var_lookup:
+        print(f"{key}: {func_arg_and_local_var_lookup[key]}")
 
     final_assembly_list = []
     """
@@ -536,7 +538,7 @@ if rdict['is_success'] is False:
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
 
-print(rdict['user_declared_var_dict'])
+# print(rdict['user_declared_var_dict'])
 
 rdict["orig_listing"] = orig_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]
@@ -561,6 +563,6 @@ for statement in my_tree.body:
 
 rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
-print_assembly_list(rdict["root_assembly_list"])
+# print_assembly_list(rdict["root_assembly_list"])
 
 compile_to_bin(rdict)
