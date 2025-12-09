@@ -1,36 +1,49 @@
-result = 0
-counter = 0
-shadow_test = 999
-def factorial(n):
-    if n <= 1:
-        return 1
-    prev_step = 0
-    val_minus_one = n - 1
-    prev_step = factorial(val_minus_one)
-    return n * prev_step
-def hardware_check(arg1):
-    shadow_test = 50
-    MOUSE_MOVE(10, -10)
-    DELAY(100)
-    OLED_CLEAR()
-    OLED_RECT(1, 0, 0, 32, 32)
-    OLED_UPDATE()
-    return shadow_test + arg1
-STRINGLN('Starting Stress Test...')
-math_check = (5 * 2) + (8 >> 2)
-STRINGLN('Math Check (Expect 12): $math_check')
-while counter < 3:
-    STRINGLN('Loop Index: $counter')
-    f_input = counter + 1
-    result = factorial(f_input)
-    STRINGLN('Factorial Result: $result')
-    if (counter & 1) == 0:
-        STRINGLN('Status: Even')
-    if (counter & 1) != 0:
-        STRINGLN('Status: Odd')
-    counter = counter + 1
-hw_result = 0
-hw_result = hardware_check(10)
-STRINGLN('Local Shadow Result (Expect 60): $hw_result')
-STRINGLN('Global Shadow Var (Expect 999): $shadow_test')
-STRINGLN('Test Complete.')
+global_counter = 0
+bit_flags = 0
+def complex_math(arg1, arg2):
+    local_res = 0
+    local_res = arg1 * 2
+    local_res = local_res + arg2 / 5
+    global_counter = global_counter + 1
+    return local_res
+STRINGLN('[TEST] String Block Check.')
+STRINGLN('If you see this, blocks work.')
+STRINGLN('Starting_Test...')
+i = 0
+while i < 5:
+    if i > 0  and  i < 4:
+        STRING('.')
+    if i == 4:
+        STRINGLN('[OK] Loop Finished.')
+        break
+    i = i + 1
+    DELAY(10)
+bit_flags = 1 << 4 
+mask_check = bit_flags | 1
+math_result = 0
+math_result = complex_math(TEST_VAL, 100)
+STRINGLN('Result (Dec): $math_result')
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 4
+STRINGLN('Result (HexPad): $math_result')
+_STR_PRINT_FORMAT = 0
+_STR_PRINT_PADDING = 0
+_RANDOM_MIN = 50
+_RANDOM_MAX = 60
+rand_val = _RANDOM_INT
+STRINGLN('Random(50-60): $rand_val')
+KEYDOWN('SHIFT')
+STRING('test')
+KEYUP('SHIFT')
+KEYDOWN('ENTER')
+KEYUP('ENTER')
+MOUSE_MOVE(100, 50)
+MOUSE_WHEEL(-2)
+STRING('Echo ')
+STRING('Echo ')
+STRING('Echo ')
+KEYDOWN('ENTER')
+KEYUP('ENTER')
+_GV0 = _GV0 + 1
+STRINGLN('Boot_Count: $_GV0')
+STRINGLN('[SUCCESS] Torture test complete.')

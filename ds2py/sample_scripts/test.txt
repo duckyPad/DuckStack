@@ -1,87 +1,125 @@
-REM_BLOCK
-    DuckStack Compiler Stress Test
-    Target: Bytecode VM generation
-    Includes: Recursion, Math, Hardware, Scope
-END_REM
+REM *** DuckyScript Compiler Torture Test ***
+REM This script tests various aspects of the language specification.
 
-// 1. Constants and Globals
-DEFINE MAX_LOOPS 3
-VAR result = 0
-VAR counter = 0
-VAR shadow_test = 999 
+// ---------------------------------------------------------
+// 1. CONSTANTS & GLOBALS
+// ---------------------------------------------------------
+DEFINE START_MSG Starting_Test...
+DEFINE TEST_VAL 10
 
-// 2. Function Definition: Recursive Factorial
-// Tests: Stack frames, CALL, RET, Argument passing
-FUNCTION factorial(n)
-    // Base case
-    IF n <= 1 THEN
-        RETURN 1
-    END_IF
+VAR global_counter = 0
+VAR bit_flags = 0
+
+// ---------------------------------------------------------
+// 2. FUNCTIONS
+// ---------------------------------------------------------
+FUNCTION complex_math(arg1, arg2)
+    // Test Local Variables & Scope shadowing
+    VAR local_res = 0
     
-    // Recursive step
-    // Note: Creating a local var to test local stack allocation
-    VAR prev_step = 0
-    VAR val_minus_one = n - 1
+    // Test Arithmetic Precedence: (arg1 * 2) + (arg2 / 5)
+    local_res = arg1 * 2
+    local_res = local_res + arg2 / 5
     
-    prev_step = factorial(val_minus_one)
+    // Update global from inside function
+    global_counter = global_counter + 1
     
-    // Return result (Expression on return)
-    RETURN n * prev_step
+    RETURN local_res
 END_FUNCTION
 
-// 3. Function: Variable Shadowing & Hardware
-FUNCTION hardware_check(arg1)
-    // 'shadow_test' here should be LOCAL, distinct from GLOBAL 999
-    VAR shadow_test = 50 
-    
-    // Move mouse (tests negative numbers and hardware opcodes)
-    MOUSE_MOVE 10 -10
-    DELAY 100
-    
-    // OLED Graphics
-    OLED_CLEAR
-    OLED_RECT 1 0 0 32 32
-    OLED_UPDATE
-    
-    RETURN shadow_test + arg1
-END_FUNCTION
+// ---------------------------------------------------------
+// 3. MAIN LOGIC & CONTROL FLOW
+// ---------------------------------------------------------
 
-// --- MAIN EXECUTION START ---
+// Test String Blocks
+STRINGLN_BLOCK
+[TEST] String Block Check.
+If you see this, blocks work.
+END_STRINGLN
 
-STRINGLN Starting Stress Test...
+STRINGLN START_MSG
 
-// 4. Test Arithmetic & Bitwise Logic
-// (5 * 2) + (8 >> 2) = 10 + 2 = 12
-VAR math_check = (5 * 2) + (8 >> 2) 
-STRINGLN Math Check (Expect 12): $math_check
-
-// 5. Loop & Control Flow
-WHILE counter < MAX_LOOPS
-    STRINGLN Loop Index: $counter
-
-    // Test Recursion
-    // Calculate Factorial of (counter + 1)
-    VAR f_input = counter + 1
-    result = factorial(f_input)
-    STRINGLN Factorial Result: $result
-
-    // Test Logic Operators
-    IF (counter & 1) == 0 THEN
-        STRINGLN Status: Even
+// Test Loops and Conditionals
+VAR i = 0
+WHILE i < 5
+    // Test Logical AND (&&) inside expression
+    IF i > 0 && i < 4 THEN
+        STRING .
     END_IF
     
-    IF (counter & 1) != 0 THEN
-        STRINGLN Status: Odd
+    // Test LBREAK
+    IF i == 4 THEN
+        STRINGLN [OK] Loop Finished.
+        LBREAK
     END_IF
-
-    counter = counter + 1
+    
+    i = i + 1
+    DELAY 10
 END_WHILE
 
-// 6. Test Shadowing
-VAR hw_result = 0
-hw_result = hardware_check(10)
+// ---------------------------------------------------------
+// 4. ARITHMETIC & BITWISE
+// ---------------------------------------------------------
 
-STRINGLN Local Shadow Result (Expect 60): $hw_result
-STRINGLN Global Shadow Var (Expect 999): $shadow_test
+// Test Bitwise Shifts and Logic
+// 1 shifted left 4 times is 16
+bit_flags = 1 << 4 
+VAR mask_check = bit_flags | 1
+// Result should be 17
 
-STRINGLN Test Complete.
+// Test Function Call with Expressions as arguments
+VAR math_result = 0
+math_result = complex_math(TEST_VAL, 100)
+// Expected: (10 * 2) + (100 / 5) = 20 + 20 = 40
+
+// ---------------------------------------------------------
+// 5. ADVANCED PRINTING
+// ---------------------------------------------------------
+
+// Test Variable Interpolation
+STRINGLN Result (Dec): $math_result
+
+// Test Formatting (Hex Uppercase) and Padding
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 4
+STRINGLN Result (HexPad): $math_result
+
+// Reset formatting
+_STR_PRINT_FORMAT = 0
+_STR_PRINT_PADDING = 0
+
+// ---------------------------------------------------------
+// 6. HID & HARDWARE INTERACTION
+// ---------------------------------------------------------
+
+// Test Randomization limits
+_RANDOM_MIN = 50
+_RANDOM_MAX = 60
+VAR rand_val = _RANDOM_INT
+STRINGLN Random(50-60): $rand_val
+
+// Test Key Combinations and Holds
+REM holding shift to select text or type capitals
+KEYDOWN SHIFT
+STRING test
+KEYUP SHIFT
+ENTER
+
+// Test Mouse
+// Move Right 100, Up 50
+MOUSE_MOVE 100 50 
+MOUSE_WHEEL -2
+
+// Test Repeat (Should type "Echo" 3 times total)
+STRING Echo 
+REPEAT 2
+ENTER
+
+// Test Persistent Variables (Boot counter)
+_GV0 = _GV0 + 1
+STRINGLN Boot_Count: $_GV0
+
+// ---------------------------------------------------------
+// 7. END OF SCRIPT
+// ---------------------------------------------------------
+STRINGLN [SUCCESS] Torture test complete.

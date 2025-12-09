@@ -504,7 +504,8 @@ def compile_to_bin(rdict):
     # ------------------ generate binary ------------------
 
     output_bin_array = bytearray()
-    
+    # for this_inst in final_assembly_list:
+    #     print(this_inst)
 
 # --------------------------
 
