@@ -321,11 +321,12 @@ when generating address, double check against global variable table?  classify_n
 
 error if try to read a variable name without it being ever assigned to?
 
-
 ## Variable Scoping
 
-A variable declared at root level has **global scope** and can be accessed inside functions.
+* A variable declared at root level has **global scope** and can be accessed inside functions.
+	* All non-funciton variables have **Global Scope**
+	* INCLUDING THOSE DECLARED WITHIN LOOPS AND IF STATEMENTS
 
-A variable declared **inside a function** only has scope **within that function**
+* A variable declared **inside a function** only has scope **within that function**
 
-If a local variable has the same name as a global variable, **local variable** takes priority.
+* If a local variable has the same name as a global variable, **local variable** takes priority.

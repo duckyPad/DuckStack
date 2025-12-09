@@ -156,38 +156,6 @@ DELAY 1000 // wait 1000 milliseconds, or 1 second
 STRING cmd
 ```
 
-### `DEFAULTDELAY`
-
-How long to wait between **`each input-generating command`**.
-
-```
-DEFAULTDELAY 50
-// Wait 50ms between each command below
-
-ALT
-DOWN
-ENTER
-```
-
-### `DEFAULTCHARDELAY`
-
-How long to wait between **`each letter`** when **`typing text`**.
-
-```
-DEFAULTCHARDELAY 50
-// Wait 50ms between each letter 
-
-STRING Hello World!
-```
-
-### `CHARJITTER n`
-
-Adds an **additional** random delay between 0 and `n` milliseconds after `each key stroke`.
-
-Can make typing more human-like.
-
-* Set to 0 to disable.
-
 ## Mouse
 
 ### Mouse Buttons
@@ -263,9 +231,11 @@ spam = 20
 
 * Variables are **signed 32-bit integers**.
 
-* Top-level variables have **global scope**
+* A variable declared at root level has **global scope** and can be accessed inside functions.
 
-* Variables inside functions have **local scope**
+* A variable declared **inside a function** only has scope **within that function**
+
+    * If a local variable has the same name as a global variable, **local variable** takes priority.
 
 ### Persistent Global Variables
 

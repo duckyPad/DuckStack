@@ -2,5 +2,7 @@ VAR g_acc = 0       // Used global
 VAR g_dead = 999    // Unused global: Should not generate load/store ops
 
 FUNCTION test(a, b, c)
+	VAR loc = 9
+	VAR g_acc = 11
     g_acc = g_acc + 1
 END_FUNCTION

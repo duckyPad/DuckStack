@@ -588,3 +588,11 @@ def line_has_unconsumed_stack_value(line_obj):
     print(line_obj, ast_root)
     # myast.print_node_info(ast_root)
     return True
+----
+
+    if len(fss) == 0:
+        print(f"Variable {this_var_name} is on root level")
+    else:
+        parent_func_name = fss[-1]
+        print(f"Variable {this_var_name} is in function {parent_func_name}")
+----

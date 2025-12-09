@@ -1,5 +1,6 @@
 VAR g_acc = 0
 VAR g_dead = 999
 FUNCTION test(a, b, c)
+    VAR loc = 9
     g_acc = g_acc + 1
 END_FUNCTION

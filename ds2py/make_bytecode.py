@@ -113,7 +113,8 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
 
 def is_known_global(name, goodies):
     print("!!!!!!!!", name)
-    return name in goodies["user_declared_var_table"]
+    # return name in goodies["user_declared_var_dict"]
+    raise ValueError("!!!!!!!!!")
 
 def classify_name(name: str, current_function: str | None, goodies) -> int:
     if keyword.iskeyword(name) or name in ds_reserved_funcs:
@@ -527,6 +528,9 @@ if rdict['is_success'] is False:
     print(f"\t{rdict['comments']}")
     print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
     exit()
+
+print(rdict['user_declared_var_dict'])
+exit()
 
 rdict["orig_listing"] = orig_listing
 post_pp_listing = rdict["dspp_listing_with_indent_level"]
