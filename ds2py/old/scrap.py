@@ -596,3 +596,7 @@ def line_has_unconsumed_stack_value(line_obj):
         parent_func_name = fss[-1]
         print(f"Variable {this_var_name} is in function {parent_func_name}")
 ----
+func_arg_and_local_var_lookup = group_vars(rdict['var_info_set'])
+    user_declared_global_var_addr_lookup = {}
+    for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
+        user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS

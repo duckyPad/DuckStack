@@ -3,6 +3,8 @@ import ast
 import symtable
 from dsvm_common import *
 
+import symtable
+
 def find_function_table(root: symtable.SymbolTable, func_name: str):
     for child in root.get_children():
         if child.get_type() == 'function' and child.get_name() == func_name:
@@ -12,11 +14,18 @@ def find_function_table(root: symtable.SymbolTable, func_name: str):
             return found
     return None
 
-def how_many_args(name: str, table: symtable.SymbolTable):
-    func_table = find_function_table(table, name)
+def get_func_parameters(func_name: str, root: symtable.SymbolTable):
+    func_table = find_function_table(root, func_name)
     if func_table is None:
         return None
-    return len(func_table.get_parameters())
+    # returns a tuple of parameter names
+    return func_table.get_parameters()
+
+def how_many_args(name: str, table: symtable.SymbolTable):
+    params = get_func_parameters(name, table)
+    if params is None:
+        return None
+    return len(params)
 
 def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1):
     if this_pylnum_sf1 is None:

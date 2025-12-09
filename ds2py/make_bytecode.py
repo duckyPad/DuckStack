@@ -154,10 +154,10 @@ def visit_name_node(node, goodies, inst_list):
     sym_type = classify_name(node.id, current_function, goodies)
     print("symtype:", node.id, current_function, sym_type.name)
 
-    vi_func = current_function
+    parent_func = current_function
     if sym_type in [SymType.GLOBAL_VAR, SymType.RESERVED_VAR]:
-        vi_func = None
-    this_var_info = var_info(node_name, sym_type, vi_func)
+        parent_func = None
+    this_var_info = var_info(node_name, sym_type, parent_func)
     goodies['var_info_set'].add(this_var_info)
 
     if isinstance(node.ctx, ast.Store):
