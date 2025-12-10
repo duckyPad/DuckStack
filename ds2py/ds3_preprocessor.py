@@ -5,7 +5,7 @@ import copy
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
 
-valid_char_for_define_replacements = set([' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&'])
+valid_char_for_define_replacements = set([' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&', ','])
 
 def replace_DEFINE(pgm_line, dd):
     if pgm_line.startswith(cmd_STRING+" ") or pgm_line.startswith(cmd_STRINGLN+" "):
@@ -93,7 +93,7 @@ def new_define(pgm_line, dd):
     is_valid, comment = is_valid_var_name(define_source)
     if is_valid is False:
         return PARSE_ERROR, comment
-    if define_source in dd:
+    if define_source in dd and define_destination != dd[define_source]:
         return PARSE_ERROR, f"{define_source} is already defined"
     dd[define_source] = define_destination
     return PARSE_OK, ''
@@ -401,9 +401,8 @@ def check_var_declare(pgm_line, var_dict, fss):
     return PARSE_OK, ''
 
 # this makes sure the code is suitable for converting into python
-def single_pass(program_listing):
+def single_pass(program_listing, define_dict):
     loop_numbers = set()
-    define_dict = {"TRUE":"1", "FALSE":"0"}
     func_table = {}
     if_take_table = {}
     if_skip_table = {}
@@ -412,7 +411,6 @@ def single_pass(program_listing):
     func_search_stack = []
     if_search_stack = []
     while_search_stack = []
-    define_dict = {}
     rem_block_search_stack = []
     rem_block_table = {}
     strlen_block_search_stack = []
@@ -426,7 +424,6 @@ def single_pass(program_listing):
     'comments':"",
     'error_line_number_starting_from_1':None,
     'error_line_str':"",
-    'define_dict':None,
     'loop_state_save_needed':False,
     'loop_size':None,
     }
@@ -612,7 +609,6 @@ def single_pass(program_listing):
     return_dict['comments'] = ""
     return_dict['error_line_number_starting_from_1'] = None
     return_dict['error_line_str'] = ""
-    return_dict['define_dict'] = define_dict
     return_dict['rem_block_table'] = rem_block_table
     return_dict['strlen_block_table'] = strlen_block_table
     return_dict['str_block_table'] = str_block_table
@@ -633,6 +629,7 @@ def search_profile_index_from_name(query, profile_list):
     return None
 
 def run_all(program_listing, profile_list=None):
+    all_def_dict = {}
     new_program_listing = []
     for line_obj in program_listing:
         first_word = line_obj.content.lstrip(" \t").split(" ")[0]
@@ -653,9 +650,10 @@ def run_all(program_listing, profile_list=None):
     program_listing = new_program_listing
 
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
-    rdict = single_pass(program_listing)
+    rdict = single_pass(program_listing, all_def_dict)
     if rdict['is_success'] is False:
         return rdict
+    
     
     new_program_listing = []
     for line_obj in program_listing:
@@ -707,7 +705,7 @@ def run_all(program_listing, profile_list=None):
 
     program_listing = new_program_listing
 
-    rdict = single_pass(program_listing)
+    rdict = single_pass(program_listing, all_def_dict)
     if rdict['is_success'] is False:
         return rdict
 
@@ -744,7 +742,7 @@ def run_all(program_listing, profile_list=None):
         if needs_rstrip(first_word):
             line_obj.content = this_line.rstrip(" \t")
         if first_word != cmd_DEFINE:
-            is_success, replaced_str = replace_DEFINE(this_line, rdict['define_dict'])
+            is_success, replaced_str = replace_DEFINE(this_line, all_def_dict)
             if is_success is False:
                 rdict['is_success'] = False
                 rdict['comments'] = "Recursive DEFINE"
@@ -805,7 +803,7 @@ def run_all(program_listing, profile_list=None):
 
     second_pass_program_listing = new_program_listing
     # -----------------
-    return single_pass(second_pass_program_listing)
+    return single_pass(second_pass_program_listing, all_def_dict)
 
 if __name__ == "__main__":
     # Require at least input and output arguments
