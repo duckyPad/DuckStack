@@ -513,9 +513,9 @@ def compile_to_bin(rdict):
     for key in user_strings_dict:
         output_bin_array += key
 
-    print(output_bin_array.hex())
-    print(len(output_bin_array))
-
+    for bbb in output_bin_array:
+        print(f"{bbb:02x}", end=" ")
+    print()
     file_path = "out.dsb"
     with open(file_path, 'wb') as file_out:
         bytes_written = file_out.write(output_bin_array)

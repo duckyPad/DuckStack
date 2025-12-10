@@ -652,3 +652,6 @@ output_bin_array = bytearray()
         # output_bin_array += this_payload.to_bytes(1, byteorder=endianness)
         # print(this_inst, inst_bytes.hex(), this_inst.payload)
     print(output_bin_array.hex())
+
+# print(output_bin_array.hex())
+    # print(len(output_bin_array))
