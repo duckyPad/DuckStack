@@ -688,4 +688,63 @@ class dsvm_instruction:
 def replace_operators(this_line):
     return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
 
+
+import struct
+
+def pack_to_two_bytes(value: int) -> bytes:
+    """
+    Converts an integer into a two-byte sequence (little-endian),
+    treating it as uint16_t if non-negative (>= 0) or int16_t if negative (< 0).
+
+    Args:
+        value: The integer to convert.
+
+    Returns:
+        A bytes object of length 2 representing the packed value.
+
+    Raises:
+        ValueError: If the integer is outside the valid range for the 
+                    chosen 16-bit format (0 to 65535 for unsigned, 
+                    or -32768 to 32767 for signed).
+        TypeError: If the input is not an integer.
+    """
+    if not isinstance(value, int):
+        raise TypeError(f"Input must be an integer, but received {type(value)}")
+
+    if value >= 0:
+        # --- Handle as unsigned 16-bit integer (uint16_t) ---
+        # Valid range: 0 to 65535 (2^16 - 1)
+        max_uint16 = 65535
+        if value > max_uint16:
+            raise ValueError(
+                f"Value {value} is too large for uint16_t. Max allowed is {max_uint16}."
+            )
+        
+        # Format string '<H':
+        # '<' - Little-endian
+        # 'H' - unsigned short (2 bytes)
+        format_string = '<H'
+    
+    else:
+        # --- Handle as signed 16-bit integer (int16_t) in two's complement ---
+        # Valid range: -32768 (-2^15) to 32767 (2^15 - 1)
+        min_int16 = -32768
+        max_int16 = 32767
+
+        if not (min_int16 <= value <= max_int16):
+            raise ValueError(
+                f"Value {value} is outside the int16_t range. Range is {min_int16} to {max_int16}."
+            )
+        
+        # Format string '<h':
+        # '<' - Little-endian
+        # 'h' - signed short (2 bytes)
+        format_string = '<h'
+
+    # The struct.pack function handles the conversion to two's complement 
+    # for negative numbers automatically based on the format code 'h'.
+    return struct.pack(format_string, value)
+
 DSVM_VERSION = 2
+
+

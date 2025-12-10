@@ -638,3 +638,17 @@ def get_partial_varname_addr(msg, str_inst, arg_and_local_var_lookup, udgv_looku
     if last_addr is not None:
         return last_name, last_addr, last_type
     return None, None, None
+
+
+-------
+
+output_bin_array = bytearray()
+    for this_inst in final_assembly_list:
+        output_bin_array += this_inst.opcode.code.to_bytes(1, byteorder=endianness)
+        this_payload = this_inst.payload
+        if this_payload is None:
+            continue
+        output_bin_array += pack_to_two_bytes(this_payload)
+        # output_bin_array += this_payload.to_bytes(1, byteorder=endianness)
+        # print(this_inst, inst_bytes.hex(), this_inst.payload)
+    print(output_bin_array.hex())

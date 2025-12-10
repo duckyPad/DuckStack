@@ -21,7 +21,7 @@ while i < 5:
 bit_flags = 1 << 4 
 mask_check = bit_flags | 1
 math_result = 0
-math_result = complex_math(TEST_VAL, 100)
+math_result = complex_math(10, 100)
 STRINGLN('Result (Dec): $math_result')
 _STR_PRINT_FORMAT = 3
 _STR_PRINT_PADDING = 4

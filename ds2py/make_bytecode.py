@@ -504,8 +504,22 @@ def compile_to_bin(rdict):
     # ------------------ generate binary ------------------
 
     output_bin_array = bytearray()
-    # for this_inst in final_assembly_list:
-    #     print(this_inst)
+    for this_inst in final_assembly_list:
+        output_bin_array += this_inst.opcode.code.to_bytes(1, byteorder=endianness)
+        this_payload = this_inst.payload
+        if this_payload is None:
+            continue
+        output_bin_array += pack_to_two_bytes(this_payload)
+    for key in user_strings_dict:
+        output_bin_array += key
+
+    print(output_bin_array.hex())
+    print(len(output_bin_array))
+
+    file_path = "out.dsb"
+    with open(file_path, 'wb') as file_out:
+        bytes_written = file_out.write(output_bin_array)
+        print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
 
 # --------------------------
 
