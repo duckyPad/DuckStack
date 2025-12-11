@@ -1,21 +1,99 @@
-global_res = 0
-def factorial(n):
-    acc = 1
-    i = 1
-    while i <= n:
-        acc = acc * i
-        i = i + 1
-    return acc
-STRINGLN('Starting Calculation...')
-global_res = factorial(5)
-_STR_PRINT_FORMAT = 3
-STRINGLN('Result (0x78 expected): $global_res')
-if global_res == 120:
-    STRINGLN('Test Passed!')
-    DELAY(500)
+_NEEDS_EPILOGUE = 1
+_LOOP_SIZE = 3
+_DEFAULTCHARDELAY = 25
+_DEFAULTDELAY = 25
+def blink():
+    count = 0
+    while count < 4:
+        SWC_FILL(100, 100, 100)
+        DELAY(200)
+        SWC_FILL(0, 0, 0)
+        DELAY(200)
+        count = count + 1
+OLED_CLEAR()
+OLED_CURSOR(20, 20)
+OLED_PRINT('Are you using')
+OLED_CURSOR(20, 35)
+OLED_PRINT('Windows?')
+OLED_CURSOR(20, 110)
+OLED_PRINT('-:No     +:Yes')
+OLED_UPDATE()
+_UNUSED = blink()
+temp = 0
+is_win = _BLOCKING_READKEY == 28
+if is_win:
+    SWC_FILL(0, 128, 0)
     KEYDOWN('WINDOWS')
-    KEYDOWN('r')
-    KEYUP('r')
+    KEYDOWN('R')
+    KEYUP('R')
     KEYUP('WINDOWS')
-    DELAY(200)
+    DELAY(750)
     STRINGLN('notepad')
+    DELAY(750)
+else:
+    OLED_CLEAR()
+    OLED_CURSOR(0, 50)
+    OLED_PRINT('Open a text editor')
+    OLED_CURSOR(0, 65)
+    OLED_PRINT('Anykey when ready')
+    OLED_UPDATE()
+    temp = _BLOCKING_READKEY
+    SWC_FILL(0, 128, 0)
+OLED_CLEAR()
+OLED_CURSOR(30, 50)
+OLED_PRINT('Typing...')
+OLED_UPDATE()
+STRING('dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla c')
+STRING('onsequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. ')
+KEYDOWN('ENTER')
+KEYUP('ENTER')
+STRING('dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla c')
+STRING('onsequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. ')
+if is_win:
+    KEYDOWN('CTRL')
+    KEYDOWN('+')
+    KEYUP('+')
+    KEYUP('CTRL')
+    KEYDOWN('CTRL')
+    KEYDOWN('+')
+    KEYUP('+')
+    KEYUP('CTRL')
+    KEYDOWN('CTRL')
+    KEYDOWN('+')
+    KEYUP('+')
+    KEYUP('CTRL')
+    KEYDOWN('CTRL')
+    KEYDOWN('+')
+    KEYUP('+')
+    KEYUP('CTRL')
+    KEYDOWN('CTRL')
+    KEYDOWN('+')
+    KEYUP('+')
+    KEYUP('CTRL')
+    KEYDOWN('WINDOWS')
+    KEYDOWN('UP')
+    KEYUP('UP')
+    KEYUP('WINDOWS')
+SWC_RESET(99)
+if _KEYPRESS_COUNT % _LOOP_SIZE == 0:
+    STRING('first action')
+    KEYDOWN('ENTER')
+    KEYUP('ENTER')
+if _KEYPRESS_COUNT % _LOOP_SIZE == 1:
+    STRING('second action')
+    KEYDOWN('ENTER')
+    KEYUP('ENTER')
+if _KEYPRESS_COUNT % _LOOP_SIZE == 2:
+    STRING('third action')
+    KEYDOWN('ENTER')
+    KEYUP('ENTER')
+    KEYDOWN('ALT')
+    KEYUP('ALT')
+    STRINGLN('dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec.')
+    STRINGLN('pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. ')
+    KEYDOWN('OPTION')
+    KEYUP('OPTION')
+    KEYDOWN('LMOUSE')
+    KEYUP('LMOUSE')
+    KEYDOWN('MMOUSE')
+    KEYUP('MMOUSE')

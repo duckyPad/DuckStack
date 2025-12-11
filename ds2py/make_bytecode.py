@@ -130,7 +130,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
     if current_function is not None:
         this_table = myast.find_function_table(root_table, current_function)
         user_declared_func_locals = goodies['user_declared_var_dict'].get(current_function)
-        if this_table is None or user_declared_func_locals is None:
+        if this_table is None:
             raise ValueError(f"No symtable for {name} in {current_function!r}()")
 
         sym = search_in_symtable(name, this_table)
@@ -139,7 +139,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
                 raise ValueError(f"Variable clash: {name} cannot be both arg and local")
             if sym.is_parameter():
                 return SymType.FUNC_ARG
-            if name in user_declared_func_locals:
+            if user_declared_func_locals is not None and name in user_declared_func_locals:
                 return SymType.FUNC_LOCAL_VAR
                 
     if is_known_global(name, goodies):

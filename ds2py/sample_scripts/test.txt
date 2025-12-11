@@ -1,8 +1,6 @@
-REM Compiler Workout Script
 
 VAR global_res = 0
 
-// Function to calculate factorial
 FUNCTION factorial(n)
     VAR acc = 1
     VAR i = 1
@@ -17,18 +15,5 @@ END_FUNCTION
 
 STRINGLN Starting Calculation...
 
-// Test Function Call & Assignment
-global_res = factorial(5)
+global_res = factorial(factorial(factorial(5)))
 
-// Test Advanced Printing (Hex mode)
-_STR_PRINT_FORMAT = 3
-STRINGLN Result (0x78 expected): $global_res
-
-// Test Conditionals & Key Output
-IF global_res == 120 THEN
-    STRINGLN Test Passed!
-    DELAY 500
-    WINDOWS r
-    DELAY 200
-    STRINGLN notepad
-END_IF

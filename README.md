@@ -227,6 +227,8 @@ To reference arguments and locals, **FP + Byte_Offset** is used.
 
 At end of a function, `return_value` is on TOS.
 
+A function return 0 without an explicit `RETURN` statement
+
 |||
 |:--:|:--:|
 ||`return_value`|
@@ -286,6 +288,7 @@ At end of a function, `return_value` is on TOS.
 	* divide zero
 * `PUSHC16` zero extend or sign extend? Depend on mode?
 * default signed or unsigned ?
+* mention function always return 0 if not specified
 
 negative shift counts?
 POW negative exponent?
@@ -324,7 +327,7 @@ error if try to read a variable name without it being ever assigned to?
 ## Variable Scoping
 
 * A variable declared at root level has **global scope** and can be accessed inside functions.
-	* All non-funciton variables have **Global Scope**
+	* All non-function variables have **Global Scope**
 	* INCLUDING THOSE DECLARED WITHIN LOOPS AND IF STATEMENTS
 
 * A variable declared **inside a function** only has scope **within that function**

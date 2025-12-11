@@ -414,8 +414,8 @@ END_FUNCTION
 
 * Up to 8 arguments
 * Use **`RETURN`** to exit a function early
-* Can return Zero or 1 value
 * Variables declared inside function are local scope
+* 0 is returned without an explicit `RETURN` statement
 
 ## Randomisation
 
