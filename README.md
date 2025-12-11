@@ -300,6 +300,8 @@ allow inline comments?
 
 double check epilogue actions, which one by compiler which one by VM. probably most can be determined on runtime.
 
+logical NOT operator
+
 ## Changelog
 
 * `VMVER` instruction: version number now on byte 1 (LSB)

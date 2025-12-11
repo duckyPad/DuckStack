@@ -1,59 +1,12 @@
-VAR g_acc = 0
-VAR shadow_val = 99
-FUNCTION factorial(n)
-    IF n <= 1 THEN
-        RETURN 1
-    END_IF
-    RETURN n * factorial(n - 1)
-END_FUNCTION
-FUNCTION precedence_check(shadow_val)
-    VAR local_calc = 0
-    local_calc = shadow_val + 1 << 2
-    STRINGLN [Func] Arg shadow_val: $shadow_val (Expect 5)
-    STRINGLN [Func] Calc result: $local_calc (Expect 24 if Add > Shift)
-    RETURN local_calc
-END_FUNCTION
-STRINGLN === START TORTURE TEST ===
-STRINGLN Global shadow_val is: $shadow_val
-VAR neg_val = -5
-VAR abs_val = 0
-IF neg_val < 0 THEN
-    abs_val = 0 - neg_val
+VAR true_val = 1
+VAR not_true =  not true_val
+STRINGLN !1 is $not_true
+VAR false_val = 0
+VAR not_false =  not false_val
+STRINGLN !0 is $not_false
+IF  not false_val THEN
+    STRINGLN Correct path
+ELSE
+    STRINGLN Wrong path
 END_IF
-STRINGLN Abs value of -5 is: $abs_val
-STRINGLN --- Starting Loop Test ---
-VAR i = 0
-VAR j = 0
-WHILE i < 2
-    i = i + 1
-    STRINGLN Outer Loop: $i
-    j = 0
-    WHILE 1
-        j = j + 1
-        IF j == 2 THEN
-            STRINGLN Skipping 2...
-            CONTINUE
-        END_IF
-        IF j > 3 THEN
-            STRINGLN Breaking Inner...
-            LBREAK
-        END_IF
-        STRINGLN Inner Loop: $j
-    END_WHILE
-END_WHILE
-VAR prec_result = precedence_check(5)
-IF shadow_val == 99 THEN
-    STRINGLN [Pass] Global shadow_val remains 99.
-END_IF
-IF shadow_val != 99 THEN
-    STRINGLN [FAIL] Global shadow_val corrupted! Is: $shadow_val
-END_IF
-VAR fact_in = 5
-VAR fact_out = factorial(fact_in)
-STRINGLN Factorial of 5 is: $fact_out
-STRINGLN Tokenizer Check: This // is NOT a comment?
-_STR_PRINT_FORMAT = 2
-VAR mask_test = 255 & 15
-STRINGLN Hex 255 & 15 is: $mask_test (Expect f)
-STRINGLN === END TORTURE TEST ===
-HALT
+DELAY 3+ not 9

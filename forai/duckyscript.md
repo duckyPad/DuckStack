@@ -274,6 +274,7 @@ There are 32 pre-defined global variables that provides **non-volatile** data st
 |:--------:|:---------------------:|--------------------------------------------------------|
 |    &&    |      Logical AND      | Evaluates to 1 if BOTH side are non-zero, otherwise 0. |
 |   \|\|   |       Logical OR      | Evaluates to 1 if ANY side is non-zero, otherwise 0.   |
+|`!`|Logical NOT||
 
 #### Bitwise
 

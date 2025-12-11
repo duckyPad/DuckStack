@@ -1,5 +1,6 @@
 from enum import IntEnum
 from dataclasses import dataclass
+import struct
 import keyword
 
 cmd_REPEAT = "REPEAT"
@@ -686,10 +687,7 @@ class dsvm_instruction:
 
 
 def replace_operators(this_line):
-    return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ")
-
-
-import struct
+    return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ").replace("!", " not ")
 
 def pack_to_two_bytes(value: int) -> bytes:
     """
