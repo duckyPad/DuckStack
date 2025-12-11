@@ -1,0 +1,789 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include "main.h"
+
+uint8_t str_print_format;
+uint8_t str_print_padding;
+uint8_t bin_buf[BIN_BUF_SIZE];
+uint32_t defaultdelay_value;
+uint32_t defaultchardelay_value;
+uint32_t charjitter_value;
+uint32_t rand_min, rand_max;
+uint32_t loop_size;
+uint8_t epilogue_actions;
+uint8_t allow_abort;
+uint8_t kb_led_status;
+uint8_t last_stack_op_result;
+uint8_t disable_autorepeat;
+uint32_t pgv_buf[PGV_COUNT];
+uint16_t var_buf[VAR_BUF_SIZE];
+int16_t utc_offset_minutes;
+uint8_t dsvm_version = 1;
+
+typedef struct
+{
+  uint8_t* curr_addr;
+  uint8_t* start_addr;
+  uint16_t buf_size_bytes;
+} my_stack_32b;
+
+my_stack_32b data_stack, call_stack;
+
+uint8_t is_pgv(uint16_t addr)
+{
+  return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
+}
+
+uint8_t is_user_defined_variable(uint16_t addr)
+{
+  return addr >= USER_VAR_START_ADDRESS && addr <= USER_VAR_END_ADDRESS_INCLUSIVE;
+}
+
+uint8_t get_gv_index(uint16_t addr)
+{
+  uint8_t gv_index = (addr - PGV_START_ADDRESS) / PGV_BYTE_WIDTH;
+  if(gv_index >= PGV_COUNT)
+    gv_index = 0;
+  return gv_index;
+}
+
+uint8_t read_byte(uint16_t addr)
+{
+  return bin_buf[addr];
+}
+
+void stack_init(my_stack_32b* ms, uint8_t* start_addr, uint16_t size_bytes)
+{
+  ms->start_addr = start_addr;
+  ms->curr_addr = start_addr;
+  ms->buf_size_bytes = size_bytes;
+  memset(ms->start_addr, 0, size_bytes);
+}
+
+void stack_push(my_stack_32b* ms, uint32_t in_value)
+{
+  if((ms->curr_addr - ms->start_addr) + sizeof(uint32_t) > ms->buf_size_bytes)
+  {
+    last_stack_op_result = EXE_STACK_OVERFLOW;
+    return;
+  }
+  memcpy(ms->curr_addr, &in_value, sizeof(uint32_t));
+  ms->curr_addr += sizeof(uint32_t);
+}
+
+void stack_pop(my_stack_32b* ms, uint32_t *out_value)
+{
+  if(ms->curr_addr <= ms->start_addr)
+  {
+    last_stack_op_result = EXE_STACK_UNDERFLOW;
+    return;
+  }
+  ms->curr_addr -= sizeof(uint32_t);
+  memcpy(out_value, ms->curr_addr, sizeof(uint32_t));
+}
+
+uint16_t make_uint16(uint8_t b0, uint8_t b1)
+{
+  return b0 | (b1 << 8);
+}
+
+uint32_t make_uint32(uint8_t* start_addr)
+{
+  // little endian, [0] lsb, [3] msb
+    return  (uint32_t)start_addr[0]        |
+           ((uint32_t)start_addr[1] << 8)  |
+           ((uint32_t)start_addr[2] << 16) |
+           ((uint32_t)start_addr[3] << 24);
+}
+
+uint32_t binop_add(uint32_t a, uint32_t b) {return a + b;}
+uint32_t binop_sub(uint32_t a, uint32_t b) {return a - b;}
+uint32_t binop_mul(uint32_t a, uint32_t b) {return a * b;}
+uint32_t binop_mod(uint32_t a, uint32_t b) {return a % b;}
+uint32_t binop_greater(uint32_t a, uint32_t b) {return a > b;}
+uint32_t binop_greater_eq(uint32_t a, uint32_t b) {return a >= b;}
+uint32_t binop_lower(uint32_t a, uint32_t b) {return a < b;}
+uint32_t binop_lower_eq(uint32_t a, uint32_t b) {return a <= b;}
+uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
+uint32_t binop_not_equal(uint32_t a, uint32_t b) {return a != b;}
+uint32_t binop_bitwise_and(uint32_t a, uint32_t b) {return a & b;}
+uint32_t binop_bitwise_or(uint32_t a, uint32_t b) {return a | b;}
+uint32_t binop_bitwise_xor(uint32_t a, uint32_t b) {return a ^ b;}
+uint32_t binop_lshift(uint32_t a, uint32_t b) {return a << b;}
+uint32_t binop_rshift(uint32_t a, uint32_t b) {return a >> b;}
+uint32_t binop_logical_and(uint32_t a, uint32_t b) {return a && b;}
+uint32_t binop_logical_or(uint32_t a, uint32_t b) {return a || b;}
+
+uint32_t binop_divide(uint32_t a, uint32_t b)
+{
+  if(b != 0)
+    return a/b;
+  last_stack_op_result = EXE_DIVISION_BY_ZERO;
+  return 0;
+}
+
+uint32_t binop_power(uint32_t x, uint32_t exponent)
+{
+  uint32_t result = 1;
+  for (int i = 0; i < exponent; ++i)
+    result *= x;
+  return result;
+}
+
+typedef uint32_t (*FUNC_PTR)(uint32_t, uint32_t);
+void binop(FUNC_PTR bin_func)
+{
+  uint32_t rhs, lhs;
+  stack_pop(&data_stack, &rhs);
+  stack_pop(&data_stack, &lhs);
+  stack_push(&data_stack, bin_func(lhs, rhs));
+}
+
+#define VAR_BOUNDARY (0x1f)
+
+void write_uint32_as_4B(uint16_t addr, uint32_t value)
+{
+  bin_buf[addr]     =  value        & 0xFF;        // least significant byte
+  bin_buf[addr + 1] = (value >> 8)  & 0xFF;
+  bin_buf[addr + 2] = (value >> 16) & 0xFF;
+  bin_buf[addr + 3] = (value >> 24) & 0xFF;        // most significant byte
+}
+
+uint8_t delayms_check_abort(uint32_t amount)
+{
+  for (uint32_t i = 0; i < amount; i++)
+  {
+    if(allow_abort && sw_queue_has_keydown_event())
+      return 1;
+    delay_ms(1);
+  }
+  return 0;
+}
+
+// Reserved variables not shown here are read-only
+void write_mem(uint16_t addr, uint32_t value, uint8_t this_key_id)
+{
+  if(addr == DEFAULTDELAY_ADDR)
+    defaultdelay_value = value;
+  else if (addr == DEFAULTCHARDELAY_ADDR)
+    defaultchardelay_value = value;
+  else if (addr == CHARJITTER_ADDR)
+    charjitter_value = value;
+  else if (addr == _RANDOM_MIN)
+    rand_min = value;
+  else if (addr == _RANDOM_MAX)
+    rand_max = value;
+  else if (addr == _LOOP_SIZE)
+    loop_size = value;
+  else if (addr == _KEYPRESS_COUNT)
+    ;
+  else if (addr == _NEEDS_EPILOGUE)
+    epilogue_actions = value;
+  else if (addr == _ALLOW_ABORT)
+    allow_abort = value;
+  else if (addr == _DONT_REPEAT)
+    disable_autorepeat = value;
+  else if (addr == _RTC_UTC_OFFSET)
+    utc_offset_minutes = (int16_t)value;
+  else if (addr == _STR_PRINT_FORMAT)
+    str_print_format = value;
+  else if (addr == _STR_PRINT_PADDING)
+    str_print_padding = value;
+  else if (is_pgv(addr))
+    pgv_buf[get_gv_index(addr)] = value;
+  else
+    write_uint32_as_4B(addr, value);
+}
+
+uint8_t readkey_nonblocking_1_indexed(void)
+{
+  return DUMMY_VALUE;
+}
+
+uint8_t readkey_blocking(void)
+{
+  return DUMMY_VALUE;
+}
+
+uint16_t get_rtc_data(uint16_t addr)
+{
+  return DUMMY_VALUE;
+}
+
+uint32_t read_mem(uint16_t addr, uint8_t this_key_id)
+{
+  if(addr == DEFAULTDELAY_ADDR)
+    return defaultdelay_value;
+  else if (addr == DEFAULTCHARDELAY_ADDR)
+    return defaultchardelay_value;
+  else if (addr == CHARJITTER_ADDR)
+    return charjitter_value;
+  else if (addr == _RANDOM_MIN)
+    return rand_min;
+  else if (addr == _RANDOM_MAX)
+    return rand_max;
+  else if (addr == _RANDOM_INT)
+    return rand() % (rand_max + 1 - rand_min) + rand_min;
+  else if (addr == _TIME_MS)
+    return (uint32_t)millis();
+  else if (addr == _TIME_S)
+    return (uint32_t)(millis()/1000);
+  else if (addr == _LOOP_SIZE)
+    return loop_size;
+  else if (addr == _READKEY)
+    return readkey_nonblocking_1_indexed();
+  else if (addr == _KEYPRESS_COUNT)
+    return DUMMY_VALUE;
+  else if (addr == _NEEDS_EPILOGUE)
+    return epilogue_actions & 0xff;
+  else if (addr == _ALLOW_ABORT)
+    return allow_abort;
+  else if (addr == _BLOCKING_READKEY)
+    return readkey_blocking();
+  else if (addr == _IS_NUMLOCK_ON)
+    return (kb_led_status & 0x1) ? 1 : 0;
+  else if (addr == _IS_CAPSLOCK_ON)
+    return (kb_led_status & 0x2) ? 1 : 0;
+  else if (addr == _IS_SCROLLLOCK_ON)
+    return (kb_led_status & 0x4) ? 1 : 0;
+  else if (addr == _DONT_REPEAT)
+    return disable_autorepeat;
+  else if (addr == _THIS_KEYID)
+    return this_key_id+1;
+  else if (addr == _DP_MODEL)
+    return 2;
+  else if (addr == _RTC_IS_VALID)
+    return DUMMY_VALUE;
+  else if (addr == _RTC_UTC_OFFSET)
+    return utc_offset_minutes;
+  else if (addr >= _RTC_YDAY && addr <= _RTC_YEAR)
+    return get_rtc_data(addr);
+  else if (addr == _STR_PRINT_FORMAT)
+    return str_print_format;
+  else if (addr == _STR_PRINT_PADDING)
+    return str_print_padding;
+  else if (is_pgv(addr))
+    return pgv_buf[get_gv_index(addr)];
+  else if(is_user_defined_variable(addr))
+    return make_uint32(&bin_buf[addr]);
+  return 0;
+}
+
+void my_snprintf_int_only(char* buf, uint8_t buf_size,
+                         uint32_t value,
+                         uint8_t print_format,
+                         uint8_t precision)
+{
+  if (buf == NULL || buf_size <= 2)
+    return;
+
+  memset(buf, 0, buf_size);
+
+  if (precision == 0 && value == 0)
+  {
+    buf[0] = '0';
+    return;
+  }
+
+  if(precision > 8)
+    precision = 8;
+
+  switch (print_format)
+  {
+    case STR_PRINT_FORMAT_DEC_UNSIGNED:
+      snprintf(buf, buf_size, "%.*u", (int)precision, (unsigned int)value);
+      break;
+
+    case STR_PRINT_FORMAT_DEC_SIGNED:
+      snprintf(buf, buf_size, "%.*d", (int)precision, (int)value);
+      break;
+
+    case STR_PRINT_FORMAT_HEX_LOWER_CASE:
+      snprintf(buf, buf_size, "%.*x", (int)precision, (unsigned int)value);
+      break;
+
+    case STR_PRINT_FORMAT_HEX_UPPER_CASE:
+      snprintf(buf, buf_size, "%.*X", (int)precision, (unsigned int)value);
+      break;
+  }
+  buf[buf_size - 1] = '\0';
+}
+
+#define STR_BUF_SIZE 16
+char make_str_buf[STR_BUF_SIZE];
+#define READ_BUF_SIZE (256 * 5)
+char read_buffer[READ_BUF_SIZE];
+char* make_str(uint16_t str_start_addr, uint8_t this_key_id)
+{
+  uint16_t curr_addr = str_start_addr;
+  uint8_t this_char, lsb, msb;
+  memset(read_buffer, 0, READ_BUF_SIZE);
+  while(1)
+  {
+    this_char = read_byte(curr_addr);
+    if(this_char == 0)
+      break;
+
+    if(this_char == VAR_BOUNDARY)
+    {
+      curr_addr++;
+      lsb = read_byte(curr_addr);
+      curr_addr++;
+      msb = read_byte(curr_addr);
+      curr_addr++;
+      curr_addr++;
+      uint16_t var_addr = make_uint16(lsb, msb);
+      uint32_t var_value = read_mem(var_addr, this_key_id);
+      memset(make_str_buf, 0, STR_BUF_SIZE);
+      my_snprintf_int_only(make_str_buf, STR_BUF_SIZE, var_value, str_print_format, str_print_padding);
+      strcat(read_buffer, make_str_buf);
+      continue;
+    }
+    memset(make_str_buf, 0, STR_BUF_SIZE);
+    sprintf(make_str_buf, "%c", this_char);
+    strcat(read_buffer, make_str_buf);
+    curr_addr++;
+  }
+  return read_buffer;
+}
+
+uint32_t this_index, red, green, blue;
+void parse_swcc(uint8_t opcode, uint8_t key_id_0_indexed)
+{
+  stack_pop(&data_stack, &blue);
+  stack_pop(&data_stack, &green);
+  stack_pop(&data_stack, &red);
+  stack_pop(&data_stack, &this_index);
+  printf("SWCC: %d %d %d %d\n", this_index, red, green, blue);
+}
+
+void parse_swcf(void)
+{
+  stack_pop(&data_stack, &blue);
+  stack_pop(&data_stack, &green);
+  stack_pop(&data_stack, &red);
+  printf("SWCF: %d %d %d\n", red, green, blue);
+}
+
+void parse_swcr(uint8_t key_id_0_indexed)
+{
+  uint32_t swcr_arg;
+  stack_pop(&data_stack, &swcr_arg);
+  printf("SWCR: %d\n", swcr_arg);
+}
+
+void parse_olc(void)
+{
+  uint32_t xxx, yyy;
+  stack_pop(&data_stack, &yyy);
+  stack_pop(&data_stack, &xxx);
+  printf("OLC: %d %d\n", xxx, yyy);
+}
+
+void clamp_value_uint32(uint32_t* value, uint32_t upper_limit)
+{
+  if(value == NULL)
+    return;
+  if(*value > upper_limit)
+    *value = upper_limit;
+}
+
+void parse_oled_draw_line(void)
+{
+  uint32_t x1,y1,x2,y2;
+  stack_pop(&data_stack, &y2);
+  stack_pop(&data_stack, &x2);
+  stack_pop(&data_stack, &y1);
+  stack_pop(&data_stack, &x1);
+  printf("OLED_LINE: %d %d %d %d\n", x1, y1, x2, y2);
+}
+
+void parse_oled_draw_circle(void)
+{
+  uint32_t x,y,radius,fill;
+  stack_pop(&data_stack, &fill);
+  stack_pop(&data_stack, &radius);
+  stack_pop(&data_stack, &y);
+  stack_pop(&data_stack, &x);
+  printf("OLED_CIRCLE: %d %d %d %d\n", x, y, radius, fill);
+}
+
+void parse_oled_draw_rect(void)
+{
+  uint32_t x1,y1,x2,y2,fill;
+  stack_pop(&data_stack, &fill);
+  stack_pop(&data_stack, &y2);
+  stack_pop(&data_stack, &x2);
+  stack_pop(&data_stack, &y1);
+  stack_pop(&data_stack, &x1);
+  printf("OLED_RECT: %d %d %d %d\n", x1, y1, x2, y2, fill);
+}
+
+void expand_mmov(int16_t xtotal, int16_t ytotal)
+{
+  int16_t xsign = (xtotal < 0) ? -1 : 1;
+  int16_t ysign = (ytotal < 0) ? -1 : 1;
+
+  xtotal = abs(xtotal);
+  ytotal = abs(ytotal);
+
+  uint8_t loops_needed_x = abs(xtotal) / 128;
+  uint8_t loops_needed_y = abs(ytotal) / 128;
+
+  uint8_t total_loops_needed = MAX(loops_needed_x, loops_needed_y);
+
+  for (int i = 0; i <= total_loops_needed; ++i)
+  {
+    int8_t this_x_amount;
+    if(xtotal > 127)
+      this_x_amount = 127;
+    else
+      this_x_amount = xtotal;
+    xtotal -= this_x_amount;
+
+    int8_t this_y_amount;
+    if(ytotal > 127)
+      this_y_amount = 127;
+    else
+      this_y_amount = ytotal;
+    ytotal -= this_y_amount;
+
+    printf("MMOV: %d %d\n", (uint8_t)this_x_amount*xsign, (uint8_t)this_y_amount*ysign);
+  }
+}
+
+void parse_mmov(void)
+{
+  uint32_t tempx, tempy;
+  stack_pop(&data_stack, &tempy);
+  stack_pop(&data_stack, &tempx);
+  expand_mmov((int16_t)tempx, (int16_t)tempy);
+}
+
+void execute_instruction(uint16_t curr_pc, ds3_exe_result* exe, uint8_t this_key_id)
+{
+  uint8_t this_opcode = read_byte(curr_pc);
+  uint8_t byte0 = read_byte(curr_pc+1);
+  uint8_t byte1 = read_byte(curr_pc+2);
+  uint16_t op_data = make_uint16(byte0, byte1);
+  // printf("PC: %04d | Opcode: %02d | 0x%02x 0x%02x | 0x%04x\n", curr_pc, this_opcode, byte0, byte1, op_data);
+  
+  exe->result = EXE_OK;
+  exe->next_pc = curr_pc + INSTRUCTION_SIZE_BYTES;
+  exe->data = 0;
+  
+  if(allow_abort && sw_queue_has_keydown_event())
+  {
+    exe->result = EXE_ABORTED;
+    return;
+  }
+  else if(this_opcode == OP_NOP || this_opcode == OP_VMINFO)
+  {
+    return;
+  }
+  else if(this_opcode == OP_PUSHC16)
+  {
+    stack_push(&data_stack, op_data);
+  }
+  else if(this_opcode == OP_PUSHI32)
+  {
+    stack_push(&data_stack, read_mem(op_data, this_key_id));
+  }
+  else if(this_opcode == OP_POP)
+  {
+    uint32_t this_item;
+    stack_pop(&data_stack, &this_item);
+    write_mem(op_data, this_item, this_key_id);
+  }
+  else if(this_opcode == OP_BRZ)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    if(this_value == 0)
+      exe->next_pc = op_data;
+  }
+  else if(this_opcode == OP_JMP)
+  {
+    exe->next_pc = op_data;
+  }
+  else if(this_opcode == OP_CALL)
+  {
+    stack_push(&call_stack, exe->next_pc);
+    exe->next_pc = op_data;
+  }
+  else if(this_opcode == OP_RET)
+  {
+    uint32_t return_pc;
+    stack_pop(&call_stack, &return_pc);
+    exe->next_pc = return_pc;
+  }
+  else if(this_opcode == OP_HALT)
+  {
+    exe->result = EXE_HALT;
+  }
+  else if(this_opcode == OP_EQ)
+  {
+    binop(binop_equal);
+  }
+  else if(this_opcode == OP_NOTEQ)
+  {
+    binop(binop_not_equal);
+  }
+  else if(this_opcode == OP_LT)
+  {
+    binop(binop_lower);
+  }
+  else if(this_opcode == OP_LTE)
+  {
+    binop(binop_lower_eq);
+  }
+  else if(this_opcode == OP_GT)
+  {
+    binop(binop_greater);
+  }
+  else if(this_opcode == OP_GTE)
+  {
+    binop(binop_greater_eq);
+  }
+  else if(this_opcode == OP_ADD)
+  {
+    binop(binop_add);
+  }
+  else if(this_opcode == OP_SUB)
+  {
+    binop(binop_sub);
+  }
+  else if(this_opcode == OP_MULT)
+  {
+    binop(binop_mul);
+  }
+  else if(this_opcode == OP_DIV)
+  {
+    binop(binop_divide);
+  }
+  else if(this_opcode == OP_MOD)
+  {
+    binop(binop_mod);
+  }
+  else if(this_opcode == OP_POW)
+  {
+    binop(binop_power);
+  }
+  else if(this_opcode == OP_LSHIFT)
+  {
+    binop(binop_lshift);
+  }
+  else if(this_opcode == OP_RSHIFT)
+  {
+    binop(binop_rshift);
+  }
+  else if(this_opcode == OP_BITOR)
+  {
+    binop(binop_bitwise_or);
+  }
+  else if(this_opcode == OP_BITAND)
+  {
+    binop(binop_bitwise_and);
+  }
+  else if(this_opcode == OP_LOGIOR)
+  {
+    binop(binop_logical_or);
+  }
+  else if(this_opcode == OP_LOGIAND)
+  {
+    binop(binop_logical_and);
+  }
+  else if(this_opcode == OP_BITXOR)
+  {
+    binop(binop_bitwise_xor);
+  }
+  else if(this_opcode == OP_STR)
+  {
+    char* str_buf = make_str(op_data, this_key_id);
+    print("STRING: %s\n", str_buf);
+  }
+  else if(this_opcode == OP_STRLN)
+  {
+    char* str_buf = make_str(op_data, this_key_id);
+    print("STRINGLN: %s\n", str_buf);
+  }
+  else if(this_opcode == OP_KDOWN)
+  {
+    uint32_t combocode;
+    stack_pop(&data_stack, &combocode);
+    uint8_t ktype = (combocode >> 8) & 0xff;
+    uint8_t kcode = combocode & 0xff;
+  	press_key(kcode, ktype);
+  	delay_ms(defaultdelay_value);
+  }
+  else if(this_opcode == OP_KUP)
+  {
+    uint32_t combocode;
+    stack_pop(&data_stack, &combocode);
+    uint8_t ktype = (combocode >> 8) & 0xff;
+    uint8_t kcode = combocode & 0xff;
+  	release_key(kcode, ktype);
+  	delay_ms(defaultdelay_value);
+  }
+  else if(this_opcode == OP_MMOV)
+  {
+    parse_mmov();
+  }
+  else if(this_opcode == OP_DELAY)
+  {
+    uint32_t delay_amount;
+    stack_pop(&data_stack, &delay_amount);
+    if(delayms_check_abort(delay_amount))
+    {
+      exe->result = EXE_ABORTED;
+      return;
+    }
+  }
+  else if(this_opcode == OP_MSCL)
+  {
+    uint32_t scroll_amount;
+    stack_pop(&data_stack, &scroll_amount);
+    printf("MMOV: %d\n", (int8_t)scroll_amount);
+  }
+  else if(this_opcode == OP_SWCC)
+  {
+    parse_swcc(this_opcode, this_key_id);
+  }
+  else if(this_opcode == OP_SWCF)
+  {
+    parse_swcf();
+  }
+  else if(this_opcode == OP_SWCR)
+  {
+    parse_swcr(this_key_id);
+  }
+  else if(this_opcode == OP_OLC)
+  {
+    parse_olc();
+  }
+  else if(this_opcode == OP_OLED_LINE)
+  {
+    parse_oled_draw_line();
+  }
+  else if(this_opcode == OP_OLED_CIRCLE)
+  {
+    parse_oled_draw_circle();
+  }
+  else if(this_opcode == OP_OLED_RECT)
+  {
+    parse_oled_draw_rect();
+  }
+  else if(this_opcode == OP_OLP)
+  {
+    char* str_buf = make_str(op_data, this_key_id);
+    // ssd1306_WriteString(str_buf, Font_7x10, White);
+    printf("OLED PRINT: %s\n", str_buf);
+  }
+  else if(this_opcode == OP_OLU)
+  {
+    printf("OLED UPDATE SCREEN\n");
+  }
+  else if(this_opcode == OP_OLB)
+  {
+    printf("OLED BLANK\n");
+  }
+  else if(this_opcode == OP_OLR)
+  {
+    printf("OLED RESTORE\n");
+  }
+  else if(this_opcode == OP_BCLR)
+  {
+    printf("SW BCLR\n");
+  }
+  else if(this_opcode == OP_NEXTP)
+  {
+    exe->result = EXE_ACTION_NEXT_PROFILE;
+  }
+  else if(this_opcode == OP_PREVP)
+  {
+    exe->result = EXE_ACTION_PREV_PROFILE;
+  }
+  else if(this_opcode == OP_SLEEP)
+  {
+    exe->result = EXE_ACTION_SLEEP;
+  }
+  else if(this_opcode == OP_GOTOP)
+  {
+    uint32_t target_profile;
+    stack_pop(&data_stack, &target_profile);
+    exe->result = EXE_ACTION_GOTO_PROFILE;
+    exe->data = (uint8_t)target_profile;
+  }
+  else
+  {
+    exe->result = EXE_UNKNOWN_OPCODE;
+  }
+}
+
+uint32_t this_dsb_file_size;
+uint8_t load_dsb(char* dsb_path)
+{
+  FILE *sd_file = fopen(dsb_path, "r");
+  if(sd_file == NULL)
+    return EXE_DSB_FOPEN_FAIL;
+  memset(bin_buf, 0, BIN_BUF_SIZE);
+  this_dsb_file_size = fread(bin_buf, 1, BIN_BUF_SIZE, sd_file);
+  fclose(sd_file);
+  if(this_dsb_file_size == 0)
+    return EXE_DSB_FREAD_ERROR;
+  if(bin_buf[0] != OP_VMINFO)
+    return EXE_DSB_INCOMPATIBLE_VERSION;
+  if(bin_buf[1] != dsvm_version)
+    return EXE_DSB_INCOMPATIBLE_VERSION;
+  return EXE_OK;
+}
+
+void run_dsb(ds3_exe_result* er, uint8_t this_key_id, char* dsb_path, uint8_t is_cached, uint8_t* dsb_cache)
+{
+  uint8_t dsb_load_result = load_dsb(dsb_path);
+  if(dsb_load_result)
+  {
+    er->result = dsb_load_result;
+    er->next_pc = INSTRUCTION_SIZE_BYTES;
+    return;
+  }
+  
+  uint16_t current_pc = 0;
+  stack_init(&data_stack, &bin_buf[DATA_STACK_START_ADDRESS], DATA_STACK_SIZE_BYTES);
+  stack_init(&call_stack, &bin_buf[CALL_STACK_START_ADDRESS], CALL_STACK_SIZE_BYTES);
+  defaultdelay_value = DEFAULT_CMD_DELAY_MS;
+  defaultchardelay_value = DEFAULT_CHAR_DELAY_MS;
+  charjitter_value = 0;
+  rand_max = 65535;
+  rand_min = 0;
+  loop_size = 0;
+  epilogue_actions = 0;
+  allow_abort = 0;
+  last_stack_op_result = EXE_OK;
+  disable_autorepeat = 0;
+  str_print_format = STR_PRINT_FORMAT_DEC_UNSIGNED;
+  str_print_padding = 0;
+
+  while(1)
+  {
+    execute_instruction(current_pc, er, this_key_id);
+    if(last_stack_op_result != EXE_OK)
+      er->result = last_stack_op_result;
+    if(er->result != EXE_OK)
+      break;
+    current_pc = er->next_pc;
+  }
+  
+  if(disable_autorepeat)
+    epilogue_actions |= EPILOGUE_DONT_AUTO_REPEAT;
+  er->epilogue_actions = epilogue_actions;
+}
+
+
+
+int main()
+{
+  printf("hello world!\n");
+  return 0;
+}

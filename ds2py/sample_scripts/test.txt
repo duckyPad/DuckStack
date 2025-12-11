@@ -1,19 +1,4 @@
-VAR true_val = 1
-VAR not_true = !true_val
-STRINGLN !1 is $not_true
+VAR foo = 1
+VAR bar = 5
 
-// Test 2: Invert FALSE (0)
-// Expected: non-zero (1)
-VAR false_val = 0
-VAR not_false = !false_val
-STRINGLN !0 is $not_false
-
-// Test 3: Control Flow
-// Expected: Should print "Correct path"
-IF !false_val THEN
-    STRINGLN Correct path
-ELSE
-    STRINGLN Wrong path
-END_IF
-
-DELAY 3+!9
+VAR spam = 2*foo+bar
