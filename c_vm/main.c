@@ -64,9 +64,6 @@ uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
   return EXE_OK;
 }
 
-#include <stdio.h>
-#include <string.h>
-
 void stack_print(my_stack* ms)
 {
     printf("\n=== STACK DUMP ===\n");
@@ -80,7 +77,7 @@ void stack_print(my_stack* ms)
 
     // If SP is at the initial position, the stack is empty
     if (ms->sp == (ms->top_addr - sizeof(uint32_t))) {
-        printf(" [ EMPTY STACK ]\n");
+        printf(" [ EMPTY ]\n");
         printf(" %p |            |            | <--- SP (Next Slot)\n", (void*)ms->sp);
         printf("==================\n\n");
         return;
@@ -157,14 +154,29 @@ void run_dsb(exe_context* er, char* dsb_path)
     return;
   }
   uint16_t current_pc = 0;
-  
+  uint16_t data_stack_size_bytes = 2048;
+  stack_init(&data_stack, &bin_buf[DATA_STACK_START_ADDRESS], data_stack_size_bytes);
+
+  defaultdelay_value = DEFAULT_CMD_DELAY_MS;
+  defaultchardelay_value = DEFAULT_CHAR_DELAY_MS;
+  charjitter_value = 0;
+  rand_max = 65535;
+  rand_min = 0;
+  loop_size = 0;
+  epilogue_actions = 0;
+  allow_abort = 0;
+  last_stack_op_result = EXE_OK;
+  disable_autorepeat = 0;
+  str_print_format = STR_PRINT_FORMAT_DEC_UNSIGNED;
+  str_print_padding = 0;
+
+
 }
 
 exe_context execon;
 
 int main()
 {
-  printf("hello world!\n");
   run_dsb(&execon, "../ds2py/out.dsb");
   return 0;
 }
