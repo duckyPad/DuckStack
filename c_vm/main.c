@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "main.h"
+#include <setjmp.h>
 
 uint8_t str_print_format;
 uint8_t str_print_padding;
@@ -20,6 +21,7 @@ uint32_t pgv_buf[PGV_COUNT];
 int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
 uint32_t this_dsb_file_size;
+static jmp_buf jmpbuf;
 
 // ---------------------------
 
@@ -234,7 +236,8 @@ uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
   if(next_sp >= ms->top_addr)
     return EXE_STACK_UNDERFLOW;
   ms->sp += sizeof(uint32_t);
-  memcpy(out_value, ms->sp, sizeof(uint32_t));
+  if(out_value != NULL)
+    memcpy(out_value, ms->sp, sizeof(uint32_t));
   return EXE_OK;
 }
 
@@ -310,7 +313,7 @@ uint8_t load_dsb(char* dsb_path)
   fclose(dsb_file);
   if(this_dsb_file_size == 0)
     return EXE_DSB_FREAD_ERROR;
-  if(bin_buf[0] != OP_VMINFO)
+  if(bin_buf[0] != OP_VMVER)
     return EXE_DSB_INCOMPATIBLE_VERSION;
   if(bin_buf[1] != dsvm_version)
     return EXE_DSB_INCOMPATIBLE_VERSION;
@@ -344,7 +347,23 @@ void run_dsb(exe_context* er, char* dsb_path)
   str_print_format = STR_PRINT_FORMAT_DEC_UNSIGNED;
   str_print_padding = 0;
 
+  stack_push(&data_stack, 65535);
+  stack_push(&data_stack, 6);
+  stack_pop(&data_stack, NULL);
+  stack_print(&data_stack);
 
+  int panic_code = setjmp(jmpbuf);
+  if(panic_code != 0)
+  {
+    printf("VM Crashed! Panic: %d\n", panic_code);
+    return;
+  }
+  
+
+  // while(1)
+  // {
+  //   ;
+  // }
 }
 
 exe_context execon;
