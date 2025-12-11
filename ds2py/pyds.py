@@ -1,99 +1,49 @@
-_NEEDS_EPILOGUE = 1
-_LOOP_SIZE = 3
-_DEFAULTCHARDELAY = 25
-_DEFAULTDELAY = 25
-def blink():
-    count = 0
-    while count < 4:
-        SWC_FILL(100, 100, 100)
-        DELAY(200)
-        SWC_FILL(0, 0, 0)
-        DELAY(200)
-        count = count + 1
-OLED_CLEAR()
-OLED_CURSOR(20, 20)
-OLED_PRINT('Are you using')
-OLED_CURSOR(20, 35)
-OLED_PRINT('Windows?')
-OLED_CURSOR(20, 110)
-OLED_PRINT('-:No     +:Yes')
-OLED_UPDATE()
-_UNUSED = blink()
-temp = 0
-is_win = _BLOCKING_READKEY == 28
-if is_win:
-    SWC_FILL(0, 128, 0)
-    KEYDOWN('WINDOWS')
-    KEYDOWN('R')
-    KEYUP('R')
-    KEYUP('WINDOWS')
-    DELAY(750)
-    STRINGLN('notepad')
-    DELAY(750)
-else:
-    OLED_CLEAR()
-    OLED_CURSOR(0, 50)
-    OLED_PRINT('Open a text editor')
-    OLED_CURSOR(0, 65)
-    OLED_PRINT('Anykey when ready')
-    OLED_UPDATE()
-    temp = _BLOCKING_READKEY
-    SWC_FILL(0, 128, 0)
-OLED_CLEAR()
-OLED_CURSOR(30, 50)
-OLED_PRINT('Typing...')
-OLED_UPDATE()
-STRING('dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla c')
-STRING('onsequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. ')
-KEYDOWN('ENTER')
-KEYUP('ENTER')
-STRING('dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla c')
-STRING('onsequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. ')
-if is_win:
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('CTRL')
-    KEYDOWN('+')
-    KEYUP('+')
-    KEYUP('CTRL')
-    KEYDOWN('WINDOWS')
-    KEYDOWN('UP')
-    KEYUP('UP')
-    KEYUP('WINDOWS')
-SWC_RESET(99)
-if _KEYPRESS_COUNT % _LOOP_SIZE == 0:
-    STRING('first action')
-    KEYDOWN('ENTER')
-    KEYUP('ENTER')
-if _KEYPRESS_COUNT % _LOOP_SIZE == 1:
-    STRING('second action')
-    KEYDOWN('ENTER')
-    KEYUP('ENTER')
-if _KEYPRESS_COUNT % _LOOP_SIZE == 2:
-    STRING('third action')
-    KEYDOWN('ENTER')
-    KEYUP('ENTER')
-    KEYDOWN('ALT')
-    KEYUP('ALT')
-    STRINGLN('dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec.')
-    STRINGLN('pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. ')
-    KEYDOWN('OPTION')
-    KEYUP('OPTION')
-    KEYDOWN('LMOUSE')
-    KEYUP('LMOUSE')
-    KEYDOWN('MMOUSE')
-    KEYUP('MMOUSE')
+g_acc = 0
+shadow_val = 99
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+def precedence_check(shadow_val):
+    local_calc = 0
+    local_calc = shadow_val + 1 << 2
+    STRINGLN('[Func] Arg shadow_val: $shadow_val (Expect 5)')
+    STRINGLN('[Func] Calc result: $local_calc (Expect 24 if Add > Shift)')
+    return local_calc
+STRINGLN('=== START TORTURE TEST ===')
+STRINGLN('Global shadow_val is: $shadow_val')
+neg_val = -5
+abs_val = 0
+if neg_val < 0:
+    abs_val = 0 - neg_val
+STRINGLN('Abs value of -5 is: $abs_val')
+STRINGLN('--- Starting Loop Test ---')
+i = 0
+j = 0
+while i < 2:
+    i = i + 1
+    STRINGLN('Outer Loop: $i')
+    j = 0
+    while 1:
+        j = j + 1
+        if j == 2:
+            STRINGLN('Skipping 2...')
+            continue
+        if j > 3:
+            STRINGLN('Breaking Inner...')
+            break
+        STRINGLN('Inner Loop: $j')
+prec_result = precedence_check(5)
+if shadow_val == 99:
+    STRINGLN('[Pass] Global shadow_val remains 99.')
+if shadow_val != 99:
+    STRINGLN('[FAIL] Global shadow_val corrupted! Is: $shadow_val')
+fact_in = 5
+fact_out = factorial(fact_in)
+STRINGLN('Factorial of 5 is: $fact_out')
+STRINGLN('Tokenizer Check: This // is NOT a comment?')
+_STR_PRINT_FORMAT = 2
+mask_test = 255 & 15
+STRINGLN('Hex 255 & 15 is: $mask_test (Expect f)')
+STRINGLN('=== END TORTURE TEST ===')
+HALT()

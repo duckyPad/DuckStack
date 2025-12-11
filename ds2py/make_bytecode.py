@@ -135,7 +135,7 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
 
         sym = search_in_symtable(name, this_table)
         if sym is not None:
-            if sym.is_parameter() and name in user_declared_func_locals:
+            if sym.is_parameter() and user_declared_func_locals is not None and name in user_declared_func_locals:
                 raise ValueError(f"Variable clash: {name} cannot be both arg and local")
             if sym.is_parameter():
                 return SymType.FUNC_ARG

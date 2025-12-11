@@ -227,7 +227,7 @@ To reference arguments and locals, **FP + Byte_Offset** is used.
 
 At end of a function, `return_value` is on TOS.
 
-A function return 0 without an explicit `RETURN` statement
+* If no explicit `RETURN` statement, **0 is returned**.
 
 |||
 |:--:|:--:|

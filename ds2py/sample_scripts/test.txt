@@ -1,19 +1,121 @@
+REM_BLOCK
+  DUCKYSTACK VM TORTURE TEST
+  Targeting: Scope resolution, Precedence, Stack/Frame handling, Tokenizer greediness.
+  
+  Expectation: If your compiler is robust, this runs without crashing the VM 
+  and outputs the expected values noted in the strings.
+END_REM
 
-VAR global_res = 0
+// --- Preprocessor & Global Setup ---
+DEFINE CONST_OFFSET 10
+VAR g_acc = 0       // Global Accumulator
+VAR shadow_val = 99 // This will be shadowed by arguments and locals
 
+// --- Function Definitions ---
+
+// Test 1: Recursive Factorial
+// Stress tests: Stack depth, Frame Pointer logic, Return value passing
 FUNCTION factorial(n)
-    VAR acc = 1
-    VAR i = 1
-    
-    WHILE i <= n
-        acc = acc * i
-        i = i + 1
-    END_WHILE
-    
-    RETURN acc
+    IF n <= 1 THEN
+        RETURN 1
+    END_IF
+    // Recursive call mixed with multiplication
+    RETURN n * factorial(n - 1)
 END_FUNCTION
 
-STRINGLN Starting Calculation...
+// Test 2: Scope Shadowing & Precedence Hell
+// Stress tests: Local/Arg/Global resolution order, Binary Operator Precedence
+FUNCTION precedence_check(shadow_val)
+    // 'shadow_val' here refers to the ARGUMENT, not the global (99)
+    
+    VAR local_calc = 0
+    
+    // TRAP: Standard C precedence is (+/-) > (<<). 
+    // Expression: 5 + 1 << 2
+    // If (+ > <<): (5+1) << 2 = 6 << 2 = 24
+    // If (<< > +): 5 + (1<<2) = 5 + 4 = 9
+    // If strict LTR: (5+1) << 2 = 24
+    local_calc = shadow_val + 1 << 2
+    
+    STRINGLN [Func] Arg shadow_val: $shadow_val (Expect 5)
+    STRINGLN [Func] Calc result: $local_calc (Expect 24 if Add > Shift)
+    
+    RETURN local_calc
+END_FUNCTION
 
-global_res = factorial(factorial(factorial(5)))
+// --- Main Execution Flow ---
 
+STRINGLN_BLOCK
+=== START TORTURE TEST ===
+Global shadow_val is: $shadow_val
+END_STRINGLN
+
+// Test 3: Unary Operators & Logic
+// Stress tests: Parsing unary minus vs binary minus
+VAR neg_val = -5
+VAR abs_val = 0
+IF neg_val < 0 THEN
+    abs_val = 0 - neg_val
+END_IF
+STRINGLN Abs value of -5 is: $abs_val
+
+// Test 4: Nested Loops with Jump Statements
+// Stress tests: LBREAK/CONTINUE label resolution (stack cleanup check)
+STRINGLN --- Starting Loop Test ---
+VAR i = 0
+VAR j = 0
+
+WHILE i < 2
+    i = i + 1
+    STRINGLN Outer Loop: $i
+    
+    j = 0
+    WHILE TRUE
+        j = j + 1
+        
+        // Test CONTINUE jumping to start of inner loop
+        IF j == 2 THEN
+            STRINGLN Skipping 2...
+            CONTINUE
+        END_IF
+        
+        // Test LBREAK exiting only the inner loop
+        IF j > 3 THEN
+            STRINGLN Breaking Inner...
+            LBREAK
+        END_IF
+        
+        STRINGLN Inner Loop: $j
+    END_WHILE
+END_WHILE
+
+// Test 5: Call the Scope Checker
+// Passing 5. Global 'shadow_val' is 99. Argument is 5.
+VAR prec_result = precedence_check(5)
+
+// Check if Global was touched (should NOT be)
+IF shadow_val == 99 THEN
+    STRINGLN [Pass] Global shadow_val remains 99.
+END_IF
+
+IF shadow_val != 99 THEN
+    STRINGLN [FAIL] Global shadow_val corrupted! Is: $shadow_val
+END_IF
+
+// Test 6: Recursion
+VAR fact_in = 5
+VAR fact_out = factorial(fact_in)
+STRINGLN Factorial of 5 is: $fact_out
+
+// Test 7: String Tokenizer Edge Case
+// Does the compiler strip comments greedily?
+// STRINGLN should take everything AS-IS.
+STRINGLN Tokenizer Check: This // is NOT a comment?
+
+// Test 8: Formatting & Bitwise Logic
+_STR_PRINT_FORMAT = 2 // Hex Lower
+VAR mask_test = 255 & 15 // 0xFF & 0x0F = 0x0F (15)
+STRINGLN Hex 255 & 15 is: $mask_test (Expect f)
+
+STRINGLN === END TORTURE TEST ===
+HALT

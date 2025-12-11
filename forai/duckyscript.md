@@ -237,6 +237,8 @@ spam = 20
 
     * If a local variable has the same name as a global variable, **local variable** takes priority.
 
+    * Function-scope local variables **CANNOT** have the same name as arguments.
+
 ### Persistent Global Variables
 
 There are 32 pre-defined global variables that provides **non-volatile** data storage.
