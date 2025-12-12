@@ -33,7 +33,7 @@ static jmp_buf jmpbuf;
 */
 
 #define OP_LEN_LOOKUP_SIZE 100
-uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
+const uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [0] NOP
 3, // [1] PUSHC16
 3, // [2] PUSHI
@@ -240,6 +240,15 @@ uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
   return EXE_OK;
 }
 
+uint8_t read_byte(uint16_t addr)
+{
+  if (addr >= 0xf801 && addr <= 0xf9ff)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  if (addr >= 0xfc00 && addr <= 0xfcff)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  return bin_buf[addr];
+}
+
 void stack_print(my_stack* ms)
 {
     printf("\n=== STACK DUMP ===\n");
@@ -319,9 +328,31 @@ uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
   return EXE_OK;
 }
 
+uint8_t inst_size_lookup(uint8_t opcode)
+{
+  if(opcode == OP_VMVER)
+    return 3;
+  if(opcode >= OP_LEN_LOOKUP_SIZE)
+    longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
+  return opcode_len_lookup[opcode];
+}
+
 void execute_instruction(uint16_t curr_pc, exe_context* exe)
 {
-  exe->next_pc++;
+  uint8_t opcode = read_byte(curr_pc);
+  uint16_t payload = 0;
+  uint8_t instruction_size_bytes = inst_size_lookup(opcode);
+  printf("PC: %04d    Opcode: %02d", curr_pc, opcode);
+  if(instruction_size_bytes == 3)
+  {
+    payload = make_uint16(read_byte(curr_pc+1), read_byte(curr_pc+2));
+    printf("    Payload: %04x\n", payload);
+  }
+  else
+  {
+    printf("\n");
+  }
+  exe->next_pc += instruction_size_bytes;
 }
 
 void run_dsb(exe_context* er, char* dsb_path)
@@ -332,7 +363,6 @@ void run_dsb(exe_context* er, char* dsb_path)
   {
     printf("DSB load fail: %d\n", dsb_load_result);
     er->result = dsb_load_result;
-    er->next_pc = INSTRUCTION_SIZE_BYTES;
     return;
   }
 
@@ -353,7 +383,6 @@ void run_dsb(exe_context* er, char* dsb_path)
   {
     execute_instruction(current_pc, er);
     current_pc = er->next_pc;
-    printf("PC: %d\n", current_pc);
     if(current_pc > this_dsb_size)
       break;
   }
