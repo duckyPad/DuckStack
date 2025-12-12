@@ -20,7 +20,6 @@ uint8_t disable_autorepeat;
 uint32_t pgv_buf[PGV_COUNT];
 int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
-uint32_t this_dsb_file_size;
 static jmp_buf jmpbuf;
 
 // ---------------------------
@@ -303,15 +302,15 @@ uint32_t make_uint32(uint8_t* base_addr)
            ((uint32_t)base_addr[3] << 24);
 }
 
-uint8_t load_dsb(char* dsb_path)
+uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
 {
   FILE *dsb_file = fopen(dsb_path, "r");
   if(dsb_file == NULL)
     return EXE_DSB_FOPEN_FAIL;
   memset(bin_buf, 0, BIN_BUF_SIZE);
-  this_dsb_file_size = fread(bin_buf, 1, BIN_BUF_SIZE, dsb_file);
+  *dsb_size = fread(bin_buf, 1, BIN_BUF_SIZE, dsb_file);
   fclose(dsb_file);
-  if(this_dsb_file_size == 0)
+  if(*dsb_size == 0)
     return EXE_DSB_FREAD_ERROR;
   if(bin_buf[0] != OP_VMVER)
     return EXE_DSB_INCOMPATIBLE_VERSION;
@@ -320,37 +319,28 @@ uint8_t load_dsb(char* dsb_path)
   return EXE_OK;
 }
 
+void execute_instruction(uint16_t curr_pc, exe_context* exe)
+{
+  exe->next_pc++;
+}
+
 void run_dsb(exe_context* er, char* dsb_path)
 {
-  uint8_t dsb_load_result = load_dsb(dsb_path);
-  printf("DSB load: %d\n", dsb_load_result);
+  uint32_t this_dsb_size = 0;
+  uint8_t dsb_load_result = load_dsb(dsb_path, &this_dsb_size);
   if(dsb_load_result)
   {
+    printf("DSB load fail: %d\n", dsb_load_result);
     er->result = dsb_load_result;
     er->next_pc = INSTRUCTION_SIZE_BYTES;
     return;
   }
+
   uint16_t current_pc = 0;
-  uint16_t data_stack_size_bytes = 2048;
+  uint16_t data_stack_size_bytes = DATA_STACK_START_ADDRESS - this_dsb_size - STACK_MOAT_SIZE;
+  printf("DSB size: %d Bytes\n", this_dsb_size);
+  printf("Stack size: %d Bytes\n", data_stack_size_bytes);
   stack_init(&data_stack, &bin_buf[DATA_STACK_START_ADDRESS], data_stack_size_bytes);
-
-  defaultdelay_value = DEFAULT_CMD_DELAY_MS;
-  defaultchardelay_value = DEFAULT_CHAR_DELAY_MS;
-  charjitter_value = 0;
-  rand_max = 65535;
-  rand_min = 0;
-  loop_size = 0;
-  epilogue_actions = 0;
-  allow_abort = 0;
-  last_stack_op_result = EXE_OK;
-  disable_autorepeat = 0;
-  str_print_format = STR_PRINT_FORMAT_DEC_UNSIGNED;
-  str_print_padding = 0;
-
-  stack_push(&data_stack, 65535);
-  stack_push(&data_stack, 6);
-  stack_pop(&data_stack, NULL);
-  stack_print(&data_stack);
 
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
@@ -359,11 +349,15 @@ void run_dsb(exe_context* er, char* dsb_path)
     return;
   }
   
-
-  // while(1)
-  // {
-  //   ;
-  // }
+  while(1)
+  {
+    execute_instruction(current_pc, er);
+    current_pc = er->next_pc;
+    printf("PC: %d\n", current_pc);
+    if(current_pc > this_dsb_size)
+      break;
+  }
+  printf("execution done\n");
 }
 
 exe_context execon;
