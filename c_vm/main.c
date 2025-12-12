@@ -332,7 +332,7 @@ uint8_t inst_size_lookup(uint8_t opcode)
 {
   if(opcode == OP_VMVER)
     return 3;
-  if(opcode >= OP_LEN_LOOKUP_SIZE)
+  if(opcode >= OP_LEN_LOOKUP_SIZE || opcode_len_lookup[opcode] > MAX_INSTRUCTION_LEN)
     longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
   return opcode_len_lookup[opcode];
 }
@@ -340,8 +340,10 @@ uint8_t inst_size_lookup(uint8_t opcode)
 void execute_instruction(uint16_t curr_pc, exe_context* exe)
 {
   uint8_t opcode = read_byte(curr_pc);
-  uint16_t payload = 0;
   uint8_t instruction_size_bytes = inst_size_lookup(opcode);
+  uint16_t payload = 0;
+  exe->next_pc += instruction_size_bytes;
+
   printf("PC: %04d    Opcode: %02d", curr_pc, opcode);
   if(instruction_size_bytes == 3)
   {
@@ -352,7 +354,15 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     printf("\n");
   }
-  exe->next_pc += instruction_size_bytes;
+
+  if(opcode == OP_NOP || opcode == OP_VMVER)
+  {
+    return;
+  }
+  else if(opcode == OP_PUSHC16)
+  {
+    stack_push(&data_stack, payload);
+  }
 }
 
 void run_dsb(exe_context* er, char* dsb_path)

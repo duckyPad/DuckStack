@@ -21,6 +21,8 @@
 #define INTERAL_VAR_BYTE_WIDTH 4
 #define MEMORY_END 0xFFFF
 
+#define MAX_INSTRUCTION_LEN 3
+
 // ----------
 #define BIN_BUF_SIZE 0xffff
 // ----------
