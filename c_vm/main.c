@@ -6,6 +6,7 @@
 
 uint8_t str_print_format;
 uint8_t str_print_padding;
+// __attribute__((aligned(4)))?
 uint8_t bin_buf[BIN_BUF_SIZE];
 uint32_t defaultdelay_value;
 uint32_t defaultchardelay_value;
@@ -302,18 +303,26 @@ uint16_t make_uint16(uint8_t b0, uint8_t b1)
   return b0 | (b1 << 8);
 }
 
-uint32_t make_uint32(uint8_t* base_addr)
+uint8_t is_pgv(uint16_t addr)
 {
-  // little endian, [0] lsb, [3] msb
-    return  (uint32_t)base_addr[0]        |
-           ((uint32_t)base_addr[1] << 8)  |
-           ((uint32_t)base_addr[2] << 16) |
-           ((uint32_t)base_addr[3] << 24);
+  return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
 }
 
+uint32_t make_uint32(const uint8_t* base_addr)
+{
+  uint32_t result;
+  memcpy(&result, base_addr, sizeof(result)); 
+  return result;
+}
 uint32_t read_u32(uint16_t addr)
 {
-  
+  if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
+    return make_uint32(&bin_buf[addr]);
+  if (is_pgv(addr))
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr >= INTERAL_VAR_START_ADDRESS)
+    return DUMMY_DATA_REPLACE_ME;
+  return DUMMY_DATA_REPLACE_ME;
 }
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)

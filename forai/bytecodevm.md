@@ -1,5 +1,7 @@
 # DuckStack Bytecode Stack Machine
 
+DuckStack is a domain-specific stack-based bytecode VM for executing compiled **duckyScript** binary on 32-bit microcontrollers.
+
 ## Architecture
 
 **32-bit** variables, arithmetics, and stack width.
@@ -22,15 +24,16 @@
 
 |Address|Purpose|Size|Comment|
 |:-:|:--:|:--:|:--:|
-|`0000`<br>`F800` |**Executable**<br>and **Stack**|63489 Bytes|Shared area:<br>`Bin_exec @ 0x0`<br>`Stack @ 0xF800`|
-|`F801`<br>`F9FF` |Unused|511 Bytes||
-|`FA00`<br>`FBFF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|ZI Data|
-|`FC00`<br>`FCFF`|VM Scratch<br>Memory|256 Bytes<br>4 Bytes/Entry<br>64 Entries|Internal Use|
+|`0000`<br>`F7FF` |Shared<br>**Executable**<br>and **Stack**|63488 Bytes|See Notes Below|
+|`F800`<br>`F9FF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|ZI Data|
+|`FA00`<br>`FCFF` |Unused|768 Bytes||
 |`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |NV Data<br>Saved on SD card|
-|`FE00`<br>`FFFF` |Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries||
+|`FE00`<br>`FFFF` |VM<br>Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Read/Adjust<br>VM Settings|
 
 * Binary executable is loaded at `0x0`
-* Stack grows from `0xF800` towards **smaller address**
+* Stack grows from `0xF7FF` towards **smaller address**
+	* Each item **4 bytes long**
+	* First item `F7FF-F7FC`, second item `F7FB-F7F8`, etc.
 * Smaller executable allows larger stack, vise versa.
 
 ## Instruction Set
@@ -166,7 +169,7 @@ Outside function calls, FP points to **base of stack.**
 |:--:|:--:|
 ||`32-bit data`|
 ||...|
-|`FP ->`|Base (`F800`)|
+|`FP ->`|Base (`F7FF`)|
 
 When calling a function: **`foo(a, b, c)`**
 
@@ -179,7 +182,7 @@ When calling a function: **`foo(a, b, c)`**
 ||`b`|
 ||`c`|
 ||...|
-|`FP ->`|Base (`F800`)|
+|`FP ->`|Base (`F7FF`)|
 
 Caller then executes `CALL` instruction, which:
 
@@ -197,7 +200,7 @@ Caller then executes `CALL` instruction, which:
 ||`b`|
 ||`c`|
 ||...|
-||Base (`F800`)|
+||Base (`F7FF`)|
 
 ### Function Arguments
 
@@ -221,11 +224,13 @@ To reference arguments and locals, **FP + Byte_Offset** is used.
 |`FP + 8`|`b`|
 |`FP + 12`|`c`|
 ||...|
-||Base (`F800`)|
+||Base (`F7FF`)|
 
 ### Stack Unwinding
 
 At end of a function, `return_value` is on TOS.
+
+* If no explicit `RETURN` statement, **0 is returned**.
 
 |||
 |:--:|:--:|
@@ -238,7 +243,7 @@ At end of a function, `return_value` is on TOS.
 |`FP + 8`|`b`|
 |`FP + 12`|`c`|
 ||...|
-||Base (`F800`)|
+||Base (`F7FF`)|
 
 **Callee** executes `RET n` instruction, which:
 
@@ -256,5 +261,5 @@ At end of a function, `return_value` is on TOS.
 |:--:|:--:|
 ||`return_val`|
 ||...|
-|`FP ->`|Base (`F800`)|
+|`FP ->`|Base (`F7FF`)|
 

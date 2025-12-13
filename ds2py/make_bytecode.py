@@ -513,6 +513,9 @@ def compile_to_bin(rdict):
     for key in user_strings_dict:
         output_bin_array += key
 
+    if len(output_bin_array) > MAX_BIN_SIZE:
+        raise ValueError("Binary size too large")
+
     print("----- Binary output ------")
     for bbb in output_bin_array:
         print(f"{bbb:02x}", end=" ")
@@ -522,6 +525,7 @@ def compile_to_bin(rdict):
     with open(file_path, 'wb') as file_out:
         bytes_written = file_out.write(output_bin_array)
         print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
+    print(f"MAX_BIN_SIZE: {MAX_BIN_SIZE} Bytes")
 
 # --------------------------
 

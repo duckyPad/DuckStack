@@ -15,3 +15,12 @@
   // {
   //   ;
   // }
+
+uint32_t make_uint32(uint8_t* base_addr)
+{
+  // little endian, [0] lsb, [3] msb
+    return  (uint32_t)base_addr[0]        |
+           ((uint32_t)base_addr[1] << 8)  |
+           ((uint32_t)base_addr[2] << 16) |
+           ((uint32_t)base_addr[3] << 24);
+}
