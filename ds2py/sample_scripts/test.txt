@@ -1,7 +1,7 @@
 FUNCTION addargs(a, b, c)
-    RETURN a+b+c
+    VAR myloc = a + b + c
+    VAR dummy = 99
+    return myloc *2
 END_FUNCTION
-
-
 
 VAR result = addargs(5, 10, 15)

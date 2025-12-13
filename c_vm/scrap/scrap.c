@@ -60,3 +60,9 @@ END_FUNCTION
 
 VAR result = add2(5, 10)
 
+    printf("frame_info: %08x\n", frame_info);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+
+
+printf("BIN_BUF_SIZE: 0x%04x %d\n", BIN_BUF_SIZE, BIN_BUF_SIZE);
+printf("MAX_BIN_SIZE: 0x%04x %d\n", MAX_BIN_SIZE, MAX_BIN_SIZE);

@@ -223,47 +223,23 @@ void stack_init(my_stack* ms, uint8_t* ram_base, uint16_t vm_stack_base, uint16_
     memset(ms->ram_base + ms->lower_bound, 0, size_bytes);
 }
 
-uint8_t stack_push(my_stack* ms, uint32_t in_value)
+void stack_push(my_stack* ms, uint32_t in_value)
 {
-    // 1. Check for Overflow
-    //    If decrementing SP would drop us below the lower bound
-    if (ms->sp < ms->lower_bound) {
-        longjmp(jmpbuf, EXE_STACK_OVERFLOW);
-    }
-
-    // 2. Calculate Host Address
-    uint8_t* host_addr = ms->ram_base + ms->sp;
-
-    // 3. Write Data
-    memcpy(host_addr, &in_value, sizeof(uint32_t));
-
-    // 4. Decrement SP
-    ms->sp -= sizeof(uint32_t);
-
-    return EXE_OK;
+  if (ms->sp < ms->lower_bound) 
+    longjmp(jmpbuf, EXE_STACK_OVERFLOW);
+  uint8_t* host_addr = ms->ram_base + ms->sp;
+  memcpy(host_addr, &in_value, sizeof(uint32_t));
+  ms->sp -= sizeof(uint32_t);
 }
 
-uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
+void stack_pop(my_stack* ms, uint32_t *out_value)
 {
-    // 1. Calculate the SP *after* the pop
-    uint16_t next_sp = ms->sp + sizeof(uint32_t);
-
-    // 2. Check for Underflow
-    //    If incrementing SP pushes us past the base (start) of the stack
-    if (next_sp >= ms->upper_bound) {
-        longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
-    }
-
-    // 3. Increment SP (Move back to the data)
-    ms->sp = next_sp;
-
-    // 4. Read Data
-    if (out_value != NULL) {
-        uint8_t* host_addr = ms->ram_base + ms->sp;
-        memcpy(out_value, host_addr, sizeof(uint32_t));
-    }
-
-    return EXE_OK;
+  uint16_t next_sp = ms->sp + sizeof(uint32_t);
+  if (next_sp >= ms->upper_bound)
+    longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
+  ms->sp = next_sp;
+  uint8_t* host_addr = ms->ram_base + ms->sp;
+  memcpy(out_value, host_addr, sizeof(uint32_t));
 }
 
 uint8_t read_byte(uint16_t addr)
@@ -271,60 +247,78 @@ uint8_t read_byte(uint16_t addr)
   return bin_buf[addr];
 }
 
-#include <stdio.h>
+void stack_write_fp_rel(my_stack* ms, int16_t offset, uint32_t value)
+{
+  if (offset & 0x03)
+    longjmp(jmpbuf, EXE_UNALIGNED_ACCESS);
+  uint16_t target_addr = ms->fp + offset;
+  if (target_addr < ms->lower_bound || target_addr > (ms->upper_bound - sizeof(uint32_t)))
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  uint8_t* host_addr = ms->ram_base + target_addr;
+  memcpy(host_addr, &value, sizeof(uint32_t));
+}
+
+void stack_read_fp_rel(my_stack* ms, int16_t offset, uint32_t* value)
+{
+  if (offset & 0x03)
+    longjmp(jmpbuf, EXE_UNALIGNED_ACCESS);
+
+  uint16_t target_addr = ms->fp + offset;
+  if (target_addr < ms->lower_bound || target_addr > (ms->upper_bound - sizeof(uint32_t)))
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+
+  uint8_t* host_addr = ms->ram_base + target_addr;
+  memcpy(value, host_addr, sizeof(uint32_t));
+}
 
 void stack_print(my_stack* ms, char* comment)
 {
-    printf("\n=== STACK STATE: %s ===\n", comment);
-    printf(" SP: 0x%04X\n", ms->sp);
-    printf(" FP: 0x%04X\n", ms->fp);
-    printf("------------------------\n");
+  printf("\n=== STACK STATE: %s ===\n", comment);
+  printf("------------------------\n");
 
-    // 1. Calculate the address of the actual top item
-    //    Since 'sp' points to the *next empty* slot, the data starts 4 bytes higher.
-    uint16_t current_v_addr = ms->sp + sizeof(uint32_t);
+  // 1. Start iteration directly at SP (The Free Slot)
+  //    We loop from SP (Low Address) up to Upper Bound (High Address)
+  uint16_t current_v_addr = ms->sp;
 
-    // 2. Check if stack is empty
-    //    If the computed data start is at or above the upper bound, there's no data.
-    if (current_v_addr > ms->upper_bound) {
-        printf(" [ Stack Empty ]\n");
-        printf("========================\n\n");
-        return;
-    }
+  // 2. Iterate
+  while (current_v_addr <= ms->upper_bound)
+  {
+    // Translate Virtual Addr -> Host Addr
+    uint8_t* host_addr = ms->ram_base + current_v_addr;
+    
+    // Read value safely (Note: For the free slot, this is technically garbage/uninitialized data)
+    uint32_t val;
+    memcpy(&val, host_addr, sizeof(uint32_t));
 
-    // 3. Iterate from Top (Low Addr) to Bottom (High Addr)
-    while (current_v_addr <= ms->upper_bound)
+    // Print Line: [Addr]  HexValue
+    printf(" [0x%04X]  0x%08X  ", current_v_addr, val);
+
+    // 3. Special handling for the SP (Free Slot) vs Data Slots
+    if (current_v_addr == ms->sp) 
     {
-        // Translate Virtual Addr -> Host Addr
-        uint8_t* host_addr = ms->ram_base + current_v_addr;
-        
-        // Read value safely
-        uint32_t val;
-        memcpy(&val, host_addr, sizeof(uint32_t));
-
-        // Print Line: [Addr]  HexValue  (DecValue)  <Tags>
-        printf(" [0x%04X]  0x%08X  (%d)", current_v_addr, val, val);
-
-        // Add visual markers for registers
-        if (current_v_addr == ms->fp) {
-            printf(" <--- FP");
-        }
-        
-        // Mark the very first item pushed (Stack Bottom)
-        if (current_v_addr == ms->upper_bound) {
-             printf(" [BOTTOM]");
-        }
-        
-        if (current_v_addr == ms->sp + sizeof(uint32_t)) {
-             printf(" [TOS]");
-        }
-
-        printf("\n");
-
-        // Move to the next item (higher address)
-        current_v_addr += sizeof(uint32_t);
+      // This is the empty slot waiting for the next push
+      printf("<----------------------- SP");
     }
-    printf("========================\n\n");
+    else 
+    {
+      // This is actual data
+      printf("(%10d)", val);
+      // Mark the actual Top of Stack data (the item most recently pushed)
+      if (current_v_addr == ms->sp + sizeof(uint32_t))
+        printf("  [TOS]");
+    }
+
+    // Add visual markers for Frame Pointer
+    if (current_v_addr == ms->fp)
+      printf(" <--- FP");
+    // Mark the Stack Bottom (First item pushed)
+    if (current_v_addr == ms->upper_bound)
+      printf("  [BOTTOM]");
+    printf("\n");
+    // Move to the next item (higher address)
+    current_v_addr += sizeof(uint32_t);
+  }
+  printf("========================\n\n");
 }
 
 uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
@@ -566,19 +560,23 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_PUSHR)
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    uint32_t this_value;
+    stack_read_fp_rel(&data_stack, (int16_t)payload, &this_value);
+    stack_push(&data_stack, this_value);
     stack_print(&data_stack, "AFTER PUSHR");
   }
   else if(opcode == OP_POPI)
   {
-    uint32_t this_item;
-    stack_pop(&data_stack, &this_item);
-    memwrite_u32(payload, this_item);
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    memwrite_u32(payload, this_value);
     stack_print(&data_stack, "AFTER POPI");
   }
   else if(opcode == OP_POPR)
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    stack_write_fp_rel(&data_stack, (int16_t)payload, this_value);
     stack_print(&data_stack, "AFTER POPR");
   }
   else if(opcode == OP_BRZ)
@@ -591,12 +589,17 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_ALLOC)
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    for (size_t i = 0; i < payload; i++)
+      stack_push(&data_stack, 0);
+    stack_print(&data_stack, "After ALLOC");
   }
   else if(opcode == OP_CALL)
   {
-    // uint32_t frame_info = (data_stack.fp << 16) || (curr_pc + instruction_size_bytes);
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    uint32_t frame_info = (data_stack.fp << 16) | (curr_pc + instruction_size_bytes);
+    stack_push(&data_stack, frame_info);
+    data_stack.fp = data_stack.sp + sizeof(uint32_t);
+    stack_print(&data_stack, "CALL");
+    exe->next_pc = payload;
   }
   else if(opcode == OP_RET)
   {
@@ -696,16 +699,16 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }  
   else if(opcode == OP_STR)
   {
-    uint32_t this_item;
-    stack_pop(&data_stack, &this_item);
-    char* str_buf = make_str((uint16_t)this_item, this_key_id);
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    char* str_buf = make_str((uint16_t)this_value, this_key_id);
     printf(">>>>> STRING: %s\n", str_buf);
   }
   else if(opcode == OP_STRLN)
   {
-    uint32_t this_item;
-    stack_pop(&data_stack, &this_item);
-    char* str_buf = make_str((uint16_t)this_item, this_key_id);
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    char* str_buf = make_str((uint16_t)this_value, this_key_id);
     printf(">>>>> STRINGLN: %s\n", str_buf);
   }
   else
@@ -755,7 +758,5 @@ exe_context execon;
 int main()
 {
   run_dsb(&execon, "../ds2py/out.dsb");
-  printf("BIN_BUF_SIZE: 0x%04x %d\n", BIN_BUF_SIZE, BIN_BUF_SIZE);
-  printf("MAX_BIN_SIZE: 0x%04x %d\n", MAX_BIN_SIZE, MAX_BIN_SIZE);
   return 0;
 }
