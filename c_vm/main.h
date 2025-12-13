@@ -130,10 +130,11 @@ extern uint8_t str_print_padding;
 */
 typedef struct
 {
-  uint8_t* sp;
-  uint8_t* base_addr;
-  uint8_t* lower_bound;
-  uint16_t size_bytes;
+  uint16_t sp;         // Virtual Stack Pointer (offset, e.g., 0xF7FC)
+  uint16_t fp;         // Virtual Frame Pointer
+  uint16_t lower_bound;// Lowest allowed virtual address (Stack Limit)
+  uint16_t upper_bound;// Highest allowed virtual address (Stack Base)
+  uint8_t* ram_base;   // Host pointer to bin_buf[0]
 } my_stack;
 
 typedef uint32_t (*FUNC_PTR_BINOP)(uint32_t, uint32_t);

@@ -1,2 +1,4 @@
-VAR result = ~255
-STRING $result
+FUNCTION addargs(a, b, c)
+    RETURN a+b+c
+END_FUNCTION
+VAR result = addargs(5, 10, 15)

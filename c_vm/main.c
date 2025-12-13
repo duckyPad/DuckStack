@@ -199,34 +199,71 @@ const uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 
 my_stack data_stack;
 
-void stack_init(my_stack* ms, uint8_t* base_addr, uint16_t size_bytes)
+// vm_stack_base: The virtual address where stack starts (e.g., 0xF7FF)
+void stack_init(my_stack* ms, uint8_t* ram_base, uint16_t vm_stack_base, uint16_t size_bytes)
 {
-  uintptr_t aligned_addr = (uintptr_t)base_addr & ~(uintptr_t)0x03;
-  ms->base_addr = (uint8_t*)aligned_addr;
-  ms->sp = ms->base_addr - sizeof(uint32_t);
-  ms->size_bytes = size_bytes;
-  ms->lower_bound = ms->base_addr - ms->size_bytes;
-  memset(ms->lower_bound, 0, size_bytes);
+    // 1. Store the host memory base
+    ms->ram_base = ram_base;
+
+    // 2. Align the virtual base address (rounding down to nearest 4-byte boundary)
+    //    If vm_stack_base is 0xF7FF, this becomes 0xF7FC
+    uint16_t aligned_base = vm_stack_base & ~0x03;
+
+    // 3. Set bounds
+    ms->upper_bound = aligned_base; 
+    ms->lower_bound = aligned_base - size_bytes;
+
+    // 4. Initialize registers
+    //    Matches your original logic: SP points to the current empty slot.
+    //    We start "one slot down" so the first write occupies the top-most aligned bytes.
+    ms->sp = ms->upper_bound - sizeof(uint32_t); 
+    ms->fp = ms->upper_bound;
+
+    // 5. Clear memory (Translation: Host Addr = ram_base + virtual_offset)
+    memset(ms->ram_base + ms->lower_bound, 0, size_bytes);
 }
 
 uint8_t stack_push(my_stack* ms, uint32_t in_value)
 {
-  if(ms->sp < ms->lower_bound)
-    longjmp(jmpbuf, EXE_STACK_OVERFLOW);
-  memcpy(ms->sp, &in_value, sizeof(uint32_t));
-  ms->sp -= sizeof(uint32_t);
-  return EXE_OK;
+    // 1. Check for Overflow
+    //    If decrementing SP would drop us below the lower bound
+    if (ms->sp < ms->lower_bound) {
+        longjmp(jmpbuf, EXE_STACK_OVERFLOW);
+    }
+
+    // 2. Calculate Host Address
+    uint8_t* host_addr = ms->ram_base + ms->sp;
+
+    // 3. Write Data
+    memcpy(host_addr, &in_value, sizeof(uint32_t));
+
+    // 4. Decrement SP
+    ms->sp -= sizeof(uint32_t);
+
+    return EXE_OK;
 }
 
 uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
 {
-  uint8_t* next_sp = ms->sp + sizeof(uint32_t);
-  if(next_sp >= ms->base_addr)
-    longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
-  ms->sp += sizeof(uint32_t);
-  if(out_value != NULL)
-    memcpy(out_value, ms->sp, sizeof(uint32_t));
-  return EXE_OK;
+    // 1. Calculate the SP *after* the pop
+    uint16_t next_sp = ms->sp + sizeof(uint32_t);
+
+    // 2. Check for Underflow
+    //    If incrementing SP pushes us past the base (start) of the stack
+    if (next_sp >= ms->upper_bound) {
+        longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
+    }
+
+    // 3. Increment SP (Move back to the data)
+    ms->sp = next_sp;
+
+    // 4. Read Data
+    if (out_value != NULL) {
+        uint8_t* host_addr = ms->ram_base + ms->sp;
+        memcpy(out_value, host_addr, sizeof(uint32_t));
+    }
+
+    return EXE_OK;
 }
 
 uint8_t read_byte(uint16_t addr)
@@ -234,42 +271,60 @@ uint8_t read_byte(uint16_t addr)
   return bin_buf[addr];
 }
 
+#include <stdio.h>
+
 void stack_print(my_stack* ms, char* comment)
 {
-  printf("\n=== STACK DUMP: %s ===\n", comment);
-  // printf(" Size: %u bytes\n", ms->size_bytes);
-  printf("       Ptr        |   Hex      |  Dec       | Marker\n");
-  printf(" -----------------+------------+------------+-------\n");
-  // Start looking from the high address (Base) down to the SP
-  // Note: We start at base_addr - 4 because base_addr is the exclusive upper bound
-  uint8_t* current_ptr = ms->base_addr - sizeof(uint32_t);
-  // If SP is at the initial position, the stack is empty
-  if (ms->sp == (ms->base_addr - sizeof(uint32_t)))
-  {
-    printf(" [ EMPTY ]\n");
-    printf(" %p |            |            | <--- SP (Next Slot)\n", (void*)ms->sp);
-    printf(" ---------------------------------------------------\n\n");
-    return;
-  }
-  // Iterate downwards until we hit the SP
-  while (current_ptr > ms->sp)
-  {
-    uint32_t val;
-    // Use memcpy to prevent alignment faults, matching your push/pop logic
-    memcpy(&val, current_ptr, sizeof(uint32_t));
-    printf(" %p | 0x%08X | %-10u |", (void*)current_ptr, val, val);
-    if (current_ptr == ms->base_addr - sizeof(uint32_t))
-      printf(" <--- BASE");
-    // The last pushed value is located right above the current SP
-    if (current_ptr == ms->sp + sizeof(uint32_t))
-      printf(" <--- TOP (Last Data)");
-    printf("\n");
-    // Move to the next 32-bit slot (downwards)
-    current_ptr -= sizeof(uint32_t);
-  }
-  // Show where the SP is currently pointing (the next empty slot)
-  printf(" %p | [FREESLOT] |            | <--- SP (Next Slot)\n", (void*)ms->sp);
-  printf(" ---------------------------------------------------\n\n");
+    printf("\n=== STACK STATE: %s ===\n", comment);
+    printf(" SP: 0x%04X\n", ms->sp);
+    printf(" FP: 0x%04X\n", ms->fp);
+    printf("------------------------\n");
+
+    // 1. Calculate the address of the actual top item
+    //    Since 'sp' points to the *next empty* slot, the data starts 4 bytes higher.
+    uint16_t current_v_addr = ms->sp + sizeof(uint32_t);
+
+    // 2. Check if stack is empty
+    //    If the computed data start is at or above the upper bound, there's no data.
+    if (current_v_addr > ms->upper_bound) {
+        printf(" [ Stack Empty ]\n");
+        printf("========================\n\n");
+        return;
+    }
+
+    // 3. Iterate from Top (Low Addr) to Bottom (High Addr)
+    while (current_v_addr <= ms->upper_bound)
+    {
+        // Translate Virtual Addr -> Host Addr
+        uint8_t* host_addr = ms->ram_base + current_v_addr;
+        
+        // Read value safely
+        uint32_t val;
+        memcpy(&val, host_addr, sizeof(uint32_t));
+
+        // Print Line: [Addr]  HexValue  (DecValue)  <Tags>
+        printf(" [0x%04X]  0x%08X  (%d)", current_v_addr, val, val);
+
+        // Add visual markers for registers
+        if (current_v_addr == ms->fp) {
+            printf(" <--- FP");
+        }
+        
+        // Mark the very first item pushed (Stack Bottom)
+        if (current_v_addr == ms->upper_bound) {
+             printf(" [BOTTOM]");
+        }
+        
+        if (current_v_addr == ms->sp + sizeof(uint32_t)) {
+             printf(" [TOS]");
+        }
+
+        printf("\n");
+
+        // Move to the next item (higher address)
+        current_v_addr += sizeof(uint32_t);
+    }
+    printf("========================\n\n");
 }
 
 uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
@@ -540,6 +595,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_CALL)
   {
+    // uint32_t frame_info = (data_stack.fp << 16) || (curr_pc + instruction_size_bytes);
     printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_RET)
@@ -673,7 +729,7 @@ void run_dsb(exe_context* er, char* dsb_path)
   uint16_t data_stack_size_bytes = STACK_BASE_ADDR - this_dsb_size - STACK_MOAT_BYTES;
   printf("DSB size: %d Bytes\n", this_dsb_size);
   printf("Stack size: %d Bytes\n", data_stack_size_bytes);
-  stack_init(&data_stack, &bin_buf[STACK_BASE_ADDR], data_stack_size_bytes);
+  stack_init(&data_stack, bin_buf, STACK_BASE_ADDR, data_stack_size_bytes);
 
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
