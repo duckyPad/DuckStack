@@ -7,7 +7,7 @@
 uint8_t str_print_format;
 uint8_t str_print_padding;
 // __attribute__((aligned(4)))?
-uint8_t bin_buf[BIN_BUF_SIZE];
+uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4)));
 uint32_t defaultdelay_value;
 uint32_t defaultchardelay_value;
 uint32_t charjitter_value;
@@ -205,19 +205,19 @@ const uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 typedef struct
 {
   uint8_t* sp;
-  uint8_t* top_addr;
+  uint8_t* base_addr;
   uint8_t* lower_bound;
   uint16_t size_bytes;
 } my_stack;
 
 my_stack data_stack;
 
-void stack_init(my_stack* ms, uint8_t* top_addr, uint16_t size_bytes)
+void stack_init(my_stack* ms, uint8_t* base_addr, uint16_t size_bytes)
 {
-  ms->top_addr = top_addr;
-  ms->sp = top_addr - sizeof(uint32_t);
+  ms->base_addr = base_addr;
+  ms->sp = base_addr - sizeof(uint32_t);
   ms->size_bytes = size_bytes;
-  ms->lower_bound = ms->top_addr - ms->size_bytes;
+  ms->lower_bound = ms->base_addr - ms->size_bytes;
   memset(ms->lower_bound, 0, size_bytes);
 }
 
@@ -233,7 +233,7 @@ uint8_t stack_push(my_stack* ms, uint32_t in_value)
 uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
 {
   uint8_t* next_sp = ms->sp + sizeof(uint32_t);
-  if(next_sp >= ms->top_addr)
+  if(next_sp >= ms->base_addr)
     return EXE_STACK_UNDERFLOW;
   ms->sp += sizeof(uint32_t);
   if(out_value != NULL)
@@ -258,11 +258,11 @@ void stack_print(my_stack* ms)
     printf(" -----------+------------+------------+-------\n");
 
     // Start looking from the high address (Base) down to the SP
-    // Note: We start at top_addr - 4 because top_addr is the exclusive upper bound
-    uint8_t* current_ptr = ms->top_addr - sizeof(uint32_t);
+    // Note: We start at base_addr - 4 because base_addr is the exclusive upper bound
+    uint8_t* current_ptr = ms->base_addr - sizeof(uint32_t);
 
     // If SP is at the initial position, the stack is empty
-    if (ms->sp == (ms->top_addr - sizeof(uint32_t))) {
+    if (ms->sp == (ms->base_addr - sizeof(uint32_t))) {
         printf(" [ EMPTY ]\n");
         printf(" %p |            |            | <--- SP (Next Slot)\n", (void*)ms->sp);
         printf("==================\n\n");
@@ -278,7 +278,7 @@ void stack_print(my_stack* ms)
 
         printf(" %p | 0x%08X | %-10u |", (void*)current_ptr, val, val);
 
-        if (current_ptr == ms->top_addr - sizeof(uint32_t)) {
+        if (current_ptr == ms->base_addr - sizeof(uint32_t)) {
             printf(" <--- BASE");
         }
         
@@ -397,7 +397,8 @@ void run_dsb(exe_context* er, char* dsb_path)
   printf("DSB size: %d Bytes\n", this_dsb_size);
   printf("Stack size: %d Bytes\n", data_stack_size_bytes);
   stack_init(&data_stack, &bin_buf[STACK_BASE_ADDR], data_stack_size_bytes);
-
+  stack_push(&data_stack, 0xff);
+  stack_print(&data_stack);
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
   {
