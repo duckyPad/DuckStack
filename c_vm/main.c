@@ -311,6 +311,11 @@ uint32_t make_uint32(uint8_t* base_addr)
            ((uint32_t)base_addr[3] << 24);
 }
 
+uint32_t read_u32(uint16_t addr)
+{
+  
+}
+
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
 {
   FILE *dsb_file = fopen(dsb_path, "r");
