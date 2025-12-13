@@ -1,168 +1,56 @@
-test0 = 0
-test1 = 1
-test2 = 2
-test3 = 3
-test4 = 4
-test5 = 5
-test6 = 6
-test7 = 7
-test8 = 8
-test9 = 9
-test10 = 10
-test11 = 11
-test12 = 12
-test13 = 13
-test14 = 14
-test15 = 15
-test16 = 16
-test17 = 17
-test18 = 18
-test19 = 19
-test20 = 20
-test21 = 21
-test22 = 22
-test23 = 23
-test24 = 24
-test25 = 25
-test26 = 26
-test27 = 27
-test28 = 28
-test29 = 29
-test30 = 30
-test31 = 31
-test32 = 32
-test33 = 33
-test34 = 34
-test35 = 35
-test36 = 36
-test37 = 37
-test38 = 38
-test39 = 39
-test40 = 40
-test41 = 41
-test42 = 42
-test43 = 43
-test44 = 44
-test45 = 45
-test46 = 46
-test47 = 47
-test48 = 48
-test49 = 49
-test50 = 50
-test51 = 51
-test52 = 52
-test53 = 53
-test54 = 54
-test55 = 55
-test56 = 56
-test57 = 57
-test58 = 58
-test59 = 59
-test60 = 60
-test61 = 61
-test62 = 62
-test63 = 63
-test64 = 64
-test65 = 65
-test66 = 66
-test67 = 67
-test68 = 68
-test69 = 69
-test70 = 70
-test71 = 71
-test72 = 72
-test73 = 73
-test74 = 74
-test75 = 75
-test76 = 76
-test77 = 77
-test78 = 78
-test79 = 79
-test80 = 80
-test81 = 81
-test82 = 82
-test83 = 83
-test84 = 84
-test85 = 85
-test86 = 86
-test87 = 87
-test88 = 88
-test89 = 89
-test90 = 90
-test91 = 91
-test92 = 92
-test93 = 93
-test94 = 94
-test95 = 95
-test96 = 96
-test97 = 97
-test98 = 98
-test99 = 99
-test100 = 100
-test101 = 101
-test102 = 102
-test103 = 103
-test104 = 104
-test105 = 105
-test106 = 106
-test107 = 107
-test108 = 108
-test109 = 109
-test110 = 110
-test111 = 111
-test112 = 112
-test113 = 113
-test114 = 114
-test115 = 115
-test116 = 116
-test117 = 117
-test118 = 118
-test119 = 119
-test120 = 120
-test121 = 121
-test122 = 122
-test123 = 123
-test124 = 124
-test125 = 125
-test126 = 126
-test127 = 127
-test128 = 128
-test129 = 129
-test130 = 130
-test131 = 131
-test132 = 132
-test133 = 133
-test134 = 134
-test135 = 135
-test136 = 136
-test137 = 137
-test138 = 138
-test139 = 139
-test140 = 140
-test141 = 141
-test142 = 142
-test143 = 143
-test144 = 144
-test145 = 145
-test146 = 146
-test147 = 147
-test148 = 148
-test149 = 149
-test150 = 150
-test151 = 151
-test152 = 152
-test153 = 153
-test154 = 154
-test155 = 155
-test156 = 156
-test157 = 157
-test158 = 158
-test159 = 159
-test160 = 160
-test161 = 161
-test162 = 162
-test163 = 163
-test164 = 164
-test165 = 165
-test166 = 166
-test167 = 167
+global_counter = 100
+def factorial(n):
+    local_n = n
+    if local_n <= 1:
+        return 1
+    next_n = local_n - 1
+    recurse_result = factorial(next_n)
+    result = local_n * recurse_result
+    return result
+def flow_test(limit):
+    i = 0
+    sum = 0
+    while 1:
+        i = i + 1
+        if i > limit:
+            STRINGLN('[Flow] Limit reached, breaking...')
+            break
+        if i == 3:
+            STRINGLN('[Flow] Skipping 3 (Continue check)...')
+            continue
+        is_even = i % 2
+        if is_even == 0:
+            continue
+        else:
+            sum = sum + i
+            STRINGLN('[Flow] Added odd number: $i')
+    return sum
+STRINGLN('=========================')
+STRINGLN('STARTING COMPILER TEST')
+STRINGLN('=========================')
+STRINGLN('[Test 1] Recursion (Factorial 5)...')
+fact_input = 5
+fact_res = factorial(fact_input)
+STRINGLN('Result: $fact_res')
+if fact_res == 120:
+    STRINGLN('>> SUCCESS: Recursion holds up.')
+else:
+    STRINGLN('>> FAILURE: Expected 120. Stack likely corrupted.')
+STRINGLN('-------------------------')
+STRINGLN('[Test 2] Complex Flow (Sum odds to 7, skip 3)...')
+flow_res = flow_test(7)
+STRINGLN('Result: $flow_res')
+if flow_res == 13:
+    STRINGLN('>> SUCCESS: Control flow logic is sound.')
+else:
+    STRINGLN('>> FAILURE: Expected 13. Jump targets likely wrong.')
+STRINGLN('-------------------------')
+STRINGLN('[Test 3] Scope Check...')
+STRINGLN('Global Var is: $global_counter')
+if global_counter == 100:
+    STRINGLN('>> SUCCESS: Globals preserved.')
+else:
+    STRINGLN('>> FAILURE: Global var overwritten by stack operations.')
+STRINGLN('=========================')
+STRINGLN('TEST COMPLETE')
+STRINGLN('=========================')

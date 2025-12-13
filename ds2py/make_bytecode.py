@@ -294,8 +294,7 @@ def group_vars(context_dict):
         grouped_data[func_name]['args'] = context_dict['func_args_dict'][func_name]
 
     for key in grouped_data:
-        this_func_info = grouped_data[key]
-        this_func_info['locals'].sort()
+         grouped_data[key]['locals'].sort()
     return dict(grouped_data)
 
 def needs_resolving(inst):
@@ -412,7 +411,6 @@ def compile_to_bin(rdict):
     if len(user_declared_global_var_addr_lookup) > MAX_UDV_COUNT:
         raise ValueError("Too many user-declared variables")
 
-    # print(rdict['var_info_set'])
     print("\n--------- Global Variables ---------")
     print(user_declared_global_var_addr_lookup)
     print("\n--------- Func Args and Local Variables ---------")

@@ -1,8 +1,120 @@
-FUNCTION test(a, b, c, d)
-    STRINGLN Args: $a, $b, $c, $d
-    VAR wtf = 9
-    VAR bbb = 22
-    VAR zzz  = 90
+REM --- DuckyStack Compiler Torture Test ---
+
+// Global variable to test scoping
+VAR global_counter = 100
+
+// TEST 1: Recursion & Stack Frames
+// Calculates Factorial(n) recursively.
+// If the stack unwinding is broken, 'local_n' will get corrupted
+// after the recursive call returns.
+FUNCTION factorial(n)
+    // Create a local variable. In memory: [FP - 4]
+    VAR local_n = n
+    
+    // Base case
+    IF local_n <= 1 THEN
+        RETURN 1
+    END_IF
+    
+    // Recursive step
+    // Compiler must push arg, CALL, then clean up arg.
+    VAR next_n = local_n - 1
+    VAR recurse_result = factorial(next_n)
+    
+    // CRITICAL CHECK:
+    // If the previous CALL messed up the stack pointer or frame pointer,
+    // 'local_n' here will read garbage instead of the original 'n'.
+    VAR result = local_n * recurse_result
+    
+    RETURN result
 END_FUNCTION
 
-VAR hello = test(10, 20, 30, 40)
+// TEST 2: Control Flow (Loops, Breaks, Continues)
+// Calculates sum of odd numbers up to 'limit', skipping 3.
+FUNCTION flow_test(limit)
+    VAR i = 0
+    VAR sum = 0
+    
+    WHILE TRUE
+        i = i + 1
+        
+        // Test LBREAK: Exit if we exceed limit
+        IF i > limit THEN
+            STRINGLN [Flow] Limit reached, breaking...
+            LBREAK
+        END_IF
+        
+        // Test CONTINUE: Skip the number 3
+        IF i == 3 THEN
+            STRINGLN [Flow] Skipping 3 (Continue check)...
+            CONTINUE
+        END_IF
+        
+        // Test arithmetic and logic
+        VAR is_even = i % 2
+        IF is_even == 0 THEN
+             // Skip even numbers (manual continue simulation)
+             CONTINUE
+        ELSE
+             sum = sum + i
+             STRINGLN [Flow] Added odd number: $i
+        END_IF
+        
+    END_WHILE
+    
+    RETURN sum
+END_FUNCTION
+
+// --- MAIN EXECUTION START ---
+
+STRINGLN_BLOCK
+=========================
+STARTING COMPILER TEST
+=========================
+END_STRINGLN
+
+// 1. Run Recursion Test
+STRINGLN [Test 1] Recursion (Factorial 5)...
+VAR fact_input = 5
+VAR fact_res = factorial(fact_input)
+
+STRINGLN Result: $fact_res
+IF fact_res == 120 THEN
+    STRINGLN >> SUCCESS: Recursion holds up.
+ELSE
+    STRINGLN >> FAILURE: Expected 120. Stack likely corrupted.
+END_IF
+
+STRINGLN -------------------------
+
+// 2. Run Control Flow Test
+STRINGLN [Test 2] Complex Flow (Sum odds to 7, skip 3)...
+// Expected sequence: 1, (skip 2), (skip 3), (skip 4), 5, (skip 6), 7
+// Expected sum: 1 + 5 + 7 = 13
+VAR flow_res = flow_test(7)
+
+STRINGLN Result: $flow_res
+IF flow_res == 13 THEN
+    STRINGLN >> SUCCESS: Control flow logic is sound.
+ELSE
+    STRINGLN >> FAILURE: Expected 13. Jump targets likely wrong.
+END_IF
+
+STRINGLN -------------------------
+
+// 3. Global Scope Check
+// Ensure functions didn't overwrite the global variable
+STRINGLN [Test 3] Scope Check...
+STRINGLN Global Var is: $global_counter
+
+IF global_counter == 100 THEN
+    STRINGLN >> SUCCESS: Globals preserved.
+ELSE
+    STRINGLN >> FAILURE: Global var overwritten by stack operations.
+END_IF
+
+STRINGLN_BLOCK
+=========================
+TEST COMPLETE
+=========================
+END_STRINGLN

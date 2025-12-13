@@ -1,168 +1,66 @@
-VAR test0 = 0
-VAR test1 = 1
-VAR test2 = 2
-VAR test3 = 3
-VAR test4 = 4
-VAR test5 = 5
-VAR test6 = 6
-VAR test7 = 7
-VAR test8 = 8
-VAR test9 = 9
-VAR test10 = 10
-VAR test11 = 11
-VAR test12 = 12
-VAR test13 = 13
-VAR test14 = 14
-VAR test15 = 15
-VAR test16 = 16
-VAR test17 = 17
-VAR test18 = 18
-VAR test19 = 19
-VAR test20 = 20
-VAR test21 = 21
-VAR test22 = 22
-VAR test23 = 23
-VAR test24 = 24
-VAR test25 = 25
-VAR test26 = 26
-VAR test27 = 27
-VAR test28 = 28
-VAR test29 = 29
-VAR test30 = 30
-VAR test31 = 31
-VAR test32 = 32
-VAR test33 = 33
-VAR test34 = 34
-VAR test35 = 35
-VAR test36 = 36
-VAR test37 = 37
-VAR test38 = 38
-VAR test39 = 39
-VAR test40 = 40
-VAR test41 = 41
-VAR test42 = 42
-VAR test43 = 43
-VAR test44 = 44
-VAR test45 = 45
-VAR test46 = 46
-VAR test47 = 47
-VAR test48 = 48
-VAR test49 = 49
-VAR test50 = 50
-VAR test51 = 51
-VAR test52 = 52
-VAR test53 = 53
-VAR test54 = 54
-VAR test55 = 55
-VAR test56 = 56
-VAR test57 = 57
-VAR test58 = 58
-VAR test59 = 59
-VAR test60 = 60
-VAR test61 = 61
-VAR test62 = 62
-VAR test63 = 63
-VAR test64 = 64
-VAR test65 = 65
-VAR test66 = 66
-VAR test67 = 67
-VAR test68 = 68
-VAR test69 = 69
-VAR test70 = 70
-VAR test71 = 71
-VAR test72 = 72
-VAR test73 = 73
-VAR test74 = 74
-VAR test75 = 75
-VAR test76 = 76
-VAR test77 = 77
-VAR test78 = 78
-VAR test79 = 79
-VAR test80 = 80
-VAR test81 = 81
-VAR test82 = 82
-VAR test83 = 83
-VAR test84 = 84
-VAR test85 = 85
-VAR test86 = 86
-VAR test87 = 87
-VAR test88 = 88
-VAR test89 = 89
-VAR test90 = 90
-VAR test91 = 91
-VAR test92 = 92
-VAR test93 = 93
-VAR test94 = 94
-VAR test95 = 95
-VAR test96 = 96
-VAR test97 = 97
-VAR test98 = 98
-VAR test99 = 99
-VAR test100 = 100
-VAR test101 = 101
-VAR test102 = 102
-VAR test103 = 103
-VAR test104 = 104
-VAR test105 = 105
-VAR test106 = 106
-VAR test107 = 107
-VAR test108 = 108
-VAR test109 = 109
-VAR test110 = 110
-VAR test111 = 111
-VAR test112 = 112
-VAR test113 = 113
-VAR test114 = 114
-VAR test115 = 115
-VAR test116 = 116
-VAR test117 = 117
-VAR test118 = 118
-VAR test119 = 119
-VAR test120 = 120
-VAR test121 = 121
-VAR test122 = 122
-VAR test123 = 123
-VAR test124 = 124
-VAR test125 = 125
-VAR test126 = 126
-VAR test127 = 127
-VAR test128 = 128
-VAR test129 = 129
-VAR test130 = 130
-VAR test131 = 131
-VAR test132 = 132
-VAR test133 = 133
-VAR test134 = 134
-VAR test135 = 135
-VAR test136 = 136
-VAR test137 = 137
-VAR test138 = 138
-VAR test139 = 139
-VAR test140 = 140
-VAR test141 = 141
-VAR test142 = 142
-VAR test143 = 143
-VAR test144 = 144
-VAR test145 = 145
-VAR test146 = 146
-VAR test147 = 147
-VAR test148 = 148
-VAR test149 = 149
-VAR test150 = 150
-VAR test151 = 151
-VAR test152 = 152
-VAR test153 = 153
-VAR test154 = 154
-VAR test155 = 155
-VAR test156 = 156
-VAR test157 = 157
-VAR test158 = 158
-VAR test159 = 159
-VAR test160 = 160
-VAR test161 = 161
-VAR test162 = 162
-VAR test163 = 163
-VAR test164 = 164
-VAR test165 = 165
-VAR test166 = 166
-VAR test167 = 167
+VAR global_counter = 100
+FUNCTION factorial(n)
+    VAR local_n = n
+    IF local_n <= 1 THEN
+        RETURN 1
+    END_IF
+    VAR next_n = local_n - 1
+    VAR recurse_result = factorial(next_n)
+    VAR result = local_n * recurse_result
+    RETURN result
+END_FUNCTION
+FUNCTION flow_test(limit)
+    VAR i = 0
+    VAR sum = 0
+    WHILE 1
+        i = i + 1
+        IF i > limit THEN
+            STRINGLN [Flow] Limit reached, breaking...
+            LBREAK
+        END_IF
+        IF i == 3 THEN
+            STRINGLN [Flow] Skipping 3 (Continue check)...
+            CONTINUE
+        END_IF
+        VAR is_even = i % 2
+        IF is_even == 0 THEN
+            CONTINUE
+        ELSE
+            sum = sum + i
+            STRINGLN [Flow] Added odd number: $i
+        END_IF
+    END_WHILE
+    RETURN sum
+END_FUNCTION
+STRINGLN =========================
+STRINGLN STARTING COMPILER TEST
+STRINGLN =========================
+STRINGLN [Test 1] Recursion (Factorial 5)...
+VAR fact_input = 5
+VAR fact_res = factorial(fact_input)
+STRINGLN Result: $fact_res
+IF fact_res == 120 THEN
+    STRINGLN >> SUCCESS: Recursion holds up.
+ELSE
+    STRINGLN >> FAILURE: Expected 120. Stack likely corrupted.
+END_IF
+STRINGLN -------------------------
+STRINGLN [Test 2] Complex Flow (Sum odds to 7, skip 3)...
+VAR flow_res = flow_test(7)
+STRINGLN Result: $flow_res
+IF flow_res == 13 THEN
+    STRINGLN >> SUCCESS: Control flow logic is sound.
+ELSE
+    STRINGLN >> FAILURE: Expected 13. Jump targets likely wrong.
+END_IF
+STRINGLN -------------------------
+STRINGLN [Test 3] Scope Check...
+STRINGLN Global Var is: $global_counter
+IF global_counter == 100 THEN
+    STRINGLN >> SUCCESS: Globals preserved.
+ELSE
+    STRINGLN >> FAILURE: Global var overwritten by stack operations.
+END_IF
+STRINGLN =========================
+STRINGLN TEST COMPLETE
+STRINGLN =========================
