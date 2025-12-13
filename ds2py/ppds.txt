@@ -1,5 +1,7 @@
-FUNCTION test(wtf, b, c, d)
-    VAR what = 90
-    STRINGLN Args: $wtf, $b, $c, $d, $what
+FUNCTION test(a, b, c, d)
+    STRINGLN Args: $a, $b, $c, $d
+    VAR wtf = 9
+    VAR bbb = 22
+    VAR zzz  = 90
 END_FUNCTION
-VAR hello = test(10, 20, 30, 40)
+VAR hello = test(10, 20, 30, 99)

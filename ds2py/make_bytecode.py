@@ -284,25 +284,19 @@ def resolve_global_and_reserved_var_address(var_name, udgv_lookup):
 
 def group_vars(context_dict):
     grouped_data = defaultdict(lambda: {"args": [], "locals": []})
-    
     for variable in context_dict['var_info_set']:
         if variable.func is None:
             continue
-        scope_data = grouped_data[variable.func]
-        
-        if variable.type == SymType.FUNC_ARG:
-            scope_data["args"].append(variable.name)
-        elif variable.type == SymType.FUNC_LOCAL_VAR:
-            scope_data["locals"].append(variable.name)
+        if variable.type == SymType.FUNC_LOCAL_VAR:
+            grouped_data[variable.func]["locals"].append(variable.name)
 
-    final_result = {}
-    for func_name, data in grouped_data.items():
-        this_func_symtable_args = list(myast.get_func_parameters(func_name, context_dict['symtable_root']))
-        final_result[func_name] = {
-            "args": this_func_symtable_args,
-            "locals": sorted(data["locals"])
-        }
-    return final_result
+    for func_name in context_dict['func_args_dict']:
+        grouped_data[func_name]['args'] = context_dict['func_args_dict'][func_name]
+
+    for key in grouped_data:
+        this_func_info = grouped_data[key]
+        this_func_info['locals'].sort()
+    return dict(grouped_data)
 
 def needs_resolving(inst):
     if inst.opcode.length == 1:
@@ -338,6 +332,18 @@ def get_partial_varname_addr(msg, str_inst, arg_and_local_var_lookup, udgv_looku
         if addr is not None:
             return partial_name, addr, var_type
     return None, None, None
+
+def get_func_args(symtable_root):
+    func_args = {}
+    def _traverse(table):
+        if table.get_type() == 'function':
+            func_name = table.get_name()
+            args = list(table.get_parameters()) 
+            func_args[func_name] = args
+        for child in table.get_children():
+            _traverse(child)
+    _traverse(symtable_root)
+    return func_args
 
 endianness = 'little'
 var_boundary_fp_rel = 0x1e
@@ -570,6 +576,7 @@ rdict["root_assembly_list"] = []
 rdict["root_assembly_list"].append(dsvm_instruction(OP_VMVER, payload=DS_VM_VERSION))
 rdict["symtable_root"] = symtable_root
 rdict['func_assembly_dict'] = {}
+rdict['func_args_dict'] = get_func_args(symtable_root)
 rdict['var_info_set'] = set()
 
 for statement in my_tree.body:

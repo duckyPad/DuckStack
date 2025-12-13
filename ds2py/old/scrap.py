@@ -655,3 +655,17 @@ output_bin_array = bytearray()
 
 # print(output_bin_array.hex())
     # print(len(output_bin_array))
+
+    final_result = {}
+    for func_name, data in grouped_data.items():
+        final_result[func_name] = {
+            "args": data['args'],
+            "locals": sorted(data["locals"])
+        }
+
+    for key in grouped_data:
+        this_func_info = grouped_data[key]
+        this_func_info['locals'].sort()
+    print("grouped_data", dict(grouped_data))
+    print("final_result", final_result)
+    return final_result
