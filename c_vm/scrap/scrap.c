@@ -66,3 +66,15 @@ VAR result = add2(5, 10)
 
 printf("BIN_BUF_SIZE: 0x%04x %d\n", BIN_BUF_SIZE, BIN_BUF_SIZE);
 printf("MAX_BIN_SIZE: 0x%04x %d\n", MAX_BIN_SIZE, MAX_BIN_SIZE);
+
+
+FUNCTION addargs(a, b, c)
+    VAR myloc = a + b + c
+    VAR dummy = 99
+    VAR another = 255
+    return myloc *2
+END_FUNCTION
+
+VAR result = addargs(5, 10, 15)
+
+STRING result is: $result

@@ -248,7 +248,8 @@ At end of a function, `return_value` is on TOS.
 **Callee** executes `RET n` instruction, which:
 
 * Pops off `return_value` into temp location
-* Pop off items until **FP** points to **TOS**
+* Pop off items until `frame_info` is on **TOS**
+	* AKA `SP + 4 == FP`
 * Pops off `frame_info`
 	* Loads `previous FP` into **FP**
 	* Loads `return address` into **PC**

@@ -1,7 +1,30 @@
-FUNCTION addargs(a, b, c)
-    VAR myloc = a + b + c
-    VAR dummy = 99
-    return myloc *2
+REM Recursive Factorial Calculation: 5! = 120
+
+FUNCTION factorial(n)
+    // Base case: if n <= 1, return 1
+    IF n <= 1 THEN
+        RETURN 1
+    END_IF
+    
+    // Recursive step
+    // We declare a local variable to test local scope allocation
+    VAR prev = n - 1
+    VAR sub_res = factorial(prev)
+    
+    RETURN n * sub_res
 END_FUNCTION
 
-VAR result = addargs(5, 10, 15)
+// Main execution
+STRINGLN Starting Recursion Test...
+
+VAR input = 5
+VAR result = factorial(input)
+
+STRINGLN Factorial of $input is: $result
+
+// Verification
+IF result == 120 THEN
+    STRINGLN SUCCESS: Stack unwound correctly.
+ELSE
+    STRINGLN FAILURE: Result mismatch.
+END_IF

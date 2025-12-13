@@ -239,7 +239,8 @@ void stack_pop(my_stack* ms, uint32_t *out_value)
     longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
   ms->sp = next_sp;
   uint8_t* host_addr = ms->ram_base + ms->sp;
-  memcpy(out_value, host_addr, sizeof(uint32_t));
+  if(out_value != NULL)
+    memcpy(out_value, host_addr, sizeof(uint32_t));
 }
 
 uint8_t read_byte(uint16_t addr)
@@ -273,6 +274,7 @@ void stack_read_fp_rel(my_stack* ms, int16_t offset, uint32_t* value)
 
 void stack_print(my_stack* ms, char* comment)
 {
+  return;
   printf("\n=== STACK STATE: %s ===\n", comment);
   printf("------------------------\n");
 
@@ -581,11 +583,14 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_BRZ)
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    if(this_value == 0)
+      exe->next_pc = payload;
   }
   else if(opcode == OP_JMP)
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    exe->next_pc = payload;
   }
   else if(opcode == OP_ALLOC)
   {
@@ -603,7 +608,28 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_RET)
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    stack_print(&data_stack, "RET");
+    uint32_t func_return_val;
+    // stash return value
+    stack_pop(&data_stack, &func_return_val);
+    // pop until frame_info is on TOS
+    while(1)
+    {
+      if(data_stack.sp + sizeof(uint32_t) == data_stack.fp)
+        break;
+      stack_pop(&data_stack, NULL);
+    }
+    // pop frame_info and restore PC and FP
+    uint32_t frame_info;
+    stack_pop(&data_stack, &frame_info);
+    data_stack.fp = (frame_info >> 16) & 0xffff;
+    exe->next_pc = frame_info & 0xffff;
+    // pop off arguments
+    for (size_t i = 0; i < payload; i++)
+      stack_pop(&data_stack, NULL);
+    // push return value back on stack
+    stack_push(&data_stack, func_return_val);
+    stack_print(&data_stack, "UNWIND DONE");
   }
   else if(opcode == OP_HALT)
   {

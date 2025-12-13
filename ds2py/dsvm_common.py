@@ -692,9 +692,15 @@ class dsvm_instruction:
         lines.append("".join(parts))
         return "\n".join(lines)
 
+import uuid
+notequal_str = "!="
+op_placeholder = str(uuid.uuid4())
 
 def replace_operators(this_line):
-    return this_line.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ").replace("!", " not ")
+    temp = this_line.replace(notequal_str, op_placeholder)
+    temp = temp.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ").replace("!", " not ")
+    temp = temp.replace(op_placeholder, notequal_str)
+    return temp
 
 def pack_to_two_bytes(value: int) -> bytes:
     """

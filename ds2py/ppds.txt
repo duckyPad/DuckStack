@@ -1,6 +1,17 @@
-FUNCTION addargs(a, b, c)
-    VAR myloc = a + b + c
-    VAR dummy = 99
-    return myloc *2
+FUNCTION factorial(n)
+    IF n <= 1 THEN
+        RETURN 1
+    END_IF
+    VAR prev = n - 1
+    VAR sub_res = factorial(prev)
+    RETURN n * sub_res
 END_FUNCTION
-VAR result = addargs(5, 10, 15)
+STRINGLN Starting Recursion Test...
+VAR input = 5
+VAR result = factorial(input)
+STRINGLN Factorial of $input is: $result
+IF result == 120 THEN
+    STRINGLN SUCCESS: Stack unwound correctly.
+ELSE
+    STRINGLN FAILURE: Result mismatch.
+END_IF
