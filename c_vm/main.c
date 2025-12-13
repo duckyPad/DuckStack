@@ -327,7 +327,7 @@ uint32_t read_u32(uint16_t addr)
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
 {
-  FILE *dsb_file = fopen(dsb_path, "r");
+  FILE *dsb_file = fopen(dsb_path, "rb");
   if(dsb_file == NULL)
     return EXE_DSB_FOPEN_FAIL;
   memset(bin_buf, 0, BIN_BUF_SIZE);
@@ -335,6 +335,8 @@ uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
   fclose(dsb_file);
   if(*dsb_size == 0)
     return EXE_DSB_FREAD_ERROR;
+  if(*dsb_size >= MAX_BIN_SIZE)
+    return EXE_DSB_FILE_TOO_LARGE;
   if(bin_buf[0] != OP_VMVER)
     return EXE_DSB_INCOMPATIBLE_VERSION;
   if(bin_buf[1] != dsvm_version)
@@ -391,10 +393,10 @@ void run_dsb(exe_context* er, char* dsb_path)
   }
 
   uint16_t current_pc = 0;
-  uint16_t data_stack_size_bytes = DATA_STACK_START_ADDRESS - this_dsb_size - STACK_MOAT_SIZE;
+  uint16_t data_stack_size_bytes = STACK_BASE_ADDR - this_dsb_size - STACK_MOAT_BYTES;
   printf("DSB size: %d Bytes\n", this_dsb_size);
   printf("Stack size: %d Bytes\n", data_stack_size_bytes);
-  stack_init(&data_stack, &bin_buf[DATA_STACK_START_ADDRESS], data_stack_size_bytes);
+  stack_init(&data_stack, &bin_buf[STACK_BASE_ADDR], data_stack_size_bytes);
 
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
@@ -418,5 +420,7 @@ exe_context execon;
 int main()
 {
   run_dsb(&execon, "../ds2py/out.dsb");
+  printf("BIN_BUF_SIZE: 0x%04x %d\n", BIN_BUF_SIZE, BIN_BUF_SIZE);
+  printf("MAX_BIN_SIZE: 0x%04x %d\n", MAX_BIN_SIZE, MAX_BIN_SIZE);
   return 0;
 }
