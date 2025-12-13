@@ -1,4 +1,2 @@
-VAR foo = 1
-VAR bar = 5
-VAR spam = 2*foo+bar
+VAR spam = 42%9
 STRING spam is: $spam

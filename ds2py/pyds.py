@@ -1,4 +1,2 @@
-foo = 1
-bar = 5
-spam = 2*foo+bar
+spam = 42%9
 STRING('spam is: $spam')

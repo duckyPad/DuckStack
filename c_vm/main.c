@@ -216,7 +216,6 @@ uint8_t stack_push(my_stack* ms, uint32_t in_value)
     longjmp(jmpbuf, EXE_STACK_OVERFLOW);
   memcpy(ms->sp, &in_value, sizeof(uint32_t));
   ms->sp -= sizeof(uint32_t);
-  stack_print(ms, "AFTER PUSH");
   return EXE_OK;
 }
 
@@ -228,7 +227,6 @@ uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
   ms->sp += sizeof(uint32_t);
   if(out_value != NULL)
     memcpy(out_value, ms->sp, sizeof(uint32_t));
-  stack_print(ms, "AFTER POP");
   return EXE_OK;
 }
 
@@ -239,50 +237,40 @@ uint8_t read_byte(uint16_t addr)
 
 void stack_print(my_stack* ms, char* comment)
 {
-    printf("\n=== STACK DUMP: %s ===\n", comment);
-    // printf(" Size: %u bytes\n", ms->size_bytes);
-    printf("       Ptr        |   Hex      |  Dec       | Marker\n");
-    printf(" -----------------+------------+------------+-------\n");
-
-    // Start looking from the high address (Base) down to the SP
-    // Note: We start at base_addr - 4 because base_addr is the exclusive upper bound
-    uint8_t* current_ptr = ms->base_addr - sizeof(uint32_t);
-
-    // If SP is at the initial position, the stack is empty
-    if (ms->sp == (ms->base_addr - sizeof(uint32_t))) {
-        printf(" [ EMPTY ]\n");
-        printf(" %p |            |            | <--- SP (Next Slot)\n", (void*)ms->sp);
-        printf(" ---------------------------------------------------\n\n");
-        return;
-    }
-
-    // Iterate downwards until we hit the SP
-    while (current_ptr > ms->sp)
-    {
-        uint32_t val;
-        // Use memcpy to prevent alignment faults, matching your push/pop logic
-        memcpy(&val, current_ptr, sizeof(uint32_t));
-
-        printf(" %p | 0x%08X | %-10u |", (void*)current_ptr, val, val);
-
-        if (current_ptr == ms->base_addr - sizeof(uint32_t)) {
-            printf(" <--- BASE");
-        }
-        
-        // The last pushed value is located right above the current SP
-        if (current_ptr == ms->sp + sizeof(uint32_t)) {
-            printf(" <--- TOP (Last Data)");
-        }
-
-        printf("\n");
-        
-        // Move to the next 32-bit slot (downwards)
-        current_ptr -= sizeof(uint32_t);
-    }
-
-    // Show where the SP is currently pointing (the next empty slot)
-    printf(" %p | [FREESLOT] |            | <--- SP (Next Slot)\n", (void*)ms->sp);
+  printf("\n=== STACK DUMP: %s ===\n", comment);
+  // printf(" Size: %u bytes\n", ms->size_bytes);
+  printf("       Ptr        |   Hex      |  Dec       | Marker\n");
+  printf(" -----------------+------------+------------+-------\n");
+  // Start looking from the high address (Base) down to the SP
+  // Note: We start at base_addr - 4 because base_addr is the exclusive upper bound
+  uint8_t* current_ptr = ms->base_addr - sizeof(uint32_t);
+  // If SP is at the initial position, the stack is empty
+  if (ms->sp == (ms->base_addr - sizeof(uint32_t)))
+  {
+    printf(" [ EMPTY ]\n");
+    printf(" %p |            |            | <--- SP (Next Slot)\n", (void*)ms->sp);
     printf(" ---------------------------------------------------\n\n");
+    return;
+  }
+  // Iterate downwards until we hit the SP
+  while (current_ptr > ms->sp)
+  {
+    uint32_t val;
+    // Use memcpy to prevent alignment faults, matching your push/pop logic
+    memcpy(&val, current_ptr, sizeof(uint32_t));
+    printf(" %p | 0x%08X | %-10u |", (void*)current_ptr, val, val);
+    if (current_ptr == ms->base_addr - sizeof(uint32_t))
+      printf(" <--- BASE");
+    // The last pushed value is located right above the current SP
+    if (current_ptr == ms->sp + sizeof(uint32_t))
+      printf(" <--- TOP (Last Data)");
+    printf("\n");
+    // Move to the next 32-bit slot (downwards)
+    current_ptr -= sizeof(uint32_t);
+  }
+  // Show where the SP is currently pointing (the next empty slot)
+  printf(" %p | [FREESLOT] |            | <--- SP (Next Slot)\n", (void*)ms->sp);
+  printf(" ---------------------------------------------------\n\n");
 }
 
 uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
@@ -503,24 +491,29 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_PUSHC16)
   {
     stack_push(&data_stack, payload);
+    stack_print(&data_stack, "AFTER PUSHC16");
   }
   else if(opcode == OP_PUSHI)
   {
     stack_push(&data_stack, memread_u32(payload));
+    stack_print(&data_stack, "AFTER PUSHI");
   }
   else if(opcode == OP_PUSHR)
   {
     printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    stack_print(&data_stack, "AFTER PUSHR");
   }
   else if(opcode == OP_POPI)
   {
     uint32_t this_item;
     stack_pop(&data_stack, &this_item);
     memwrite_u32(payload, this_item);
+    stack_print(&data_stack, "AFTER POPI");
   }
   else if(opcode == OP_POPR)
   {
     printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    stack_print(&data_stack, "AFTER POPR");
   }
   else if(opcode == OP_BRZ)
   {

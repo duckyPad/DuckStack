@@ -120,8 +120,6 @@ extern uint8_t str_print_padding;
 #define STR_PRINT_FORMAT_HEX_LOWER_CASE  2
 #define STR_PRINT_FORMAT_HEX_UPPER_CASE  3
 
-#define NEOPIXEL_COUNT 20
-
 #define MAKESTR_VAR_BOUNDARY_IMM (0x1f)
 #define MAKESTR_VAR_BOUNDARY_REL (0x1e)
 
