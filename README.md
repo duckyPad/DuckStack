@@ -33,7 +33,7 @@ DuckStack is a domain-specific stack-based bytecode VM for executing compiled **
 * Binary executable is loaded at `0x0`
 * Stack grows from `0xF7FF` towards **smaller address**
 	* Each item **4 bytes long**
-	* First item `F7FF-F7FC`, second item `F7FB-F7F8`, etc.
+	* In actual implementation, SP can be **4-byte aligned** for better performance.
 * Smaller executable allows larger stack, vise versa.
 
 ## Instruction Set

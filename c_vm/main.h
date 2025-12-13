@@ -28,7 +28,7 @@
 #define MAX_INSTRUCTION_LEN 3
 
 // ----------
-#define BIN_BUF_SIZE (STACK_BASE_ADDR+1)
+#define BIN_BUF_SIZE (USER_VAR_END_ADDRESS_INCLUSIVE+1)
 // ----------
 
 #define EXE_OK 0
@@ -51,6 +51,8 @@
 #define EXE_DIVISION_BY_ZERO (EXE_ERROR_CODE_START + 6)
 #define EXE_ILLEGAL_ADDR (EXE_ERROR_CODE_START + 7)
 #define EXE_DSB_FILE_TOO_LARGE (EXE_ERROR_CODE_START + 8)
+#define EXE_UNIMPLEMENTED (EXE_ERROR_CODE_START + 9)
+
 
 #define _DEFAULTDELAY (INTERAL_VAR_START_ADDRESS + 0 * INTERAL_VAR_BYTE_WIDTH)
 #define _DEFAULTCHARDELAY (INTERAL_VAR_START_ADDRESS + 1 * INTERAL_VAR_BYTE_WIDTH)
@@ -119,6 +121,21 @@ extern uint8_t str_print_padding;
 #define STR_PRINT_FORMAT_HEX_UPPER_CASE  3
 
 #define NEOPIXEL_COUNT 20
+
+/*
+  Stack grows from larger address to smaller address
+  SP points to next available slot
+*/
+typedef struct
+{
+  uint8_t* sp;
+  uint8_t* base_addr;
+  uint8_t* lower_bound;
+  uint16_t size_bytes;
+} my_stack;
+
+void stack_print(my_stack* ms);
+
 
 #endif
 

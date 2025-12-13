@@ -6,7 +6,6 @@
 
 uint8_t str_print_format;
 uint8_t str_print_padding;
-// __attribute__((aligned(4)))?
 uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4)));
 uint32_t defaultdelay_value;
 uint32_t defaultchardelay_value;
@@ -198,18 +197,6 @@ const uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 
 // ---------------------------
 
-/*
-  Stack grows from larger address to smaller address
-  SP points to next available slot
-*/
-typedef struct
-{
-  uint8_t* sp;
-  uint8_t* base_addr;
-  uint8_t* lower_bound;
-  uint16_t size_bytes;
-} my_stack;
-
 my_stack data_stack;
 
 void stack_init(my_stack* ms, uint8_t* base_addr, uint16_t size_bytes)
@@ -225,9 +212,10 @@ void stack_init(my_stack* ms, uint8_t* base_addr, uint16_t size_bytes)
 uint8_t stack_push(my_stack* ms, uint32_t in_value)
 {
   if(ms->sp < ms->lower_bound)
-    return EXE_STACK_OVERFLOW;
+    longjmp(jmpbuf, EXE_STACK_OVERFLOW);
   memcpy(ms->sp, &in_value, sizeof(uint32_t));
   ms->sp -= sizeof(uint32_t);
+  stack_print(ms);
   return EXE_OK;
 }
 
@@ -235,26 +223,23 @@ uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
 {
   uint8_t* next_sp = ms->sp + sizeof(uint32_t);
   if(next_sp >= ms->base_addr)
-    return EXE_STACK_UNDERFLOW;
+    longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
   ms->sp += sizeof(uint32_t);
   if(out_value != NULL)
     memcpy(out_value, ms->sp, sizeof(uint32_t));
+  stack_print(ms);
   return EXE_OK;
 }
 
 uint8_t read_byte(uint16_t addr)
 {
-  if (addr >= 0xf801 && addr <= 0xf9ff)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
-  if (addr >= 0xfc00 && addr <= 0xfcff)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
   return bin_buf[addr];
 }
 
 void stack_print(my_stack* ms)
 {
     printf("\n=== STACK DUMP ===\n");
-    printf(" Size: %u bytes\n", ms->size_bytes);
+    // printf(" Size: %u bytes\n", ms->size_bytes);
     printf("  Ptr       |   Hex      |  Dec       | Marker\n");
     printf(" -----------+------------+------------+-------\n");
 
@@ -315,7 +300,13 @@ uint32_t make_uint32(const uint8_t* base_addr)
   memcpy(&result, base_addr, sizeof(result)); 
   return result;
 }
-uint32_t read_u32(uint16_t addr)
+
+void write_uint32_as_4B(uint8_t* bbuf, uint32_t value)
+{
+  memcpy(bbuf, &value, sizeof(uint32_t));
+}
+
+uint32_t memread_u32(uint16_t addr)
 {
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
     return make_uint32(&bin_buf[addr]);
@@ -324,6 +315,16 @@ uint32_t read_u32(uint16_t addr)
   if (addr >= INTERAL_VAR_START_ADDRESS)
     return DUMMY_DATA_REPLACE_ME;
   return DUMMY_DATA_REPLACE_ME;
+}
+
+void memwrite_u32(uint16_t addr, uint32_t value)
+{
+  if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
+  {
+    write_uint32_as_4B(&bin_buf[addr], value);
+    return;
+  }
+  longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
@@ -361,6 +362,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   uint16_t payload = 0;
   exe->next_pc += instruction_size_bytes;
 
+  printf("\n--------------------\n");
   printf("PC: %04d    Opcode: %02d", curr_pc, opcode);
   if(instruction_size_bytes == 3)
   {
@@ -380,6 +382,52 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     stack_push(&data_stack, payload);
   }
+  else if(opcode == OP_PUSHI)
+  {
+    stack_push(&data_stack, memread_u32(payload));
+  }
+  else if(opcode == OP_PUSHR)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_POPI)
+  {
+    uint32_t this_item;
+    stack_pop(&data_stack, &this_item);
+    memwrite_u32(payload, this_item);
+  }
+  else if(opcode == OP_POPR)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_BRZ)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_JMP)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_ALLOC)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_CALL)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_RET)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else if(opcode == OP_HALT)
+  {
+    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+  }
+  else
+  {
+    longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
+  }
 }
 
 void run_dsb(exe_context* er, char* dsb_path)
@@ -398,8 +446,7 @@ void run_dsb(exe_context* er, char* dsb_path)
   printf("DSB size: %d Bytes\n", this_dsb_size);
   printf("Stack size: %d Bytes\n", data_stack_size_bytes);
   stack_init(&data_stack, &bin_buf[STACK_BASE_ADDR], data_stack_size_bytes);
-  // stack_push(&data_stack, 0xff);
-  // stack_print(&data_stack);
+
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
   {

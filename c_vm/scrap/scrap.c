@@ -24,3 +24,30 @@ uint32_t make_uint32(uint8_t* base_addr)
            ((uint32_t)base_addr[2] << 16) |
            ((uint32_t)base_addr[3] << 24);
 }
+
+
+uint8_t read_byte(uint16_t addr)
+{
+  if (addr >= 0xf801 && addr <= 0xf9ff)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  if (addr >= 0xfc00 && addr <= 0xfcff)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  return bin_buf[addr];
+}
+
+
+void memwrite_u32(uint16_t addr, uint32_t value)
+{
+  if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
+  {
+    write_uint32_as_4B(&bin_buf[addr], value);
+    return;
+  }
+  // if (is_pgv(addr))
+  //   return DUMMY_DATA_REPLACE_ME;
+  // if (addr >= INTERAL_VAR_START_ADDRESS)
+  //   return DUMMY_DATA_REPLACE_ME;
+  // return DUMMY_DATA_REPLACE_ME;
+  printf("memwrite_u32: %04x %d\n", addr, value);
+  longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+}
