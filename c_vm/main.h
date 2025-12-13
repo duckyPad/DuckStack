@@ -136,8 +136,7 @@ typedef struct
 
 typedef uint32_t (*FUNC_PTR)(uint32_t, uint32_t);
 
-void stack_print(my_stack* ms);
-
+void stack_print(my_stack* ms, char* comment);
 
 #endif
 

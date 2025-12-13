@@ -215,7 +215,7 @@ uint8_t stack_push(my_stack* ms, uint32_t in_value)
     longjmp(jmpbuf, EXE_STACK_OVERFLOW);
   memcpy(ms->sp, &in_value, sizeof(uint32_t));
   ms->sp -= sizeof(uint32_t);
-  stack_print(ms);
+  stack_print(ms, "AFTER PUSH");
   return EXE_OK;
 }
 
@@ -227,7 +227,7 @@ uint8_t stack_pop(my_stack* ms, uint32_t *out_value)
   ms->sp += sizeof(uint32_t);
   if(out_value != NULL)
     memcpy(out_value, ms->sp, sizeof(uint32_t));
-  stack_print(ms);
+  stack_print(ms, "AFTER POP");
   return EXE_OK;
 }
 
@@ -236,12 +236,12 @@ uint8_t read_byte(uint16_t addr)
   return bin_buf[addr];
 }
 
-void stack_print(my_stack* ms)
+void stack_print(my_stack* ms, char* comment)
 {
-    printf("\n=== STACK DUMP ===\n");
+    printf("\n=== STACK DUMP: %s ===\n", comment);
     // printf(" Size: %u bytes\n", ms->size_bytes);
-    printf("  Ptr       |   Hex      |  Dec       | Marker\n");
-    printf(" -----------+------------+------------+-------\n");
+    printf("       Ptr        |   Hex      |  Dec       | Marker\n");
+    printf(" -----------------+------------+------------+-------\n");
 
     // Start looking from the high address (Base) down to the SP
     // Note: We start at base_addr - 4 because base_addr is the exclusive upper bound
@@ -251,7 +251,7 @@ void stack_print(my_stack* ms)
     if (ms->sp == (ms->base_addr - sizeof(uint32_t))) {
         printf(" [ EMPTY ]\n");
         printf(" %p |            |            | <--- SP (Next Slot)\n", (void*)ms->sp);
-        printf("==================\n\n");
+        printf(" ---------------------------------------------------\n\n");
         return;
     }
 
@@ -281,7 +281,7 @@ void stack_print(my_stack* ms)
 
     // Show where the SP is currently pointing (the next empty slot)
     printf(" %p | [FREESLOT] |            | <--- SP (Next Slot)\n", (void*)ms->sp);
-    printf("==================\n\n");
+    printf(" ---------------------------------------------------\n\n");
 }
 
 uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
@@ -323,6 +323,7 @@ void binop(FUNC_PTR bin_func)
   stack_pop(&data_stack, &rhs);
   stack_pop(&data_stack, &lhs);
   stack_push(&data_stack, bin_func(lhs, rhs));
+  stack_print(&data_stack, "AFTER BINOP");
 }
 
 uint16_t make_uint16(uint8_t b0, uint8_t b1)
