@@ -8,8 +8,7 @@
 //--------------
 
 #define EXE_BIN_START_ADDRESS 0x0
-// nearest 4-byte aligned base addr to 0xf7ff
-#define STACK_BASE_ADDR 0xf7fc
+#define STACK_BASE_ADDR 0xf7ff
 #define STACK_MOAT_BYTES 32
 
 #define MIN_STACK_SIZE_BYTES  512

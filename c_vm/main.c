@@ -214,8 +214,9 @@ my_stack data_stack;
 
 void stack_init(my_stack* ms, uint8_t* base_addr, uint16_t size_bytes)
 {
-  ms->base_addr = base_addr;
-  ms->sp = base_addr - sizeof(uint32_t);
+  uintptr_t aligned_addr = (uintptr_t)base_addr & ~(uintptr_t)0x03;
+  ms->base_addr = (uint8_t*)aligned_addr;
+  ms->sp = ms->base_addr - sizeof(uint32_t);
   ms->size_bytes = size_bytes;
   ms->lower_bound = ms->base_addr - ms->size_bytes;
   memset(ms->lower_bound, 0, size_bytes);
@@ -397,8 +398,8 @@ void run_dsb(exe_context* er, char* dsb_path)
   printf("DSB size: %d Bytes\n", this_dsb_size);
   printf("Stack size: %d Bytes\n", data_stack_size_bytes);
   stack_init(&data_stack, &bin_buf[STACK_BASE_ADDR], data_stack_size_bytes);
-  stack_push(&data_stack, 0xff);
-  stack_print(&data_stack);
+  // stack_push(&data_stack, 0xff);
+  // stack_print(&data_stack);
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
   {
