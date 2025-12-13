@@ -1,17 +1,5 @@
-FUNCTION factorial(n)
-    IF n <= 1 THEN
-        RETURN 1
-    END_IF
-    VAR prev = n - 1
-    VAR sub_res = factorial(prev)
-    RETURN n * sub_res
+FUNCTION test(wtf, b, c, d)
+    VAR what = 90
+    STRINGLN Args: $wtf, $b, $c, $d, $what
 END_FUNCTION
-STRINGLN Starting Recursion Test...
-VAR input = 5
-VAR result = factorial(input)
-STRINGLN Factorial of $input is: $result
-IF result == 120 THEN
-    STRINGLN SUCCESS: Stack unwound correctly.
-ELSE
-    STRINGLN FAILURE: Result mismatch.
-END_IF
+VAR hello = test(10, 20, 30, 40)

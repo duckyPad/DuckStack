@@ -274,7 +274,8 @@ void stack_read_fp_rel(my_stack* ms, int16_t offset, uint32_t* value)
 
 void stack_print(my_stack* ms, char* comment)
 {
-  return;
+  if(PRINT_DEBUG == 0)
+    return;
   printf("\n=== STACK STATE: %s ===\n", comment);
   printf("------------------------\n");
 
@@ -519,6 +520,22 @@ char* make_str(uint16_t str_start_addr, uint8_t kid)
       strcat(read_buffer, make_str_buf);
       continue;
     }
+    if(this_char == MAKESTR_VAR_BOUNDARY_REL)
+    {
+      curr_addr++;
+      lsb = read_byte(curr_addr);
+      curr_addr++;
+      msb = read_byte(curr_addr);
+      curr_addr++;
+      curr_addr++;
+      int16_t fp_offset = (int16_t)make_uint16(lsb, msb);
+      uint32_t var_value;
+      stack_read_fp_rel(&data_stack, fp_offset, &var_value);
+      memset(make_str_buf, 0, STR_BUF_SIZE);
+      my_snprintf_int_only(make_str_buf, STR_BUF_SIZE, var_value, str_print_format, str_print_padding);
+      strcat(read_buffer, make_str_buf);
+      continue;
+    }
     memset(make_str_buf, 0, STR_BUF_SIZE);
     sprintf(make_str_buf, "%c", this_char);
     strcat(read_buffer, make_str_buf);
@@ -534,15 +551,14 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   uint16_t payload = 0;
   exe->next_pc += instruction_size_bytes;
 
-  printf("\n--------------------\n");
-  printf("PC: %04d    Opcode: %02d", curr_pc, opcode);
+  
   if(instruction_size_bytes == 3)
-  {
     payload = make_uint16(read_byte(curr_pc+1), read_byte(curr_pc+2));
-    printf("    Payload: %04x\n", payload);
-  }
-  else
+    
+  if(PRINT_DEBUG)
   {
+    printf("\n--------------------\n");
+    printf("PC: %04d    Opcode: %02d    Payload: %04x", curr_pc, opcode, payload);
     printf("\n");
   }
 
@@ -776,7 +792,7 @@ void run_dsb(exe_context* er, char* dsb_path)
     if(current_pc > this_dsb_size)
       break;
   }
-  printf("Execution Completed Without Error\n");
+  printf("Execution Completed\n");
 }
 
 exe_context execon;

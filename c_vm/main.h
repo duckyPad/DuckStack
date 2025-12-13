@@ -143,5 +143,7 @@ typedef uint32_t (*FUNC_PTR_UNARY)(uint32_t);
 
 void stack_print(my_stack* ms, char* comment);
 
+#define PRINT_DEBUG 0
+
 #endif
 

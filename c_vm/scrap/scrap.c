@@ -78,3 +78,13 @@ END_FUNCTION
 VAR result = addargs(5, 10, 15)
 
 STRING result is: $result
+
+
+get_partial_varname_addr
+
+FUNCTION test(wtf, b, c, d)
+    VAR what = 90
+    STRINGLN Args: $wtf, $b, $c, $d, $what
+END_FUNCTION
+
+VAR hello = test(10, 20, 30, 40)
