@@ -5,4 +5,4 @@ FUNCTION test(a, b, c, d)
     VAR zzz  = 90
 END_FUNCTION
 
-VAR hello = test(10, 20, 30, 99)
+VAR hello = test(10, 20, 30, 40)

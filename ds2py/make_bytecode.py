@@ -409,6 +409,9 @@ def compile_to_bin(rdict):
     for index, item in enumerate(sorted([x.name for x in rdict['var_info_set'] if x.type is SymType.GLOBAL_VAR])):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
 
+    if len(user_declared_global_var_addr_lookup) > MAX_UDV_COUNT:
+        raise ValueError("Too many user-declared variables")
+
     # print(rdict['var_info_set'])
     print("\n--------- Global Variables ---------")
     print(user_declared_global_var_addr_lookup)
