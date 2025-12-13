@@ -122,6 +122,10 @@ extern uint8_t str_print_padding;
 
 #define NEOPIXEL_COUNT 20
 
+#define MAKESTR_VAR_BOUNDARY_IMM (0x1f)
+#define MAKESTR_VAR_BOUNDARY_REL (0x1e)
+
+
 /*
   Stack grows from larger address to smaller address
   SP points to next available slot

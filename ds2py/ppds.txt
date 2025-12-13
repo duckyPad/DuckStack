@@ -1,3 +1,4 @@
 VAR foo = 1
 VAR bar = 5
 VAR spam = 2*foo+bar
+STRING spam is: $spam

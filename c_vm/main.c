@@ -21,6 +21,7 @@ uint32_t pgv_buf[PGV_COUNT];
 int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
 static jmp_buf jmpbuf;
+uint8_t this_key_id = 127;
 
 // ---------------------------
 
@@ -397,6 +398,85 @@ uint8_t inst_size_lookup(uint8_t opcode)
   return opcode_len_lookup[opcode];
 }
 
+void my_snprintf_int_only(char* buf, uint8_t buf_size,
+                         uint32_t value,
+                         uint8_t print_format,
+                         uint8_t precision)
+{
+  if (buf == NULL || buf_size <= 2)
+    return;
+
+  memset(buf, 0, buf_size);
+
+  if (precision == 0 && value == 0)
+  {
+    buf[0] = '0';
+    return;
+  }
+
+  if(precision > 8)
+    precision = 8;
+
+  switch (print_format)
+  {
+    case STR_PRINT_FORMAT_DEC_UNSIGNED:
+      snprintf(buf, buf_size, "%.*u", (int)precision, (unsigned int)value);
+      break;
+
+    case STR_PRINT_FORMAT_DEC_SIGNED:
+      snprintf(buf, buf_size, "%.*d", (int)precision, (int)value);
+      break;
+
+    case STR_PRINT_FORMAT_HEX_LOWER_CASE:
+      snprintf(buf, buf_size, "%.*x", (int)precision, (unsigned int)value);
+      break;
+
+    case STR_PRINT_FORMAT_HEX_UPPER_CASE:
+      snprintf(buf, buf_size, "%.*X", (int)precision, (unsigned int)value);
+      break;
+  }
+  buf[buf_size - 1] = '\0';
+}
+
+#define STR_BUF_SIZE 32
+char make_str_buf[STR_BUF_SIZE];
+#define READ_BUF_SIZE (256 * 5)
+char read_buffer[READ_BUF_SIZE];
+
+char* make_str(uint16_t str_start_addr, uint8_t kid)
+{
+  uint16_t curr_addr = str_start_addr;
+  uint8_t this_char, lsb, msb;
+  memset(read_buffer, 0, READ_BUF_SIZE);
+  while(1)
+  {
+    this_char = read_byte(curr_addr);
+    if(this_char == 0)
+      break;
+
+    if(this_char == MAKESTR_VAR_BOUNDARY_IMM)
+    {
+      curr_addr++;
+      lsb = read_byte(curr_addr);
+      curr_addr++;
+      msb = read_byte(curr_addr);
+      curr_addr++;
+      curr_addr++;
+      uint16_t var_addr = make_uint16(lsb, msb);
+      uint32_t var_value = memread_u32(var_addr);
+      memset(make_str_buf, 0, STR_BUF_SIZE);
+      my_snprintf_int_only(make_str_buf, STR_BUF_SIZE, var_value, str_print_format, str_print_padding);
+      strcat(read_buffer, make_str_buf);
+      continue;
+    }
+    memset(make_str_buf, 0, STR_BUF_SIZE);
+    sprintf(make_str_buf, "%c", this_char);
+    strcat(read_buffer, make_str_buf);
+    curr_addr++;
+  }
+  return read_buffer;
+}
+
 void execute_instruction(uint16_t curr_pc, exe_context* exe)
 {
   uint8_t opcode = read_byte(curr_pc);
@@ -542,9 +622,23 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     binop(binop_logical_or);
   }
+  else if(opcode == OP_STR)
+  {
+    uint32_t this_item;
+    stack_pop(&data_stack, &this_item);
+    char* str_buf = make_str((uint16_t)this_item, this_key_id);
+    printf(">>>>> STRING: %s\n", str_buf);
+  }
+  else if(opcode == OP_STRLN)
+  {
+    uint32_t this_item;
+    stack_pop(&data_stack, &this_item);
+    char* str_buf = make_str((uint16_t)this_item, this_key_id);
+    printf(">>>>> STRINGLN: %s\n", str_buf);
+  }
   else
   {
-    longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
   }
 }
 
@@ -581,7 +675,7 @@ void run_dsb(exe_context* er, char* dsb_path)
     if(current_pc > this_dsb_size)
       break;
   }
-  printf("execution done\n");
+  printf("Execution Completed Without Error\n");
 }
 
 exe_context execon;
