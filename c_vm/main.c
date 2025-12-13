@@ -284,6 +284,47 @@ void stack_print(my_stack* ms)
     printf("==================\n\n");
 }
 
+uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
+uint32_t binop_not_equal(uint32_t a, uint32_t b) {return a != b;}
+uint32_t binop_lower(uint32_t a, uint32_t b) {return a < b;}
+uint32_t binop_lower_eq(uint32_t a, uint32_t b) {return a <= b;}
+uint32_t binop_greater(uint32_t a, uint32_t b) {return a > b;}
+uint32_t binop_greater_eq(uint32_t a, uint32_t b) {return a >= b;}
+uint32_t binop_add(uint32_t a, uint32_t b) {return a + b;}
+uint32_t binop_sub(uint32_t a, uint32_t b) {return a - b;}
+uint32_t binop_mul(uint32_t a, uint32_t b) {return a * b;}
+uint32_t binop_mod(uint32_t a, uint32_t b) {return a % b;}
+uint32_t binop_lshift(uint32_t a, uint32_t b) {return a << b;}
+uint32_t binop_rshift(uint32_t a, uint32_t b) {return a >> b;}
+uint32_t binop_bitwise_or(uint32_t a, uint32_t b) {return a | b;}
+uint32_t binop_bitwise_xor(uint32_t a, uint32_t b) {return a ^ b;}
+uint32_t binop_bitwise_and(uint32_t a, uint32_t b) {return a & b;}
+uint32_t binop_logical_and(uint32_t a, uint32_t b) {return a && b;}
+uint32_t binop_logical_or(uint32_t a, uint32_t b) {return a || b;}
+
+uint32_t binop_divide(uint32_t a, uint32_t b)
+{
+  if(b == 0)
+    longjmp(jmpbuf, EXE_DIVISION_BY_ZERO);
+  return a/b;
+}
+
+uint32_t binop_power(uint32_t x, uint32_t exponent)
+{
+  uint32_t result = 1;
+  for (int i = 0; i < exponent; ++i)
+    result *= x;
+  return result;
+}
+
+void binop(FUNC_PTR bin_func)
+{
+  uint32_t rhs, lhs;
+  stack_pop(&data_stack, &rhs);
+  stack_pop(&data_stack, &lhs);
+  stack_push(&data_stack, bin_func(lhs, rhs));
+}
+
 uint16_t make_uint16(uint8_t b0, uint8_t b1)
 {
   return b0 | (b1 << 8);
@@ -388,7 +429,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_PUSHR)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_POPI)
   {
@@ -398,31 +439,107 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_POPR)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_BRZ)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_JMP)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_ALLOC)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_CALL)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_RET)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_UNIMPLEMENTED);
   }
   else if(opcode == OP_HALT)
   {
-    longjmp(jmpbuf, EXE_UNIMPLEMENTED);
+    exe->result = EXE_HALT;
+  }
+  else if(opcode == OP_EQ)
+  {
+    binop(binop_equal);
+  }
+  else if(opcode == OP_NOTEQ)
+  {
+    binop(binop_not_equal);
+  }
+  else if(opcode == OP_LT)
+  {
+    binop(binop_lower);
+  }
+  else if(opcode == OP_LTE)
+  {
+    binop(binop_lower_eq);
+  }
+  else if(opcode == OP_GT)
+  {
+    binop(binop_greater);
+  }
+  else if(opcode == OP_GTE)
+  {
+    binop(binop_greater_eq);
+  }
+  else if(opcode == OP_ADD)
+  {
+    binop(binop_add);
+  }
+  else if(opcode == OP_SUB)
+  {
+    binop(binop_sub);
+  }
+  else if(opcode == OP_MULT)
+  {
+    binop(binop_mul);
+  }
+  else if(opcode == OP_DIV)
+  {
+    binop(binop_divide);
+  }
+  else if(opcode == OP_MOD)
+  {
+    binop(binop_mod);
+  }
+  else if(opcode == OP_POW)
+  {
+    binop(binop_power);
+  }
+  else if(opcode == OP_LSHIFT)
+  {
+    binop(binop_lshift);
+  }
+  else if(opcode == OP_RSHIFT)
+  {
+    binop(binop_rshift);
+  }
+  else if(opcode == OP_BITOR)
+  {
+    binop(binop_bitwise_or);
+  }
+  else if(opcode == OP_BITXOR)
+  {
+    binop(binop_bitwise_xor);
+  }
+  else if(opcode == OP_BITAND)
+  {
+    binop(binop_bitwise_and);
+  }
+  else if(opcode == OP_LOGIAND)
+  {
+    binop(binop_logical_and);
+  }
+  else if(opcode == OP_LOGIOR)
+  {
+    binop(binop_logical_or);
   }
   else
   {
@@ -458,6 +575,8 @@ void run_dsb(exe_context* er, char* dsb_path)
   {
     execute_instruction(current_pc, er);
     current_pc = er->next_pc;
+    if(er->result != EXE_OK)
+      break;
     if(current_pc > this_dsb_size)
       break;
   }

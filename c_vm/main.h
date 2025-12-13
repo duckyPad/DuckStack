@@ -134,6 +134,8 @@ typedef struct
   uint16_t size_bytes;
 } my_stack;
 
+typedef uint32_t (*FUNC_PTR)(uint32_t, uint32_t);
+
 void stack_print(my_stack* ms);
 
 
