@@ -15,7 +15,6 @@ uint32_t loop_size;
 uint8_t epilogue_actions;
 uint8_t allow_abort;
 uint8_t kb_led_status;
-uint8_t last_stack_op_result;
 uint8_t disable_autorepeat;
 uint32_t pgv_buf[PGV_COUNT];
 int16_t utc_offset_minutes;
@@ -306,13 +305,25 @@ uint32_t binop_power(uint32_t x, uint32_t exponent)
   return result;
 }
 
-void binop(FUNC_PTR bin_func)
+uint32_t unaop_bit_inv(uint32_t value) {return ~value;}
+uint32_t unaop_logical_not(uint32_t value) {return !value;}
+uint32_t unaop_usub(uint32_t value) {return value * -1;}
+
+void binop(FUNC_PTR_BINOP bin_func)
 {
   uint32_t rhs, lhs;
   stack_pop(&data_stack, &rhs);
   stack_pop(&data_stack, &lhs);
   stack_push(&data_stack, bin_func(lhs, rhs));
   stack_print(&data_stack, "AFTER BINOP");
+}
+
+void unaryop(FUNC_PTR_UNARY una_func)
+{
+  uint32_t value;
+  stack_pop(&data_stack, &value);
+  stack_push(&data_stack, una_func(value));
+  stack_print(&data_stack, "AFTER UNAOP");
 }
 
 uint16_t make_uint16(uint8_t b0, uint8_t b1)
@@ -615,6 +626,18 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     binop(binop_logical_or);
   }
+  else if(opcode == OP_BITINV)
+  {
+    unaryop(unaop_bit_inv);
+  }
+  else if(opcode == OP_LOGINOT)
+  {
+    unaryop(unaop_logical_not);
+  }
+  else if(opcode == OP_USUB)
+  {
+    unaryop(unaop_usub);
+  }  
   else if(opcode == OP_STR)
   {
     uint32_t this_item;

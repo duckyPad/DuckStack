@@ -1,2 +1,3 @@
-VAR spam = 42%9
-STRING spam is: $spam
+VAR result = ~255
+
+STRING $result

@@ -1,2 +1,2 @@
-spam = 42%9
-STRING('spam is: $spam')
+result = ~255
+STRING('$result')

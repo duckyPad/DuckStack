@@ -51,3 +51,12 @@ void memwrite_u32(uint16_t addr, uint32_t value)
   printf("memwrite_u32: %04x %d\n", addr, value);
   longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
+
+FUNCTION add2(a, b)
+    RETURN a+b
+END_FUNCTION
+
+
+
+VAR result = add2(5, 10)
+
