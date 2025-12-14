@@ -627,7 +627,7 @@ char make_str_buf[STR_BUF_SIZE];
 #define READ_BUF_SIZE (256 * 5)
 char read_buffer[READ_BUF_SIZE];
 
-char* make_str(uint16_t str_start_addr, uint8_t kid)
+char* make_str(uint16_t str_start_addr)
 {
   uint16_t curr_addr = str_start_addr;
   uint8_t this_char, lsb, msb;
@@ -929,14 +929,14 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
-    char* str_buf = make_str((uint16_t)this_value, current_key_id);
+    char* str_buf = make_str((uint16_t)this_value);
     printf(">>>>> STRING: %s\n", str_buf);
   }
   else if(opcode == OP_STRLN)
   {
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
-    char* str_buf = make_str((uint16_t)this_value, current_key_id);
+    char* str_buf = make_str((uint16_t)this_value);
     printf(">>>>> STRINGLN: %s\n", str_buf);
   }
   else if(opcode == OP_OLED_CUSR)
@@ -950,7 +950,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
-    char* str_buf = make_str((uint16_t)this_value, current_key_id);
+    char* str_buf = make_str((uint16_t)this_value);
     printf(">>>>> OLED_PRINT: %s\n", str_buf);
   }
   else if(opcode == OP_OLED_UPDE)
@@ -1007,11 +1007,10 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   }
   else if(opcode == OP_GOTOP)
   {
-    // this should goto profile by name!
-    // treat this as str command
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
-    printf("OP_GOTOP: %d\n", this_value);
+    char* str_buf = make_str((uint16_t)this_value);
+    printf("OP_GOTOP: %s\n", str_buf);
   }
   else if(opcode == OP_SLEEP)
   {
