@@ -145,10 +145,10 @@ Binary as in **involving two operands**.
 |SWCF|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
 |SWCC|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
 |SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop **ONE** item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
-|STR|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated string at `ADDR`|None||
-|STRLN|`73`/`0x49`|**Type Line**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated string at `ADDR`<br>**Press ENTER at end**|
+|STR|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`|None||
+|STRLN|`73`/`0x49`|**Type Line**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`<br>**Press ENTER at end**|
 |OLED_CUSR|`74`/`0x4a`|**OLED Set Cursor**<br>Pop **TWO** items: `x` then `y`||
-|OLED_PRNT|`75`/`0x4b`|**OLED Print**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated string at `ADDR` to OLED|None|
+|OLED_PRNT|`75`/`0x4b`|**OLED Print**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED|None|
 |OLED_UPDE|`76`/`0x4c`|**OLED Update**|
 |OLED_CLR|`77`/`0x4d`|**OLED Clear**|
 |OLED_REST|`78`/`0x4e`| **OLED Restore**|
@@ -158,7 +158,7 @@ Binary as in **involving two operands**.
 |BCLR|`82`/`0x52`|**Clear switch event queue**|
 |PREVP|`83`/`0x53`| **Previous profile**|
 |NEXTP|`84`/`0x54`| **Next profile**|
-|GOTOP|`85`/`0x55`| **Goto Profile**<br>Pop **ONE** item **`n`**<br>Go to **`n-th`** profile|
+|GOTOP|`85`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Go to profile name as<br>zero-terminated string at `ADDR`|
 |SLEEP|`86`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
 
 ## Calling Convention
