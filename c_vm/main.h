@@ -90,6 +90,7 @@
 #define _UNUSED (INTERAL_VAR_START_ADDRESS + 32 * INTERAL_VAR_BYTE_WIDTH)
 
 #define DUMMY_DATA_REPLACE_ME 69
+
 typedef struct
 {
   uint8_t result;

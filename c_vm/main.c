@@ -7,9 +7,9 @@
 uint8_t str_print_format;
 uint8_t str_print_padding;
 uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4)));
-uint32_t defaultdelay_value;
-uint32_t defaultchardelay_value;
-uint32_t charjitter_value;
+uint32_t defaultdelay;
+uint32_t defaultchardelay;
+uint32_t charjitter;
 uint32_t rand_min, rand_max;
 uint32_t loop_size;
 uint8_t epilogue_actions;
@@ -391,7 +391,7 @@ uint8_t get_gv_index(uint16_t addr)
   return gv_index;
 }
 
-uint8_t is_pgv(uint16_t addr)
+uint8_t (is_pgv(uint16_t addr))
 {
   return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
 }
@@ -412,14 +412,14 @@ uint32_t memread_u32(uint16_t addr)
 {
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
     return make_uint32(&bin_buf[addr]);
-  if (is_pgv(addr))
+  if ((is_pgv(addr)))
     return pgv_buf[get_gv_index(addr)];
   if (addr == _DEFAULTDELAY)
-	  return defaultdelay_value;
+	  return defaultdelay;
   if (addr == _DEFAULTCHARDELAY)
-    return defaultchardelay_value;
+    return defaultchardelay;
   if (addr == _CHARJITTER)
-    return charjitter_value;
+    return charjitter;
   if (addr == _RANDOM_MIN)
     return rand_min;
   if (addr == _RANDOM_MAX)
@@ -486,11 +486,33 @@ uint32_t memread_u32(uint16_t addr)
 void memwrite_u32(uint16_t addr, uint32_t value)
 {
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
-  {
     write_uint32_as_4B(&bin_buf[addr], value);
-    return;
-  }
-  longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  else if (is_pgv(addr))
+    pgv_buf[get_gv_index(addr)] = value;
+  else if (addr == _DEFAULTDELAY)
+	  defaultdelay = value;
+  else if (addr == _DEFAULTCHARDELAY)
+    defaultchardelay = value;
+  else if (addr == _CHARJITTER)
+    charjitter = value;
+  else if (addr == _RANDOM_MIN)
+    rand_min = value;
+  else if (addr == _RANDOM_MAX)
+    rand_max = value;
+  else if (addr == _KEYPRESS_COUNT)
+    DUMMY_DATA_REPLACE_ME;
+  else if (addr == _NEEDS_EPILOGUE)
+    epilogue_actions = value;
+  else if (addr == _ALLOW_ABORT)
+    allow_abort = value;
+  else if (addr == _DONT_REPEAT)
+    disable_autorepeat = value;
+  else if (addr == _RTC_UTC_OFFSET)
+    utc_offset_minutes = value;
+  else if (addr == _STR_PRINT_FORMAT)
+    str_print_format = value;
+  else if (addr == _STR_PRINT_PADDING)
+    str_print_padding = value;
 }
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
