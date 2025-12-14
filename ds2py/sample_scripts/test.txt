@@ -1,140 +1,152 @@
 REM_BLOCK
     DuckStack Compiler Torture Test
-    v1.0
-    
-    Target: Bytecode VM
-    Goals: Test Preprocessor, Stack Frames, Recursion, and Hardware Ops
+    Target: 32-bit VM
+    Features: Recursion, Bitwise, Scoping, IO, Math modes
 END_REM
 
-// ---------------------------------------------------------
-// 1. PREPROCESSOR & CONSTANTS
-// ---------------------------------------------------------
-DEFINE MAX_LOOPS 5
-DEFINE TARGET_SCORE 100
-DEFINE ERROR_MSG Error occurred
+// ==========================================
+// 1. Preprocessor & Constants
+// ==========================================
+DEFINE MAX_COUNT 5
+DEFINE TARGET_EMAIL admin@example.com
 
-STRINGLN Starting Test...
-STRINGLN Constant Check: MAX_LOOPS (Should be 5)
+// ==========================================
+// 2. Global Variable Initialization
+// ==========================================
+VAR g_counter = 0
+VAR g_result = 0
+VAR g_shadow_me = 9999
+VAR g_flags = 0
 
-// ---------------------------------------------------------
-// 2. VARIABLES & ARITHMETIC (Expression Parsing)
-// ---------------------------------------------------------
-VAR a = 10
-VAR b = 20
-VAR result = 0
+// ==========================================
+// 3. Function Definitions
+// ==========================================
 
-// Test precedence: 10 + (20 * 2) = 50. If 60, precedence is broken.
-result = a + b * 2 
-STRINGLN Math Precedence Result: $result
-
-// Test signed integers
-VAR negative = -50
-VAR positive = 25
-VAR signed_res = negative + positive
-STRINGLN Signed Math (-25): $signed_res
-
-// Test Bitwise and Logical
-VAR flags = 1         // 0001
-flags = flags << 2    // 0100 (4)
-flags = flags | 1     // 0101 (5)
-STRINGLN Bitwise Ops (5): $flags
-
-// ---------------------------------------------------------
-// 3. CONTROL FLOW (Loops & Conditionals)
-// ---------------------------------------------------------
-VAR i = 0
-
-STRINGLN_BLOCK
-Testing While Loop
-Expect 0, 1, skip 2, 3, 4
-END_STRINGLN
-
-WHILE i < MAX_LOOPS
-    // Test IF and CONTINUE
-    IF i == 2 THEN
-        STRINGLN Skipping Two...
-        i = i + 1
-        CONTINUE
-    END_IF
-
-    // Test BREAK
-    IF i == 10 THEN
-        LBREAK
-    END_IF
-
-    STRINGLN Loop Index: $i
-    i = i + 1
-END_WHILE
-
-// ---------------------------------------------------------
-// 4. FUNCTIONS & SCOPE (Stack Frame Management)
-// ---------------------------------------------------------
-// This tests if you are calculating FP offsets correctly for
-// arguments (positive offset) vs locals (negative offset).
-
-VAR global_var = 999
-
-FUNCTION scope_test(arg1, arg2)
-    // Shadowing global variable with a local one
-    VAR global_var = 1 
+// Function 1: Math & Local Scoping
+// Tests argument passing and local variable shadowing
+FUNCTION math_calc(a, b)
+    VAR local_res = 0
     
-    // Complex expression with args and locals
-    VAR local_sum = arg1 + arg2 + global_var
+    // Complex expression order of operations
+    local_res = (a * 2) + (b / 2) - (a % 3)
     
-    STRINGLN Inside Func - Local Shadow: $global_var
-    STRINGLN Inside Func - Arg Sum: $local_sum
+    // Test Shadowing: This should NOT affect g_shadow_me
+    VAR g_shadow_me = 1 
+    local_res = local_res + g_shadow_me
     
-    // Return value
-    RETURN local_sum
+    RETURN local_res
 END_FUNCTION
 
-STRINGLN --- Calling Scope Test (10, 20) ---
-VAR func_res = scope_test(10, 20)
-STRINGLN Returned Value (31): $func_res
-STRINGLN Global Var Unchanged (999): $global_var
-
-// ---------------------------------------------------------
-// 5. RECURSION (Stack Overflow/Unwinding Test)
-// ---------------------------------------------------------
+// Function 2: Recursion
+// Tests stack frame management (ALLOC, CALL, RET)
 FUNCTION factorial(n)
     IF n <= 1 THEN
         RETURN 1
     END_IF
     
-    VAR sub_result = factorial(n - 1)
-    RETURN n * sub_result
+    VAR temp = 0
+    // Recursive call
+    temp = factorial(n - 1)
+    
+    RETURN n * temp
 END_FUNCTION
 
-VAR fact_input = 5
-VAR fact_res = factorial(fact_input)
-STRINGLN Factorial of 5 (120): $fact_res
+// ==========================================
+// 4. Main Execution Logic
+// ==========================================
 
-// ---------------------------------------------------------
-// 6. HARDWARE & VM SPECIFIC
-// ---------------------------------------------------------
-// Test Reserved Variables
-_RANDOM_MIN = 1
-_RANDOM_MAX = 10
-VAR rng = _RANDOM_INT
-STRINGLN Random Number (1-10): $rng
+STRINGLN_BLOCK
+Starting System Test...
+Checking Math...
+END_STRINGLN
 
-// Test Print Formatting (Hex Output)
-_STR_PRINT_FORMAT = 2
-VAR hex_val = 255
-STRINGLN Hex ff: $hex_val
-_STR_PRINT_FORMAT = 0 // Reset
+// --- Math & Function Call Test ---
+// Expected: (10*2) + (20/2) - (10%3) + 1 = 20 + 10 - 1 + 1 = 30
+g_result = math_calc(10, 20)
 
-// Test Key Presses & Repeats
-STRING Testing Repeats...
-REPEAT 3
+IF g_result == 30 THEN
+    STRINGLN [PASS] Math & Scoping
+ELSE
+    STRINGLN [FAIL] Math & Scoping: Got $g_result
+END_IF
 
-// Test Mouse (Move Right 100, Up 50)
-MOUSE_MOVE 100 50
-DELAY 50
+// --- Global Variable Integrity Test ---
+IF g_shadow_me == 9999 THEN
+    STRINGLN [PASS] Global Shadowing Integrity
+ELSE
+    STRINGLN [FAIL] Global Shadowing: Var clobbered!
+END_IF
 
-// Test OLED Graphics (if supported by your implementation)
+// --- Recursion Test ---
+// Factorial of 5 = 120
+g_result = factorial(MAX_COUNT) 
+STRINGLN Factorial of MAX_COUNT is: $g_result
+
+// --- Bitwise & Logic Operations ---
+// Test shifts and logical operators
+VAR bit_val = 1
+bit_val = bit_val << 4      // 16
+bit_val = bit_val | 1       // 17 (0001 0001)
+bit_val = bit_val & 240     // 17 & 1111 0000 = 16
+
+IF bit_val == 16 && g_shadow_me > 0 THEN
+    STRINGLN [PASS] Bitwise Logic
+END_IF
+
+// --- Loop & Control Flow ---
+STRINGLN Starting Loop Test...
+VAR i = 0
+WHILE TRUE
+    i = i + 1
+    
+    // Test CONTINUE
+    IF i == 2 THEN
+        STRINGLN - Skipping 2
+        CONTINUE
+    END_IF
+    
+    STRINGLN - Count: $i
+    
+    // Test LBREAK
+    IF i >= 4 THEN
+        LBREAK
+    END_IF
+END_WHILE
+
+// --- Hardware & IO Stress ---
+STRINGLN Testing IO...
+
+// Mouse geometry
+MOUSE_MOVE 100 -50
+DELAY 100
+MOUSE_MOVE -100 50
+MOUSE_WHEEL 2
+
+// Key combos
+KEYDOWN CTRL
+STRING c
+KEYUP CTRL
+
+// OLED Graphics (if supported by hardware)
 OLED_CLEAR
-OLED_RECT 1 0 0 128 64
+OLED_RECT 1 0 0 32 32
+OLED_CIRCLE 0 5 16 16
+OLED_PRINT Done.
 OLED_UPDATE
 
-STRINGLN Tests Complete.
+// --- Formatting & VM Settings ---
+// Test Hex printing
+_STR_PRINT_FORMAT = 3 // Hex Uppercase
+_STR_PRINT_PADDING = 4
+STRINGLN Hex check (Should be 001E): $g_result
+
+// Test Unsigned Math Toggle
+_UNSIGNED_MATH = 1
+VAR neg_check = 0 - 1
+STRINGLN Unsigned -1 is: $neg_check
+_UNSIGNED_MATH = 0
+
+STRINGLN_BLOCK
+Test Complete.
+Sending Report to TARGET_EMAIL...
+END_STRINGLN

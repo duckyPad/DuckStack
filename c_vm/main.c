@@ -1009,6 +1009,9 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     // this should goto profile by name!
     // treat this as str command
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    printf("OP_GOTOP: %d\n", this_value);
   }
   else if(opcode == OP_SLEEP)
   {

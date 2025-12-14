@@ -1,64 +1,67 @@
-STRINGLN('Starting Test...')
-STRINGLN('Constant Check: 5 (Should be 5)')
-a = 10
-b = 20
-result = 0
-result = a + b * 2 
-STRINGLN('Math Precedence Result: $result')
-negative = -50
-positive = 25
-signed_res = negative + positive
-STRINGLN('Signed Math (-25): $signed_res')
-flags = 1
-flags = flags << 2
-flags = flags | 1
-STRINGLN('Bitwise Ops (5): $flags')
-i = 0
-STRINGLN('Testing While Loop')
-STRINGLN('Expect 0, 1, skip 2, 3, 4')
-while i < 5:
-    if i == 2:
-        STRINGLN('Skipping Two...')
-        i = i + 1
-        continue
-    if i == 10:
-        break
-    STRINGLN('Loop Index: $i')
-    i = i + 1
-global_var = 999
-def scope_test(arg1, arg2):
-    global_var = 1
-    local_sum = arg1 + arg2 + global_var
-    STRINGLN('Inside Func - Local Shadow: $global_var')
-    STRINGLN('Inside Func - Arg Sum: $local_sum')
-    return local_sum
-STRINGLN('--- Calling Scope Test (10, 20) ---')
-func_res = scope_test(10, 20)
-STRINGLN('Returned Value (31): $func_res')
-STRINGLN('Global Var Unchanged (999): $global_var')
+g_counter = 0
+g_result = 0
+g_shadow_me = 9999
+g_flags = 0
+def math_calc(a, b):
+    local_res = 0
+    local_res = (a * 2) + (b / 2) - (a % 3)
+    g_shadow_me = 1
+    local_res = local_res + g_shadow_me
+    return local_res
 def factorial(n):
     if n <= 1:
         return 1
-    sub_result = factorial(n - 1)
-    return n * sub_result
-fact_input = 5
-fact_res = factorial(fact_input)
-STRINGLN('Factorial of 5 (120): $fact_res')
-_RANDOM_MIN = 1
-_RANDOM_MAX = 10
-rng = _RANDOM_INT
-STRINGLN('Random Number (1-10): $rng')
-_STR_PRINT_FORMAT = 2
-hex_val = 255
-STRINGLN('Hex ff: $hex_val')
-_STR_PRINT_FORMAT = 0
-STRING('Testing Repeats...')
-STRING('Testing Repeats...')
-STRING('Testing Repeats...')
-STRING('Testing Repeats...')
-MOUSE_MOVE(100, 50)
-DELAY(50)
+    temp = 0
+    temp = factorial(n - 1)
+    return n * temp
+STRINGLN('Starting System Test...')
+STRINGLN('Checking Math...')
+g_result = math_calc(10, 20)
+if g_result == 30:
+    STRINGLN('[PASS] Math & Scoping')
+else:
+    STRINGLN('[FAIL] Math & Scoping: Got $g_result')
+if g_shadow_me == 9999:
+    STRINGLN('[PASS] Global Shadowing Integrity')
+else:
+    STRINGLN('[FAIL] Global Shadowing: Var clobbered!')
+g_result = factorial(5) 
+STRINGLN('Factorial of 5 is: $g_result')
+bit_val = 1
+bit_val = bit_val << 4
+bit_val = bit_val | 1
+bit_val = bit_val & 240
+if bit_val == 16  and  g_shadow_me > 0:
+    STRINGLN('[PASS] Bitwise Logic')
+STRINGLN('Starting Loop Test...')
+i = 0
+while 1:
+    i = i + 1
+    if i == 2:
+        STRINGLN('- Skipping 2')
+        continue
+    STRINGLN('- Count: $i')
+    if i >= 4:
+        break
+STRINGLN('Testing IO...')
+MOUSE_MOVE(100, -50)
+DELAY(100)
+MOUSE_MOVE(-100, 50)
+MOUSE_WHEEL(2)
+KEYDOWN('CTRL')
+STRING('c')
+KEYUP('CTRL')
 OLED_CLEAR()
-OLED_RECT(1, 0, 0, 128, 64)
+OLED_RECT(1, 0, 0, 32, 32)
+OLED_CIRCLE(0, 5, 16, 16)
+OLED_PRINT('Done.')
 OLED_UPDATE()
-STRINGLN('Tests Complete.')
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 4
+STRINGLN('Hex check (Should be 001E): $g_result')
+_UNSIGNED_MATH = 1
+neg_check = 0 - 1
+STRINGLN('Unsigned -1 is: $neg_check')
+_UNSIGNED_MATH = 0
+STRINGLN('Test Complete.')
+STRINGLN('Sending Report to admin@example.com...')

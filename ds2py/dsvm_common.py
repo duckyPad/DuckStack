@@ -548,7 +548,7 @@ valid_var_chars = ['0', '1', '2', '3', '4', '5', '6', '7','8', '9', '_'] + engli
 valid_var_chars = set(valid_var_chars)
 english_alphabets = set(english_alphabets)
 
-valid_char_for_define_replacements = {' ', '=', '+', '-', '*', '/', '%', '^', '>', '<', '!', '|', '(', ')', '&'}
+invalid_define_boundary_chars = set([x for x in list(valid_var_chars) if x.isalnum()])
 
 valid_combo_chars = {'!', '"', '#', '$', '%', '&', "'", '(',
 ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7',
