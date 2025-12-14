@@ -618,40 +618,12 @@ def single_pass(program_listing, define_dict):
     
     return return_dict
 
-def search_profile_index_from_name(query, profile_list):
-    if profile_list is None:
-        return None
-    for index, item in enumerate(profile_list):
-        if query.lower().strip() == item.name.lower().strip():
-            return index
-    return None
-
 def run_all(program_listing, profile_list=None):
     all_def_dict = {}
-    new_program_listing = []
-    for line_obj in program_listing:
-        first_word = line_obj.content.lstrip(" \t").split(" ")[0]
-
-        # parse GOTO_PROFILE commands
-        if first_word == cmd_GOTO_PROFILE_NAME:
-            line_obj.content = line_obj.content.replace(cmd_GOTO_PROFILE_NAME, cmd_GOTO_PROFILE, 1)
-            first_word = cmd_GOTO_PROFILE
-
-        if first_word == cmd_GOTO_PROFILE:
-            target_profile_name = line_obj.content.split(cmd_GOTO_PROFILE, 1)[-1].strip()
-            target_profile_index_0_indexed = search_profile_index_from_name(target_profile_name, profile_list)
-            if target_profile_index_0_indexed is not None:
-                line_obj.content = f"{cmd_GOTO_PROFILE} {target_profile_index_0_indexed + 1}"
-
-        new_program_listing.append(line_obj)
-
-    program_listing = new_program_listing
-
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
     rdict = single_pass(program_listing, all_def_dict)
     if rdict['is_success'] is False:
         return rdict
-    
     
     new_program_listing = []
     for line_obj in program_listing:

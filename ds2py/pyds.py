@@ -1,1 +1,2 @@
-GOTO_PROFILE(test)
+GOTO_PROFILE('test')
+STRINGLN('Hello world')

@@ -566,6 +566,7 @@ ds_str_func_lookup = {
     cmd_STRING : reserved_func_info(OP_STR, 1),
     cmd_STRINGLN : reserved_func_info(OP_STRLN, 1),
     cmd_OLED_PRINT : reserved_func_info(OP_OLED_PRNT, 1),
+    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
     }
 
 ds_keypress_func_lookup = {
@@ -578,7 +579,6 @@ ds_builtin_func_lookup = {
     cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
     cmd_PREV_PROFILE : reserved_func_info(OP_PREVP, 0),
     cmd_NEXT_PROFILE : reserved_func_info(OP_NEXTP, 0),
-    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
     cmd_SWCC : reserved_func_info(OP_SWCC, 4),
     cmd_SWCF : reserved_func_info(OP_SWCF, 3),
     cmd_SWCR : reserved_func_info(OP_SWCR, 1),
