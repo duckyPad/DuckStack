@@ -88,3 +88,7 @@ FUNCTION test(wtf, b, c, d)
 END_FUNCTION
 
 VAR hello = test(10, 20, 30, 40)
+
+
+  printf("DSB size: %d Bytes\n", this_dsb_size);
+  printf("Stack size: %d Bytes\n", data_stack_size_bytes);

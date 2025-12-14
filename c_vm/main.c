@@ -904,9 +904,19 @@ void run_dsb(exe_context* er, char* dsb_path)
 
   uint16_t current_pc = 0;
   uint16_t data_stack_size_bytes = STACK_BASE_ADDR - this_dsb_size - STACK_MOAT_BYTES;
-  printf("DSB size: %d Bytes\n", this_dsb_size);
-  printf("Stack size: %d Bytes\n", data_stack_size_bytes);
   stack_init(&data_stack, bin_buf, STACK_BASE_ADDR, data_stack_size_bytes);
+
+  defaultdelay = DEFAULT_CMD_DELAY_MS;
+  defaultchardelay = DEFAULT_CHAR_DELAY_MS;
+  charjitter = 0;
+  rand_max = 0xffffffff;
+  rand_min = 0;
+  loop_size = 0;
+  epilogue_actions = 0;
+  allow_abort = 0;
+  disable_autorepeat = 0;
+  str_print_format = STR_PRINT_FORMAT_DEC_SIGNED;
+  str_print_padding = 0;
 
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
