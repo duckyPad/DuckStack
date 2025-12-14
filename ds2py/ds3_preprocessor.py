@@ -31,7 +31,7 @@ def replace_DEFINE(pgm_line, dd):
             letter_after = temp_line[key_location + len(key)]
             # print("letter_before:", letter_before)
             # print("letter_after:", letter_after)
-            if (letter_before not in invalid_define_boundary_chars) and (letter_after not in invalid_define_boundary_chars):
+            if (not letter_before.isalnum()) and (not letter_after.isalnum()):
                 # print("STRING BEFORE", temp_line[:key_location])
                 # print("STRING AFTER", temp_line[key_location + len(key):])
                 temp_line = temp_line[:key_location] + str(dd[key]) + temp_line[key_location + len(key):]

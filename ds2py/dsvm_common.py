@@ -544,11 +544,9 @@ PARSE_ERROR = 1
 english_alphabets = [
 'a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 'A', 'B', 'C', 'D', 'E','F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-valid_var_chars = ['0', '1', '2', '3', '4', '5', '6', '7','8', '9', '_'] + english_alphabets
-valid_var_chars = set(valid_var_chars)
-english_alphabets = set(english_alphabets)
 
-invalid_define_boundary_chars = set([x for x in list(valid_var_chars) if x.isalnum()])
+valid_var_chars = set(['0', '1', '2', '3', '4', '5', '6', '7','8', '9', '_'] + english_alphabets)
+english_alphabets = set(english_alphabets)
 
 valid_combo_chars = {'!', '"', '#', '$', '%', '&', "'", '(',
 ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7',
