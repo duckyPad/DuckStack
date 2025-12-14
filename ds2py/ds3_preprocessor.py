@@ -108,14 +108,14 @@ def check_loop(pgm_line):
     except Exception as e:
         return PARSE_ERROR, str(e), None
 
-def new_rem_block_check(pgm_line, lnum, rbss, rbdict):
+def new_rem_block_check(lnum, rbss, rbdict):
     if len(rbss) != 0:
         return PARSE_ERROR, "unmatched END_REM"
     rbss.append(lnum)
     rbdict[lnum] = None
     return PARSE_OK, ''
 
-def new_stringln_block_check(pgm_line, lnum, slbss, slbdict):
+def new_stringln_block_check(lnum, slbss, slbdict):
     if len(slbss) != 0:
         return PARSE_ERROR, "unmatched END_STRINGLN"
     slbss.append(lnum)
@@ -123,7 +123,7 @@ def new_stringln_block_check(pgm_line, lnum, slbss, slbdict):
     # print("new_stringln_block_check:", slbss, slbdict)
     return PARSE_OK, ''
 
-def new_string_block_check(pgm_line, lnum, sbss, sbdict):
+def new_string_block_check(lnum, sbss, sbdict):
     if len(sbss) != 0:
         return PARSE_ERROR, "unmatched END_STRING"
     sbss.append(lnum)
@@ -160,7 +160,7 @@ def new_func_check(pgm_line, lnum, fss, fdict):
     fdict[fun_name] = {"fun_start":lnum, 'fun_end':None, 'args':arg_list}
     return PARSE_OK, ''
 
-def rem_block_end_check(pgm_line, lnum, rbss, rbdict):
+def rem_block_end_check(lnum, rbss, rbdict):
     if len(rbss) == 0:
         return PARSE_ERROR, "orphan END_REM"
     if len(rbss) != 1:
@@ -169,7 +169,7 @@ def rem_block_end_check(pgm_line, lnum, rbss, rbdict):
     # print(pgm_line, lnum, rbss, rbdict)
     return PARSE_OK, ''
 
-def stringln_block_end_check(pgm_line, lnum, slbss, slbdict):
+def stringln_block_end_check(lnum, slbss, slbdict):
     if len(slbss) == 0:
         return PARSE_ERROR, "orphan END_STRINGLN"
     if len(slbss) != 1:
@@ -178,7 +178,7 @@ def stringln_block_end_check(pgm_line, lnum, slbss, slbdict):
     # print("stringln_block_end_check", lnum, slbss, slbdict)
     return PARSE_OK, ''
 
-def string_block_end_check(pgm_line, lnum, sbss, sbdict):
+def string_block_end_check(lnum, sbss, sbdict):
     if len(sbss) == 0:
         return PARSE_ERROR, "orphan END_STRING"
     if len(sbss) != 1:
@@ -187,7 +187,7 @@ def string_block_end_check(pgm_line, lnum, sbss, sbdict):
     # print("stringln_block_end_check", lnum, sbss, sbdict)
     return PARSE_OK, ''
 
-def func_end_check(pgm_line, lnum, fss, fdict):
+def func_end_check(lnum, fss, fdict):
     if len(fss) == 0:
         return PARSE_ERROR, "orphan END_FUNCTION"
     fun_name = fss.pop()
@@ -258,7 +258,7 @@ def elseif_check(pgm_line, lnum, iss):
     return PARSE_OK, ''
 
 def else_check(pgm_line, lnum, iss):
-    if pgm_line != cmd_ELSE:
+    if pgm_line != cmd_ELSE and cmd_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(iss) == 0:
         return PARSE_ERROR, "orphan ELSE"
@@ -270,13 +270,13 @@ def else_check(pgm_line, lnum, iss):
     # print(ifdict)
     return PARSE_OK, ''
 
-def new_while_check(pgm_line, lnum, wss, wdict):
+def new_while_check(lnum, wss, wdict):
     wss.append(lnum)
     wdict[lnum] = None
     return PARSE_OK, ''
 
 def end_while_check(pgm_line, lnum, wss, wdict):
-    if pgm_line != cmd_END_WHILE:
+    if pgm_line != cmd_END_WHILE and cmd_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "orphan END_WHILE"
@@ -284,17 +284,17 @@ def end_while_check(pgm_line, lnum, wss, wdict):
     wdict[while_start_line] = lnum
     return PARSE_OK, '' 
 
-def break_check(pgm_line, lnum, wss):
+def break_check(pgm_line, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
-    if len(split) != 1:
+    if len(split) != 1 and cmd_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "BREAK outside WHILE"
     return PARSE_OK, '' 
 
-def continue_check(pgm_line, lnum, wss):
+def continue_check(pgm_line, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
-    if len(split) != 1:
+    if len(split) != 1 and cmd_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "CONTINUE outside WHILE"
@@ -453,17 +453,17 @@ def single_pass(program_listing, define_dict):
         first_word, this_line = replace_delay_statements(this_line)
 
         if first_word == cmd_END_REM:
-            presult, pcomment = rem_block_end_check(this_line, line_number_starting_from_1, rem_block_search_stack, rem_block_table)
+            presult, pcomment = rem_block_end_check(line_number_starting_from_1, rem_block_search_stack, rem_block_table)
         elif is_within_rem_block(line_number_starting_from_1, rem_block_table):
             presult = PARSE_OK
             pcomment = ''
         elif first_word == cmd_END_STRINGLN:
-            presult, pcomment = stringln_block_end_check(this_line, line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
+            presult, pcomment = stringln_block_end_check(line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
         elif is_within_strlen_block(line_number_starting_from_1, strlen_block_table):
             presult = PARSE_OK
             pcomment = ''
         elif first_word == cmd_END_STRING:
-            presult, pcomment = string_block_end_check(this_line, line_number_starting_from_1, str_block_search_stack, str_block_table)
+            presult, pcomment = string_block_end_check(line_number_starting_from_1, str_block_search_stack, str_block_table)
         elif is_within_str_block(line_number_starting_from_1, str_block_table):
             presult = PARSE_OK
             pcomment = ''
@@ -475,7 +475,7 @@ def single_pass(program_listing, define_dict):
             presult, pcomment = new_func_check(this_line, line_number_starting_from_1, func_search_stack, func_table)
         elif first_word == cmd_END_FUNCTION:
             this_indent_level -= 1
-            presult, pcomment = func_end_check(this_line, line_number_starting_from_1, func_search_stack, func_table)
+            presult, pcomment = func_end_check(line_number_starting_from_1, func_search_stack, func_table)
         elif first_word == cmd_IF:
             presult, pcomment = if_check(this_line, line_number_starting_from_1, if_search_stack)
         elif this_line.startswith(cmd_ELSE_IF):
@@ -488,20 +488,20 @@ def single_pass(program_listing, define_dict):
             this_indent_level -= 1
             presult, pcomment = end_if_check(this_line, line_number_starting_from_1, if_search_stack, if_skip_table, if_take_table)
         elif first_word == cmd_WHILE:
-            presult, pcomment = new_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
+            presult, pcomment = new_while_check(line_number_starting_from_1, while_search_stack, while_table)
         elif first_word == cmd_END_WHILE:
             this_indent_level -= 1
             presult, pcomment = end_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
         elif first_word == cmd_LOOP_BREAK:
-            presult, pcomment = break_check(this_line, line_number_starting_from_1, while_search_stack)
+            presult, pcomment = break_check(this_line, while_search_stack)
         elif first_word == cmd_CONTINUE:
-            presult, pcomment = continue_check(this_line, line_number_starting_from_1, while_search_stack)
+            presult, pcomment = continue_check(this_line, while_search_stack)
         elif first_word == cmd_REM_BLOCK:
-            presult, pcomment = new_rem_block_check(this_line, line_number_starting_from_1, rem_block_search_stack, rem_block_table)
+            presult, pcomment = new_rem_block_check(line_number_starting_from_1, rem_block_search_stack, rem_block_table)
         elif first_word == cmd_STRINGLN_BLOCK:
-            presult, pcomment = new_stringln_block_check(this_line, line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
+            presult, pcomment = new_stringln_block_check(line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
         elif first_word == cmd_STRING_BLOCK:
-            presult, pcomment = new_string_block_check(this_line, line_number_starting_from_1, str_block_search_stack, str_block_table)
+            presult, pcomment = new_string_block_check(line_number_starting_from_1, str_block_search_stack, str_block_table)
         elif first_word == cmd_RETURN:
             if len(func_search_stack) == 0:
                 presult = PARSE_ERROR
@@ -618,7 +618,7 @@ def single_pass(program_listing, define_dict):
     
     return return_dict
 
-def run_all(program_listing, profile_list=None):
+def run_all(program_listing):
     all_def_dict = {}
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
     rdict = single_pass(program_listing, all_def_dict)

@@ -1,2 +1,71 @@
-GOTO_PROFILE test
-STRINGLN Hello world
+STRINGLN --- START TEST ---
+STRINGLN [SEC 1] Math & Logic
+VAR a = 10
+VAR b = 20
+VAR c = 0
+c = a + b * 2
+STRINGLN TEST 1 (PEMDAS): $c
+c = b / 3
+STRINGLN TEST 2 (IntDiv): $c
+c = a - b
+STRINGLN TEST 3 (Signed): $c
+_UNSIGNED_MATH = 1
+STRINGLN TEST 4 (Unsigned Cast): $c
+_UNSIGNED_MATH = 0
+STRINGLN [SEC 2] Control Flow
+VAR i = 0
+STRINGLN Loop Start:
+WHILE i < 6
+    IF i == 2 THEN
+        i = i + 1
+        CONTINUE
+    END_IF
+    IF i == 5 THEN
+        LBREAK
+    END_IF
+    STRINGLN Iter: $i
+    i = i + 1
+END_WHILE
+STRINGLN Loop End.
+STRINGLN [SEC 3] Functions
+VAR globalVar = 999
+FUNCTION scopeTest(arg1)
+    VAR globalVar = 111
+    STRINGLN Inside Func Local: $globalVar
+    STRINGLN Inside Func Arg: $arg1
+    RETURN globalVar + arg1
+END_FUNCTION
+VAR result = 0
+scopeTest(50)
+result = scopeTest(50)
+STRINGLN Return Value: $result
+STRINGLN Global Unchanged: $globalVar
+STRINGLN [SEC 4] Recursion (Factorial)
+FUNCTION factorial(n)
+    IF n <= 1 THEN
+        RETURN 1
+    END_IF
+    VAR sub = n - 1
+    VAR rec = factorial(sub)
+    RETURN n * rec
+END_FUNCTION
+VAR fact5 = factorial(5)
+STRINGLN Fact(5): $fact5
+STRINGLN [SEC 5] Bitwise
+VAR mask = 255
+VAR val = 43690
+VAR shift = 1
+VAR resAnd = val & mask
+STRINGLN Bitwise AND: $resAnd
+VAR resShift = shift << 4
+STRINGLN Left Shift: $resShift
+STRINGLN [SEC 6] Formatting
+VAR hexVal = 255
+_STR_PRINT_FORMAT = 2
+STRINGLN Hex Lower: $hexVal
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 4
+STRINGLN Hex Pad: $hexVal
+_STR_PRINT_FORMAT = 0
+_STR_PRINT_PADDING = 0
+STRINGLN --- END TEST ---

@@ -1,2 +1,3 @@
-GOTO_PROFILE test
-STRINGLN Hello world
+WHILE TRUE // test
+	CONTINUE //dfgdfg
+END_WHILE
