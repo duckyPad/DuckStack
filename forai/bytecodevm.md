@@ -96,16 +96,16 @@ Binary as in **involving two operands**.
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
 |EQ|`32`/`0x20`|Equal|
-|NOTEQ|`33`/`0x21`|Not equal|
-|LT|`34`/`0x22`|Less than<br>⚠️|
-|LTE|`35`/`0x23`|Less than or equal<br>⚠️|
-|GT|`36`/`0x24`|Greater than<br>⚠️|
-|GTE|`37`/`0x25`|Greater than or equal<br>⚠️|
+|NOTEQ|`33`/`0x21`|Not Equal|
+|LT|`34`/`0x22`|Less Than<br>⚠️|
+|LTE|`35`/`0x23`|Less Than or Equal<br>⚠️|
+|GT|`36`/`0x24`|Greater Than<br>⚠️|
+|GTE|`37`/`0x25`|Greater Than or Equal<br>⚠️|
 |ADD|`38`/`0x26`|Add|
 |SUB|`39`/`0x27`|Subtract|
 |MULT|`40`/`0x28`|Multiply|
-|DIV|`41`/`0x29`|Integer division|
-|MOD|`42`/`0x2a`|Modulus|
+|DIV|`41`/`0x29`|Integer Division<br>⚠️|
+|MOD|`42`/`0x2a`|Modulus<br>⚠️|
 |POW|`43`/`0x2b`|Power of|
 |LSHIFT|`44`/`0x2c`|Left shift|
 |RSHIFT|`45`/`0x2d`|⚠️Right shift<br>Signed Mode: Arithmetic (sign-extend)<br>Unsigned Mode: Logical (0-extend)|
