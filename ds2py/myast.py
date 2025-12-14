@@ -12,18 +12,11 @@ def find_function_table(root: symtable.SymbolTable, func_name: str):
             return found
     return None
 
-def get_func_parameters(func_name: str, root: symtable.SymbolTable):
-    func_table = find_function_table(root, func_name)
-    if func_table is None:
+def how_many_args(func_name, ctx_dict):
+    args_list = ctx_dict['func_args_dict'].get(func_name)
+    if args_list is None:
         return None
-    # returns a tuple of parameter names
-    return func_table.get_parameters()
-
-def how_many_args(name: str, table: symtable.SymbolTable):
-    params = get_func_parameters(name, table)
-    if params is None:
-        return None
-    return len(params)
+    return len(args_list)
 
 def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1):
     if this_pylnum_sf1 is None:
@@ -71,58 +64,58 @@ def is_leaf(node):
         return True
     return not any(ast.iter_child_nodes(node))
 
-def postorder_walk(node, action, goodies):
+def postorder_walk(node, action, ctx_dict):
     # print_node_info(node)
     this_pylnum_sf1 = getattr(node, "lineno", None)
-    this_orig_ds_lnum_sf1 = get_orig_ds_lnumsf1_from_py_lnumsf1(goodies, this_pylnum_sf1)
+    this_orig_ds_lnum_sf1 = get_orig_ds_lnumsf1_from_py_lnumsf1(ctx_dict, this_pylnum_sf1)
     if this_orig_ds_lnum_sf1 is not None:
-        goodies['latest_orig_ds_lnum_sf1'] = this_orig_ds_lnum_sf1
+        ctx_dict['latest_orig_ds_lnum_sf1'] = this_orig_ds_lnum_sf1
     if isinstance(node, ast.Expr):
-        postorder_walk(node.value, action, goodies)
+        postorder_walk(node.value, action, ctx_dict)
     elif isinstance(node, ast.BinOp):
-        postorder_walk(node.left, action, goodies)
-        postorder_walk(node.right, action, goodies)
-        postorder_walk(node.op, action, goodies)
+        postorder_walk(node.left, action, ctx_dict)
+        postorder_walk(node.right, action, ctx_dict)
+        postorder_walk(node.op, action, ctx_dict)
     elif isinstance(node, ast.BoolOp):
         # Consecutive operations with the same operator, such as a or b or c, are collapsed into one node with several values.
         if len(node.values) > 2:
             raise ValueError("Ambiguous expr, add parentheses.")
         for item in node.values:
-            postorder_walk(item, action, goodies)
-        postorder_walk(node.op, action, goodies)
+            postorder_walk(item, action, ctx_dict)
+        postorder_walk(node.op, action, ctx_dict)
     elif isinstance(node, ast.UnaryOp):
-        postorder_walk(node.operand, action, goodies)
-        postorder_walk(node.op, action, goodies)
+        postorder_walk(node.operand, action, ctx_dict)
+        postorder_walk(node.op, action, ctx_dict)
     elif isinstance(node, ast.Compare):
         if len(node.comparators) > 1 or len(node.ops) > 1:
             raise ValueError("Multiple Comparators")
-        postorder_walk(node.left, action, goodies)
-        postorder_walk(node.comparators[0], action, goodies)
-        postorder_walk(node.ops[0], action, goodies)
+        postorder_walk(node.left, action, ctx_dict)
+        postorder_walk(node.comparators[0], action, ctx_dict)
+        postorder_walk(node.ops[0], action, ctx_dict)
     elif isinstance(node, ast.Assign):
-        postorder_walk(node.value, action, goodies)
+        postorder_walk(node.value, action, ctx_dict)
         if len(node.targets) != 1:
             raise ValueError("Multiple Assignments")
-        postorder_walk(node.targets[0], action, goodies)
+        postorder_walk(node.targets[0], action, ctx_dict)
     elif isinstance(node, ast.FunctionDef):
         func_name = node.name
         this_func_label = f"func_{func_name}"
-        this_arg_count = how_many_args(func_name, goodies['symtable_root'])
+        this_arg_count = how_many_args(func_name, ctx_dict)
         if this_arg_count is None:
             raise ValueError("Invalid args:", func_name)
-        goodies['func_def_name'] = func_name
-        action(add_nop(this_func_label), goodies)
-        action(add_alloc(func_name), goodies)
+        ctx_dict['func_def_name'] = func_name
+        action(add_nop(this_func_label), ctx_dict)
+        action(add_alloc(func_name), ctx_dict)
         for item in node.body:
-            postorder_walk(item, action, goodies)
-        action(add_push0(), goodies)
-        action(add_default_return(this_arg_count), goodies)
+            postorder_walk(item, action, ctx_dict)
+        action(add_push0(), ctx_dict)
+        action(add_default_return(this_arg_count), ctx_dict)
     elif isinstance(node, ast.Return):
         if node.value is None:
-            action(add_push0(), goodies)
+            action(add_push0(), ctx_dict)
         else:
-            postorder_walk(node.value, action, goodies)
-        action(node, goodies)
+            postorder_walk(node.value, action, ctx_dict)
+        action(node, ctx_dict)
     elif isinstance(node, ast.AugAssign):
         raise ValueError(f"{node.__class__.__name__}: To Be Implemented")
     elif isinstance(node, ast.If):
@@ -130,29 +123,29 @@ def postorder_walk(node, action, goodies):
         if_end_label = f"{node.__class__.__name__}_end@{this_orig_ds_lnum_sf1}"
         if len(node.orelse) == 0:
             if_skip_label = if_end_label
-        goodies['if_destination_label'] = if_skip_label
-        postorder_walk(node.test, action, goodies)
-        action(node, goodies)
+        ctx_dict['if_destination_label'] = if_skip_label
+        postorder_walk(node.test, action, ctx_dict)
+        action(node, ctx_dict)
         for item in node.body:
-            postorder_walk(item, action, goodies)
+            postorder_walk(item, action, ctx_dict)
         if len(node.orelse):
-            action(add_jmp(if_end_label), goodies)
-            action(add_nop(if_skip_label), goodies)
+            action(add_jmp(if_end_label), ctx_dict)
+            action(add_nop(if_skip_label), ctx_dict)
             for item in node.orelse:
-                postorder_walk(item, action, goodies)
-        action(add_nop(if_end_label), goodies)
+                postorder_walk(item, action, ctx_dict)
+        action(add_nop(if_end_label), ctx_dict)
     elif isinstance(node, ast.While):
         while_start_label = f"{node.__class__.__name__}_start@{this_orig_ds_lnum_sf1}"
         while_end_label = f"{node.__class__.__name__}_end@{this_orig_ds_lnum_sf1}"
-        action(add_nop(while_start_label), goodies)
-        postorder_walk(node.test, action, goodies)
-        goodies['while_start_label'] = while_start_label
-        goodies['while_end_label'] = while_end_label
-        action(node, goodies)
+        action(add_nop(while_start_label), ctx_dict)
+        postorder_walk(node.test, action, ctx_dict)
+        ctx_dict['while_start_label'] = while_start_label
+        ctx_dict['while_end_label'] = while_end_label
+        action(node, ctx_dict)
         for item in node.body:
-            postorder_walk(item, action, goodies)
-        action(add_jmp(while_start_label), goodies)
-        action(add_nop(while_end_label), goodies)
+            postorder_walk(item, action, ctx_dict)
+        action(add_jmp(while_start_label), ctx_dict)
+        action(add_nop(while_end_label), ctx_dict)
     elif isinstance(node, ast.Call):
         func_name = node.func.id
         caller_arg_count = len(node.args)
@@ -161,17 +154,17 @@ def postorder_walk(node, action, goodies):
         if func_name in ds_reserved_funcs:
             callee_arg_count = ds_reserved_funcs[func_name].arg_len
         else:
-            callee_arg_count = how_many_args(func_name, goodies['symtable_root'])
+            callee_arg_count = how_many_args(func_name, ctx_dict)
         if callee_arg_count is None:
             raise ValueError(f"Function {func_name}() not found")
         if caller_arg_count != callee_arg_count:
             raise ValueError("Wrong number of arguments")
-        goodies["caller_func_name"] = func_name
+        ctx_dict["caller_func_name"] = func_name
         # Push args right-to-left
         for item in reversed(node.args):
-            postorder_walk(item, action, goodies)
-        action(node, goodies)
+            postorder_walk(item, action, ctx_dict)
+        action(node, ctx_dict)
     elif is_leaf(node):
-        action(node, goodies)
+        action(node, ctx_dict)
     else:
         raise ValueError(f"Unknown AST Node: {node}")

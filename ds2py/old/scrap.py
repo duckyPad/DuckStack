@@ -669,3 +669,26 @@ output_bin_array = bytearray()
     print("grouped_data", dict(grouped_data))
     print("final_result", final_result)
     return final_result
+
+func_args_dict
+
+this_arg_count = how_many_args(func_name, goodies['symtable_root'])
+
+
+goodies['if_destination_label'] = if_skip_label
+        postorder_walk(node.test, action, goodies)
+
+
+def get_func_parameters(func_name: str, root: symtable.SymbolTable):
+    func_table = find_function_table(root, func_name)
+    if func_table is None:
+        return None
+    # returns a tuple of parameter names
+    return func_table.get_parameters()
+
+
+def how_many_args(name: str, context_dict):
+    params = get_func_parameters(name, table)
+    if params is None:
+        return None
+    return len(params)

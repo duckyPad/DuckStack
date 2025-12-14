@@ -111,25 +111,25 @@ def search_in_symtable(name: str, table: symtable.SymbolTable):
     except KeyError:
         return None
 
-def is_known_global(name, goodies):
+def is_known_global(name, ctx_dict):
     try:
-        return name in goodies["user_declared_var_dict"][None]
+        return name in ctx_dict["user_declared_var_dict"][None]
     except Exception as e:
         print("is_known_global:", e)
     return False
 
-def classify_name(name: str, current_function: str | None, goodies) -> int:
+def classify_name(name: str, current_function: str | None, ctx_dict) -> int:
     if keyword.iskeyword(name) or name in ds_reserved_funcs:
         raise ValueError(f'Invalid variable name: "{name}"')
     
     if name in reserved_variables_dict:
         return SymType.RESERVED_VAR
     
-    root_table = goodies["symtable_root"]
+    root_table = ctx_dict["symtable_root"]
 
     if current_function is not None:
         this_table = myast.find_function_table(root_table, current_function)
-        user_declared_func_locals = goodies['user_declared_var_dict'].get(current_function)
+        user_declared_func_locals = ctx_dict['user_declared_var_dict'].get(current_function)
         if this_table is None:
             raise ValueError(f"No symtable for {name} in {current_function!r}()")
 
@@ -142,23 +142,23 @@ def classify_name(name: str, current_function: str | None, goodies) -> int:
             if user_declared_func_locals is not None and name in user_declared_func_locals:
                 return SymType.FUNC_LOCAL_VAR
                 
-    if is_known_global(name, goodies):
+    if is_known_global(name, ctx_dict):
         return SymType.GLOBAL_VAR
     raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
 
-def visit_name_node(node, goodies, inst_list):
-    og_ds_line = goodies["og_ds_line"]
-    current_function = goodies["func_def_name"]
+def visit_name_node(node, ctx_dict, inst_list):
+    og_ds_line = ctx_dict["og_ds_line"]
+    current_function = ctx_dict["func_def_name"]
 
     node_name = node.id
-    sym_type = classify_name(node.id, current_function, goodies)
+    sym_type = classify_name(node.id, current_function, ctx_dict)
     # print("symtype:", node.id, current_function, sym_type.name)
 
     parent_func = current_function
     if sym_type in [SymType.GLOBAL_VAR, SymType.RESERVED_VAR]:
         parent_func = None
     this_var_info = var_info(node_name, sym_type, parent_func)
-    goodies['var_info_set'].add(this_var_info)
+    ctx_dict['var_info_set'].add(this_var_info)
 
     if isinstance(node.ctx, ast.Store):
         opcode = OP_POPR if (sym_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]) else OP_POPI
@@ -180,17 +180,17 @@ def get_key_combined_value(keyname):
         raise ValueError(f"Invalid Key: {keyname}")
     return ((key_type % 0xff) << 8) | (key_code % 0xff)
 
-def visit_node(node, goodies):
-    current_function = goodies.get("func_def_name")
-    caller_func_name = goodies["caller_func_name"]
+def visit_node(node, ctx_dict):
+    current_function = ctx_dict.get("func_def_name")
+    caller_func_name = ctx_dict["caller_func_name"]
     # Pick the right instruction list (root vs function)
     if current_function is None:
-        instruction_list = goodies["root_assembly_list"]
+        instruction_list = ctx_dict["root_assembly_list"]
     else:
-        instruction_list = goodies["func_assembly_dict"].setdefault(current_function, [])
+        instruction_list = ctx_dict["func_assembly_dict"].setdefault(current_function, [])
 
-    og_ds_line = get_orig_ds_line_from_py_lnum(goodies, getattr(node, "lineno", None))
-    goodies["og_ds_line"] = og_ds_line
+    og_ds_line = get_orig_ds_line_from_py_lnum(ctx_dict, getattr(node, "lineno", None))
+    ctx_dict["og_ds_line"] = og_ds_line
 
     def emit(opcode, payload=None, label=None, parent_func=None):
         instruction_list.append(
@@ -198,7 +198,7 @@ def visit_node(node, goodies):
         )
 
     if isinstance(node, ast.Name):
-        visit_name_node(node, goodies, instruction_list)
+        visit_name_node(node, ctx_dict, instruction_list)
 
     elif isinstance(node, ast.Constant):
         if isinstance(node.value, str) and caller_func_name in ds_str_func_lookup:
@@ -217,16 +217,16 @@ def visit_node(node, goodies):
         emit(arith_lookup[op_name])
 
     elif isinstance(node, ast.If):
-        emit(OP_BRZ, payload=goodies["if_destination_label"])
+        emit(OP_BRZ, payload=ctx_dict["if_destination_label"])
 
     elif isinstance(node, ast.While):
-        emit(OP_BRZ, payload=goodies["while_end_label"])
+        emit(OP_BRZ, payload=ctx_dict["while_end_label"])
 
     elif isinstance(node, ast.Continue):
-        emit(OP_JMP, payload=goodies["while_start_label"])
+        emit(OP_JMP, payload=ctx_dict["while_start_label"])
 
     elif isinstance(node, ast.Break):
-        emit(OP_JMP, payload=goodies["while_end_label"])
+        emit(OP_JMP, payload=ctx_dict["while_end_label"])
 
     elif isinstance(node, ast.Call):
         func_name = node.func.id
@@ -236,7 +236,7 @@ def visit_node(node, goodies):
             emit(OP_CALL, payload=f"func_{func_name}")
 
     elif isinstance(node, ast.Return):
-        arg_count = myast.how_many_args(current_function, goodies["symtable_root"])
+        arg_count = myast.how_many_args(current_function, ctx_dict)
         if arg_count is None:
             raise ValueError("Invalid arg count")
         emit(OP_RET, payload=arg_count)
