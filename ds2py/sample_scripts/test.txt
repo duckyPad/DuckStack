@@ -1,2 +1,140 @@
-VAR test = -65536
-STRING $test
+REM_BLOCK
+    DuckStack Compiler Torture Test
+    v1.0
+    
+    Target: Bytecode VM
+    Goals: Test Preprocessor, Stack Frames, Recursion, and Hardware Ops
+END_REM
+
+// ---------------------------------------------------------
+// 1. PREPROCESSOR & CONSTANTS
+// ---------------------------------------------------------
+DEFINE MAX_LOOPS 5
+DEFINE TARGET_SCORE 100
+DEFINE ERROR_MSG Error occurred
+
+STRINGLN Starting Test...
+STRINGLN Constant Check: MAX_LOOPS (Should be 5)
+
+// ---------------------------------------------------------
+// 2. VARIABLES & ARITHMETIC (Expression Parsing)
+// ---------------------------------------------------------
+VAR a = 10
+VAR b = 20
+VAR result = 0
+
+// Test precedence: 10 + (20 * 2) = 50. If 60, precedence is broken.
+result = a + b * 2 
+STRINGLN Math Precedence Result: $result
+
+// Test signed integers
+VAR negative = -50
+VAR positive = 25
+VAR signed_res = negative + positive
+STRINGLN Signed Math (-25): $signed_res
+
+// Test Bitwise and Logical
+VAR flags = 1         // 0001
+flags = flags << 2    // 0100 (4)
+flags = flags | 1     // 0101 (5)
+STRINGLN Bitwise Ops (5): $flags
+
+// ---------------------------------------------------------
+// 3. CONTROL FLOW (Loops & Conditionals)
+// ---------------------------------------------------------
+VAR i = 0
+
+STRINGLN_BLOCK
+Testing While Loop
+Expect 0, 1, skip 2, 3, 4
+END_STRINGLN
+
+WHILE i < MAX_LOOPS
+    // Test IF and CONTINUE
+    IF i == 2 THEN
+        STRINGLN Skipping Two...
+        i = i + 1
+        CONTINUE
+    END_IF
+
+    // Test BREAK
+    IF i == 10 THEN
+        LBREAK
+    END_IF
+
+    STRINGLN Loop Index: $i
+    i = i + 1
+END_WHILE
+
+// ---------------------------------------------------------
+// 4. FUNCTIONS & SCOPE (Stack Frame Management)
+// ---------------------------------------------------------
+// This tests if you are calculating FP offsets correctly for
+// arguments (positive offset) vs locals (negative offset).
+
+VAR global_var = 999
+
+FUNCTION scope_test(arg1, arg2)
+    // Shadowing global variable with a local one
+    VAR global_var = 1 
+    
+    // Complex expression with args and locals
+    VAR local_sum = arg1 + arg2 + global_var
+    
+    STRINGLN Inside Func - Local Shadow: $global_var
+    STRINGLN Inside Func - Arg Sum: $local_sum
+    
+    // Return value
+    RETURN local_sum
+END_FUNCTION
+
+STRINGLN --- Calling Scope Test (10, 20) ---
+VAR func_res = scope_test(10, 20)
+STRINGLN Returned Value (31): $func_res
+STRINGLN Global Var Unchanged (999): $global_var
+
+// ---------------------------------------------------------
+// 5. RECURSION (Stack Overflow/Unwinding Test)
+// ---------------------------------------------------------
+FUNCTION factorial(n)
+    IF n <= 1 THEN
+        RETURN 1
+    END_IF
+    
+    VAR sub_result = factorial(n - 1)
+    RETURN n * sub_result
+END_FUNCTION
+
+VAR fact_input = 5
+VAR fact_res = factorial(fact_input)
+STRINGLN Factorial of 5 (120): $fact_res
+
+// ---------------------------------------------------------
+// 6. HARDWARE & VM SPECIFIC
+// ---------------------------------------------------------
+// Test Reserved Variables
+_RANDOM_MIN = 1
+_RANDOM_MAX = 10
+VAR rng = _RANDOM_INT
+STRINGLN Random Number (1-10): $rng
+
+// Test Print Formatting (Hex Output)
+_STR_PRINT_FORMAT = 2
+VAR hex_val = 255
+STRINGLN Hex ff: $hex_val
+_STR_PRINT_FORMAT = 0 // Reset
+
+// Test Key Presses & Repeats
+STRING Testing Repeats...
+REPEAT 3
+
+// Test Mouse (Move Right 100, Up 50)
+MOUSE_MOVE 100 50
+DELAY 50
+
+// Test OLED Graphics (if supported by your implementation)
+OLED_CLEAR
+OLED_RECT 1 0 0 128 64
+OLED_UPDATE
+
+STRINGLN Tests Complete.

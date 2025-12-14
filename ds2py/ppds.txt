@@ -1,2 +1,70 @@
-VAR test = -65536
-STRING $test
+STRINGLN Starting Test...
+STRINGLN Constant Check: 5 (Should be 5)
+VAR a = 10
+VAR b = 20
+VAR result = 0
+result = a + b * 2 
+STRINGLN Math Precedence Result: $result
+VAR negative = -50
+VAR positive = 25
+VAR signed_res = negative + positive
+STRINGLN Signed Math (-25): $signed_res
+VAR flags = 1
+flags = flags << 2
+flags = flags | 1
+STRINGLN Bitwise Ops (5): $flags
+VAR i = 0
+STRINGLN Testing While Loop
+STRINGLN Expect 0, 1, skip 2, 3, 4
+WHILE i < 5
+    IF i == 2 THEN
+        STRINGLN Skipping Two...
+        i = i + 1
+        CONTINUE
+    END_IF
+    IF i == 10 THEN
+        LBREAK
+    END_IF
+    STRINGLN Loop Index: $i
+    i = i + 1
+END_WHILE
+VAR global_var = 999
+FUNCTION scope_test(arg1, arg2)
+    VAR global_var = 1 
+    VAR local_sum = arg1 + arg2 + global_var
+    STRINGLN Inside Func - Local Shadow: $global_var
+    STRINGLN Inside Func - Arg Sum: $local_sum
+    RETURN local_sum
+END_FUNCTION
+STRINGLN --- Calling Scope Test (10, 20) ---
+VAR func_res = scope_test(10, 20)
+STRINGLN Returned Value (31): $func_res
+STRINGLN Global Var Unchanged (999): $global_var
+FUNCTION factorial(n)
+    IF n <= 1 THEN
+        RETURN 1
+    END_IF
+    VAR sub_result = factorial(n - 1)
+    RETURN n * sub_result
+END_FUNCTION
+VAR fact_input = 5
+VAR fact_res = factorial(fact_input)
+STRINGLN Factorial of 5 (120): $fact_res
+_RANDOM_MIN = 1
+_RANDOM_MAX = 10
+VAR rng = _RANDOM_INT
+STRINGLN Random Number (1-10): $rng
+_STR_PRINT_FORMAT = 2
+VAR hex_val = 255
+STRINGLN Hex ff: $hex_val
+_STR_PRINT_FORMAT = 0
+STRING Testing Repeats...
+STRING Testing Repeats...
+STRING Testing Repeats...
+STRING Testing Repeats...
+MOUSE_MOVE 100 50
+DELAY 50
+OLED_CLEAR
+OLED_RECT 1 0 0 128 64
+OLED_UPDATE
+STRINGLN Tests Complete.

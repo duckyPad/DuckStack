@@ -870,7 +870,61 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_USUB)
   {
     unaryop(unaop_usub);
-  }  
+  }
+  else if(opcode == OP_DELAY)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    printf("OP_DELAY: %dms\n", this_value);
+  }
+  else if(opcode == OP_KDOWN)
+  {
+    uint32_t combocode;
+    stack_pop(&data_stack, &combocode);
+    printf("OP_KDOWN: %d\n", combocode);
+  }
+  else if(opcode == OP_KUP)
+  {
+    uint32_t combocode;
+    stack_pop(&data_stack, &combocode);
+    printf("OP_KUP: %d\n", combocode);
+  }
+  else if(opcode == OP_MSCL)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    printf("OP_MSCL: %d\n", this_value);
+  }
+  else if(opcode == OP_MMOV)
+  {
+    uint32_t tempx, tempy;
+    stack_pop(&data_stack, &tempy);
+    stack_pop(&data_stack, &tempx);
+    printf("OP_MMOV: %d %d\n", tempx, tempy);
+  }
+  else if(opcode == OP_SWCF)
+  {
+    uint32_t red, green, blue;
+    stack_pop(&data_stack, &blue);
+    stack_pop(&data_stack, &green);
+    stack_pop(&data_stack, &red);
+    printf("OP_SWCF: %d %d %d\n", red, green, blue);
+  }
+  else if(opcode == OP_SWCC)
+  {
+    uint32_t this_index, red, green, blue;
+    stack_pop(&data_stack, &blue);
+    stack_pop(&data_stack, &green);
+    stack_pop(&data_stack, &red);
+    stack_pop(&data_stack, &this_index);
+    printf("OP_SWCC: %d %d %d %d\n", this_index, red, green, blue);
+  }
+  else if(opcode == OP_SWCR)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    printf("OP_SWCR: %d\n", this_value);
+  }
   else if(opcode == OP_STR)
   {
     uint32_t this_value;
@@ -885,9 +939,85 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
     char* str_buf = make_str((uint16_t)this_value, current_key_id);
     printf(">>>>> STRINGLN: %s\n", str_buf);
   }
+  else if(opcode == OP_OLED_CUSR)
+  {
+    uint32_t xxx, yyy;
+    stack_pop(&data_stack, &yyy);
+    stack_pop(&data_stack, &xxx);
+    printf("OP_OLED_CUSR: %d %d\n", xxx, yyy);
+  }
+  else if(opcode == OP_OLED_PRNT)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    char* str_buf = make_str((uint16_t)this_value, current_key_id);
+    printf(">>>>> OLED_PRINT: %s\n", str_buf);
+  }
+  else if(opcode == OP_OLED_UPDE)
+  {
+    printf("OP_OLED_UPDE\n");
+  }
+  else if(opcode == OP_OLED_CLR)
+  {
+    printf("OP_OLED_CLR\n");
+  }
+  else if(opcode == OP_OLED_REST)
+  {
+    printf("OP_OLED_REST\n");
+  }
+  else if(opcode == OP_OLED_LINE)
+  {
+    uint32_t x1,y1,x2,y2;
+    stack_pop(&data_stack, &y2);
+    stack_pop(&data_stack, &x2);
+    stack_pop(&data_stack, &y1);
+    stack_pop(&data_stack, &x1);
+    printf("OP_OLED_LINE: %d %d %d %d\n", x1, y1, x2, y2);
+  }
+  else if(opcode == OP_OLED_RECT)
+  {
+    uint32_t x1,y1,x2,y2,fill;
+    stack_pop(&data_stack, &fill);
+    stack_pop(&data_stack, &y2);
+    stack_pop(&data_stack, &x2);
+    stack_pop(&data_stack, &y1);
+    stack_pop(&data_stack, &x1);
+    printf("OP_OLED_RECT: %d %d %d %d %d\n", x1, y1, x2, y2, fill);
+  }
+  else if(opcode == OP_OLED_CIRC)
+  {
+    uint32_t x,y,radius,fill;
+    stack_pop(&data_stack, &fill);
+    stack_pop(&data_stack, &radius);
+    stack_pop(&data_stack, &y);
+    stack_pop(&data_stack, &x);
+    printf("OP_OLED_CIRC: %d %d %d %d\n", x, y, radius, fill);
+  }
+  else if(opcode == OP_BCLR)
+  {
+    printf("OP_BCLR\n");
+  }
+  else if(opcode == OP_PREVP)
+  {
+    printf("OP_PREVP\n");
+  }
+  else if(opcode == OP_NEXTP)
+  {
+    printf("OP_NEXTP\n");
+  }
+  else if(opcode == OP_GOTOP)
+  {
+    // this should goto profile by name!
+    // treat this as str command
+  }
+  else if(opcode == OP_SLEEP)
+  {
+    printf("OP_SLEEP\n");
+  }
   else
   {
-    printf("Unimplemented opcode: %d\n", opcode);longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
+    printf("Unimplemented opcode: %d\n", opcode);
+    longjmp(jmpbuf, EXE_ILLEGAL_INSTRUCTION);
   }
 }
 
