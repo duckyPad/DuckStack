@@ -44,7 +44,7 @@ DuckStack is a domain-specific stack-based bytecode VM for executing compiled **
 
 * Byte 1 & 2: **Optional payload**.
 
-* All operations are **signed** BY DEFAULT
+* ⚠️Integer arithmetics are **signed** BY DEFAULT
 	* Set reserved variable `_UNSIGNED_MATH = 1` to switch to **unsigned mode**
 
 ## CPU Instructions
@@ -60,7 +60,7 @@ DuckStack is a domain-specific stack-based bytecode VM for executing compiled **
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSHC16`|3|`1`/`0x1` |Push a **16-bit** constant on stack|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
+|`PUSHC16`|3|`1`/`0x1` |Push an **positive 16-bit (0-65535)** constant on stack<br>For negative numbers, push absolute value then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
@@ -91,21 +91,21 @@ Binary as in **involving two operands**.
 
 * ⚠️ = Affected by current **Arithmetic Mode**
 	* Default: Signed
-	* Unsigned mode if `_UNSIGNED_MATH` is set to 1
+	* Unsigned mode if `_UNSIGNED_MATH = 1`
 
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
 |EQ|`32`/`0x20`|Equal|
 |NOTEQ|`33`/`0x21`|Not Equal|
-|LT|`34`/`0x22`|Less Than<br>⚠️|
-|LTE|`35`/`0x23`|Less Than or Equal<br>⚠️|
-|GT|`36`/`0x24`|Greater Than<br>⚠️|
-|GTE|`37`/`0x25`|Greater Than or Equal<br>⚠️|
+|LT|`34`/`0x22`|⚠️Less Than|
+|LTE|`35`/`0x23`|⚠️Less Than or Equal|
+|GT|`36`/`0x24`|⚠️Greater Than|
+|GTE|`37`/`0x25`|⚠️Greater Than or Equal|
 |ADD|`38`/`0x26`|Add|
 |SUB|`39`/`0x27`|Subtract|
 |MULT|`40`/`0x28`|Multiply|
-|DIV|`41`/`0x29`|Integer Division<br>⚠️|
-|MOD|`42`/`0x2a`|Modulus<br>⚠️|
+|DIV|`41`/`0x29`|⚠️Integer Division|
+|MOD|`42`/`0x2a`|⚠️Modulus|
 |POW|`43`/`0x2b`|Power of|
 |LSHIFT|`44`/`0x2c`|Left shift|
 |RSHIFT|`45`/`0x2d`|⚠️Right shift<br>Signed Mode: Arithmetic (sign-extend)<br>Unsigned Mode: Logical (0-extend)|

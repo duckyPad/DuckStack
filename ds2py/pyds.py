@@ -1,1 +1,2 @@
-test = -1
+test = -65536
+STRING('$test')

@@ -60,7 +60,7 @@ DuckStack is a domain-specific stack-based bytecode VM for executing compiled **
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSHC16`|3|`1`/`0x1` |Push an **unsigned 16-bit** constant on stack|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
+|`PUSHC16`|3|`1`/`0x1` |Push an **positive 16-bit (0-65535)** constant on stack<br>For negative numbers, push absolute value then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|

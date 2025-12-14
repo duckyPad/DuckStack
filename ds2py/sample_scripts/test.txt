@@ -1,1 +1,2 @@
-VAR test = -1
+VAR test = -65536
+STRING $test
