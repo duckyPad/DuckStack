@@ -1,5 +1,38 @@
-FUNCTION test(wtf, b, c, d)
-    STRINGLN Args: $wtf, $b, $c, $d, $what
-    RETURN 2
-END_FUNCTION
-VAR hello = test(10, 20, 30, 40)
+_UNSIGNED_MATH = 0
+_STR_PRINT_FORMAT = 1
+STRINGLN --- SIGNED MATH (Default) ---
+VAR val_neg = -16
+VAR res_shift = val_neg >> 1
+STRINGLN Signed Shift (-16 >> 1): $res_shift
+VAR res_div = val_neg / 2
+STRINGLN Signed Div (-16 / 2): $res_div
+VAR res_mod = -10 % 3
+STRINGLN Signed Mod (-10 % 3): $res_mod
+VAR res_pow = (-2) ** 2
+STRINGLN Signed Pow (-2 ^ 2): $res_pow
+STRINGLN 
+_UNSIGNED_MATH = 1
+_STR_PRINT_FORMAT = 0
+STRINGLN --- UNSIGNED MATH ---
+VAR u_val = -16
+VAR u_shift = u_val >> 1
+STRINGLN Unsigned Shift (0xFFFFFFF0 >> 1): $u_shift
+VAR u_div = u_val / 2
+STRINGLN Unsigned Div (0xFFFFFFF0 / 2): $u_div
+VAR u_mod = u_val % 17
+STRINGLN Unsigned Mod (0xFFFFFFF0 % 17): $u_mod
+VAR base = 2
+VAR exp = 31
+VAR u_pow = base ** exp
+STRINGLN Unsigned Pow (2 ^ 31): $u_pow
+STRINGLN
+STRINGLN --- PRINT FORMATS ---
+VAR test_val = -1
+_STR_PRINT_FORMAT = 0
+STRINGLN Format 0 (Unsigned): $test_val
+_STR_PRINT_FORMAT = 1
+STRINGLN Format 1 (Signed): $test_val
+_STR_PRINT_FORMAT = 2
+STRINGLN Format 2 (Hex Lower): $test_val
+_STR_PRINT_FORMAT = 3
+STRINGLN Format 3 (Hex Upper): $test_val

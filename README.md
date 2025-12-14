@@ -44,8 +44,8 @@ DuckStack is a domain-specific stack-based bytecode VM for executing compiled **
 
 * Byte 1 & 2: **Optional payload**.
 
-* All operations are **signed int32** BY DEFAULT
-	* User can write to a reserved variable to switch to **unsigned mode** as needed
+* All operations are **signed** BY DEFAULT
+	* Set reserved variable `_UNSIGNED_MATH = 1` to switch to **unsigned mode**
 
 ## CPU Instructions
 
@@ -87,22 +87,28 @@ Binary as in **involving two operands**.
 
 * Push result back on TOS
 
+-----
+
+* ⚠️ = Affected by current **Arithmetic Mode**
+	* Default: Signed
+	* Unsigned mode if `_UNSIGNED_MATH` is set to 1
+
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
 |EQ|`32`/`0x20`|Equal|
 |NOTEQ|`33`/`0x21`|Not equal|
-|LT|`34`/`0x22`|Less than|
-|LTE|`35`/`0x23`|Less than or equal|
-|GT|`36`/`0x24`|Greater than|
-|GTE|`37`/`0x25`|Greater than or equal|
+|LT|`34`/`0x22`|Less than<br>⚠️|
+|LTE|`35`/`0x23`|Less than or equal<br>⚠️|
+|GT|`36`/`0x24`|Greater than<br>⚠️|
+|GTE|`37`/`0x25`|Greater than or equal<br>⚠️|
 |ADD|`38`/`0x26`|Add|
 |SUB|`39`/`0x27`|Subtract|
 |MULT|`40`/`0x28`|Multiply|
 |DIV|`41`/`0x29`|Integer division|
 |MOD|`42`/`0x2a`|Modulus|
 |POW|`43`/`0x2b`|Power of|
-|LSHIFT|`44`/`0x2c`|Logical left shift|
-|RSHIFT|`45`/`0x2d`|Logical right shift|
+|LSHIFT|`44`/`0x2c`|Left shift|
+|RSHIFT|`45`/`0x2d`|⚠️Right shift<br>Signed Mode: Arithmetic (sign-extend)<br>Unsigned Mode: Logical (0-extend)|
 |BITOR|`46`/`0x2e`|Bitwise OR|
 |BITXOR|`47`/`0x2f`|Bitwise XOR|
 |BITAND|`48`/`0x30`|Bitwise AND|

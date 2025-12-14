@@ -21,6 +21,7 @@ int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
 static jmp_buf jmpbuf;
 uint8_t current_key_id = 127;
+uint8_t unsigned_math;
 
 // ---------------------------
 
@@ -326,33 +327,67 @@ void stack_print(my_stack* ms, char* comment)
 
 uint32_t binop_equal(uint32_t a, uint32_t b) {return a == b;}
 uint32_t binop_not_equal(uint32_t a, uint32_t b) {return a != b;}
-uint32_t binop_lower(uint32_t a, uint32_t b) {return a < b;}
-uint32_t binop_lower_eq(uint32_t a, uint32_t b) {return a <= b;}
-uint32_t binop_greater(uint32_t a, uint32_t b) {return a > b;}
-uint32_t binop_greater_eq(uint32_t a, uint32_t b) {return a >= b;}
+uint32_t binop_lower(uint32_t a, uint32_t b)
+{
+  if(unsigned_math)
+    return a < b;
+  return (int32_t)a < (int32_t)b;
+}
+uint32_t binop_lower_eq(uint32_t a, uint32_t b)
+{
+  if(unsigned_math)
+    return a <= b;
+  return (int32_t)a <= (int32_t)b;
+}
+uint32_t binop_greater(uint32_t a, uint32_t b)
+{
+  if(unsigned_math)
+    return a > b;
+  return (int32_t)a > (int32_t)b;
+}
+uint32_t binop_greater_eq(uint32_t a, uint32_t b)
+{
+  if(unsigned_math)
+    return a >= b;
+  return (int32_t)a >= (int32_t)b;
+}
 uint32_t binop_add(uint32_t a, uint32_t b) {return a + b;}
 uint32_t binop_sub(uint32_t a, uint32_t b) {return a - b;}
 uint32_t binop_mul(uint32_t a, uint32_t b) {return a * b;}
-uint32_t binop_mod(uint32_t a, uint32_t b) {return a % b;}
+uint32_t binop_mod(uint32_t a, uint32_t b)
+{
+  if(b == 0)
+    longjmp(jmpbuf, EXE_DIVISION_BY_ZERO);
+  if(unsigned_math)
+    return a % b;
+  return (int32_t)a % (int32_t)b;
+}
 uint32_t binop_lshift(uint32_t a, uint32_t b) {return a << b;}
-uint32_t binop_rshift(uint32_t a, uint32_t b) {return a >> b;}
+uint32_t binop_rshift(uint32_t a, uint32_t b)
+{
+  if(unsigned_math)
+    return a >> b;
+  return (int32_t)((int32_t)a >> (int32_t)b);
+}
 uint32_t binop_bitwise_or(uint32_t a, uint32_t b) {return a | b;}
 uint32_t binop_bitwise_xor(uint32_t a, uint32_t b) {return a ^ b;}
 uint32_t binop_bitwise_and(uint32_t a, uint32_t b) {return a & b;}
 uint32_t binop_logical_and(uint32_t a, uint32_t b) {return a && b;}
 uint32_t binop_logical_or(uint32_t a, uint32_t b) {return a || b;}
-
 uint32_t binop_divide(uint32_t a, uint32_t b)
 {
   if(b == 0)
     longjmp(jmpbuf, EXE_DIVISION_BY_ZERO);
-  return a/b;
+  if(unsigned_math)
+    return a / b;
+  return (int32_t)a / (int32_t)b; 
 }
-
 uint32_t binop_power(uint32_t x, uint32_t exponent)
 {
+  if (unsigned_math == 0 && ((int32_t)exponent < 0))
+    return 0;
   uint32_t result = 1;
-  for (int i = 0; i < exponent; ++i)
+  for (size_t i = 0; i < exponent; ++i)
     result *= x;
   return result;
 }
@@ -480,6 +515,8 @@ uint32_t memread_u32(uint16_t addr)
     return str_print_padding;
   if (addr == _UNUSED)
     return 0;
+  if (addr == _UNSIGNED_MATH)
+    return unsigned_math;
   longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
 
@@ -513,6 +550,8 @@ void memwrite_u32(uint16_t addr, uint32_t value)
     str_print_format = value;
   else if (addr == _STR_PRINT_PADDING)
     str_print_padding = value;
+  else if (addr == _UNSIGNED_MATH)
+    unsigned_math = value;
 }
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
