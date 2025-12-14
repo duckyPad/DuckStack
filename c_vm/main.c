@@ -898,25 +898,25 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_MMOV)
   {
     uint32_t tempx, tempy;
-    stack_pop(&data_stack, &tempy);
     stack_pop(&data_stack, &tempx);
+    stack_pop(&data_stack, &tempy);
     printf("OP_MMOV: %d %d\n", tempx, tempy);
   }
   else if(opcode == OP_SWCF)
   {
     uint32_t red, green, blue;
-    stack_pop(&data_stack, &blue);
-    stack_pop(&data_stack, &green);
     stack_pop(&data_stack, &red);
+    stack_pop(&data_stack, &green);
+    stack_pop(&data_stack, &blue);
     printf("OP_SWCF: %d %d %d\n", red, green, blue);
   }
   else if(opcode == OP_SWCC)
   {
     uint32_t this_index, red, green, blue;
-    stack_pop(&data_stack, &blue);
-    stack_pop(&data_stack, &green);
-    stack_pop(&data_stack, &red);
     stack_pop(&data_stack, &this_index);
+    stack_pop(&data_stack, &red);
+    stack_pop(&data_stack, &green);
+    stack_pop(&data_stack, &blue);
     printf("OP_SWCC: %d %d %d %d\n", this_index, red, green, blue);
   }
   else if(opcode == OP_SWCR)
@@ -942,8 +942,8 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_OLED_CUSR)
   {
     uint32_t xxx, yyy;
-    stack_pop(&data_stack, &yyy);
     stack_pop(&data_stack, &xxx);
+    stack_pop(&data_stack, &yyy);
     printf("OP_OLED_CUSR: %d %d\n", xxx, yyy);
   }
   else if(opcode == OP_OLED_PRNT)
@@ -968,29 +968,29 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_OLED_LINE)
   {
     uint32_t x1,y1,x2,y2;
-    stack_pop(&data_stack, &y2);
-    stack_pop(&data_stack, &x2);
-    stack_pop(&data_stack, &y1);
     stack_pop(&data_stack, &x1);
+    stack_pop(&data_stack, &y1);
+    stack_pop(&data_stack, &x2);
+    stack_pop(&data_stack, &y2);
     printf("OP_OLED_LINE: %d %d %d %d\n", x1, y1, x2, y2);
   }
   else if(opcode == OP_OLED_RECT)
   {
     uint32_t x1,y1,x2,y2,fill;
-    stack_pop(&data_stack, &fill);
-    stack_pop(&data_stack, &y2);
-    stack_pop(&data_stack, &x2);
-    stack_pop(&data_stack, &y1);
     stack_pop(&data_stack, &x1);
+    stack_pop(&data_stack, &y1);
+    stack_pop(&data_stack, &x2);
+    stack_pop(&data_stack, &y2);
+    stack_pop(&data_stack, &fill);
     printf("OP_OLED_RECT: %d %d %d %d %d\n", x1, y1, x2, y2, fill);
   }
   else if(opcode == OP_OLED_CIRC)
   {
     uint32_t x,y,radius,fill;
-    stack_pop(&data_stack, &fill);
-    stack_pop(&data_stack, &radius);
-    stack_pop(&data_stack, &y);
     stack_pop(&data_stack, &x);
+    stack_pop(&data_stack, &y);
+    stack_pop(&data_stack, &radius);
+    stack_pop(&data_stack, &fill);
     printf("OP_OLED_CIRC: %d %d %d %d\n", x, y, radius, fill);
   }
   else if(opcode == OP_BCLR)
