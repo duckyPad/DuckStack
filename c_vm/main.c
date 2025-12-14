@@ -20,7 +20,7 @@ uint32_t pgv_buf[PGV_COUNT];
 int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
 static jmp_buf jmpbuf;
-uint8_t this_key_id = 127;
+uint8_t current_key_id = 127;
 
 // ---------------------------
 
@@ -383,6 +383,14 @@ uint16_t make_uint16(uint8_t b0, uint8_t b1)
   return b0 | (b1 << 8);
 }
 
+uint8_t get_gv_index(uint16_t addr)
+{
+  uint8_t gv_index = (addr - PGV_START_ADDRESS) / PGV_BYTE_WIDTH;
+  if(gv_index >= PGV_COUNT)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  return gv_index;
+}
+
 uint8_t is_pgv(uint16_t addr)
 {
   return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
@@ -405,10 +413,74 @@ uint32_t memread_u32(uint16_t addr)
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
     return make_uint32(&bin_buf[addr]);
   if (is_pgv(addr))
+    return pgv_buf[get_gv_index(addr)];
+  if (addr == _DEFAULTDELAY)
+	  return defaultdelay_value;
+  if (addr == _DEFAULTCHARDELAY)
+    return defaultchardelay_value;
+  if (addr == _CHARJITTER)
+    return charjitter_value;
+  if (addr == _RANDOM_MIN)
+    return rand_min;
+  if (addr == _RANDOM_MAX)
+    return rand_max;
+  if (addr == _RANDOM_INT)
     return DUMMY_DATA_REPLACE_ME;
-  if (addr >= INTERAL_VAR_START_ADDRESS)
+  if (addr == _TIME_MS)
     return DUMMY_DATA_REPLACE_ME;
-  return DUMMY_DATA_REPLACE_ME;
+  if (addr == _READKEY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _LOOP_SIZE)
+    return loop_size;
+  if (addr == _KEYPRESS_COUNT)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _NEEDS_EPILOGUE)
+    return epilogue_actions;
+  if (addr == _TIME_S)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _ALLOW_ABORT)
+    return allow_abort;
+  if (addr == _BLOCKING_READKEY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _IS_NUMLOCK_ON)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _IS_CAPSLOCK_ON)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _IS_SCROLLLOCK_ON)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _DONT_REPEAT)
+    return disable_autorepeat;
+  if (addr == _THIS_KEYID)
+    return current_key_id;
+  if (addr == _DP_MODEL)
+    return 2;
+  if (addr == _RTC_IS_VALID)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_UTC_OFFSET)
+    return utc_offset_minutes;
+  if (addr == _RTC_YEAR)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_MONTH)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_DAY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_HOUR)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_MINUTE)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_SECOND)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_WDAY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RTC_YDAY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _STR_PRINT_FORMAT)
+    return str_print_format;
+  if (addr == _STR_PRINT_PADDING)
+    return str_print_padding;
+  if (addr == _UNUSED)
+    return 0;
+  longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
 
 void memwrite_u32(uint16_t addr, uint32_t value)
@@ -550,11 +622,10 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   uint8_t instruction_size_bytes = inst_size_lookup(opcode);
   uint16_t payload = 0;
   exe->next_pc += instruction_size_bytes;
-
   
   if(instruction_size_bytes == 3)
     payload = make_uint16(read_byte(curr_pc+1), read_byte(curr_pc+2));
-    
+  
   if(PRINT_DEBUG)
   {
     printf("\n--------------------\n");
@@ -625,8 +696,8 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_RET)
   {
     stack_print(&data_stack, "RET");
-    uint32_t func_return_val;
     // stash return value
+    uint32_t func_return_val;
     stack_pop(&data_stack, &func_return_val);
     // pop until frame_info is on TOS
     while(1)
@@ -743,14 +814,14 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
-    char* str_buf = make_str((uint16_t)this_value, this_key_id);
+    char* str_buf = make_str((uint16_t)this_value, current_key_id);
     printf(">>>>> STRING: %s\n", str_buf);
   }
   else if(opcode == OP_STRLN)
   {
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
-    char* str_buf = make_str((uint16_t)this_value, this_key_id);
+    char* str_buf = make_str((uint16_t)this_value, current_key_id);
     printf(">>>>> STRINGLN: %s\n", str_buf);
   }
   else
