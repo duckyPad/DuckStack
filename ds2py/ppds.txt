@@ -1,3 +1,30 @@
-WHILE 1
-    CONTINUE
-END_WHILE
+_GV0 = 100
+VAR global_acc = 5
+VAR unused_global = 9999
+asdfasdf
+_UNSIGNED_MATH = 0  cfgdfg
+FUNCTION math_op(val, unused_arg)
+    VAR local_res = 0
+    VAR unused_local = 777
+    local_res = val * 2
+    RETURN local_res 
+END_FUNCTION
+FUNCTION flow_check(limit)
+    VAR i = 0
+    WHILE i < limit
+        IF i == 2 THEN
+            _GV0 = _GV0 + 50
+        ELSE
+            _GV0 = _GV0 + 1
+        END_IF
+        IF i == 4 THEN
+            LBREAK
+        END_IF
+        i = i + 1
+    END_WHILE
+    RETURN
+END_FUNCTION
+global_acc = math_op(global_acc, 123) 
+flow_check(10)
+STRINGLN Result GV0: $_GV0
+STRINGLN Result Global: $global_acc

@@ -10,6 +10,7 @@ import symtable
 import myast
 import copy
 from collections import defaultdict
+import traceback
 
 """
 duckyscript VM changelog
@@ -120,7 +121,7 @@ def is_known_global(name, ctx_dict):
 
 def classify_name(name: str, current_function: str | None, ctx_dict) -> int:
     if keyword.iskeyword(name) or name in ds_reserved_funcs:
-        raise ValueError(f'Invalid variable name: "{name}"')
+        raise CompilerError(f'Invalid variable name: "{name}"', ctx_dict.get('latest_orig_ds_lnum_sf1'))
     
     if name in reserved_variables_dict:
         return SymType.RESERVED_VAR
@@ -131,12 +132,12 @@ def classify_name(name: str, current_function: str | None, ctx_dict) -> int:
         this_table = myast.find_function_table(root_table, current_function)
         user_declared_func_locals = ctx_dict['user_declared_var_dict'].get(current_function)
         if this_table is None:
-            raise ValueError(f"No symtable for {name} in {current_function!r}()")
+            raise CompilerError(f"No symtable for {name} in {current_function!r}()", ctx_dict.get('latest_orig_ds_lnum_sf1'))
 
         sym = search_in_symtable(name, this_table)
         if sym is not None:
             if sym.is_parameter() and user_declared_func_locals is not None and name in user_declared_func_locals:
-                raise ValueError(f"Variable clash: {name} cannot be both arg and local")
+                raise CompilerError(f"Variable clash: {name} cannot be both arg and local", ctx_dict.get('latest_orig_ds_lnum_sf1'))
             if sym.is_parameter():
                 return SymType.FUNC_ARG
             if user_declared_func_locals is not None and name in user_declared_func_locals:
@@ -144,7 +145,7 @@ def classify_name(name: str, current_function: str | None, ctx_dict) -> int:
                 
     if is_known_global(name, ctx_dict):
         return SymType.GLOBAL_VAR
-    raise ValueError(f'Unknown symbol "{name}" in function "{current_function}()"')
+    raise CompilerError(f'Unknown symbol "{name}" in function "{current_function}()"', ctx_dict.get('latest_orig_ds_lnum_sf1'))
 
 def visit_name_node(node, ctx_dict, inst_list):
     og_ds_line = ctx_dict["og_ds_line"]
@@ -169,7 +170,7 @@ def visit_name_node(node, ctx_dict, inst_list):
         opcode = OP_PUSHR if (sym_type in [SymType.FUNC_ARG, SymType.FUNC_LOCAL_VAR]) else OP_PUSHI
         inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
 
-def get_key_combined_value(keyname):
+def get_key_combined_value(keyname, ctx_dict):
     if keyname in ds3_keyname_dict:
         key_code = ds3_keyname_dict[keyname][0]
         key_type = ds3_keyname_dict[keyname][1]
@@ -177,7 +178,7 @@ def get_key_combined_value(keyname):
         key_code = ord(keyname[0])
         key_type = KEY_TYPE_CHAR
     else:
-        raise ValueError(f"Invalid Key: {keyname}")
+        raise CompilerError(f"Invalid Key: {keyname}", ctx_dict.get("latest_orig_ds_lnum_sf1"))
     return ((key_type % 0xff) << 8) | (key_code % 0xff)
 
 def visit_node(node, ctx_dict):
@@ -204,16 +205,16 @@ def visit_node(node, ctx_dict):
         if isinstance(node.value, str) and caller_func_name in ds_str_func_lookup:
             emit(OP_PUSHSTR, payload=node.value, parent_func=current_function)
         elif isinstance(node.value, str) and caller_func_name in ds_keypress_func_lookup:
-            emit(OP_PUSHC16, payload=get_key_combined_value(node.value))
+            emit(OP_PUSHC16, payload=get_key_combined_value(node.value, ctx_dict))
         elif isinstance(node.value, int):
             instruction_list.extend(make_instruction_pushc32(node.value, og_ds_line))
         else:
-            raise ValueError("Unknown Constant:", node.value)
+            raise CompilerError("Unknown Constant:", node.value, ctx_dict.get("latest_orig_ds_lnum_sf1"))
 
     elif isinstance(node, AST_ARITH_NODES):
         op_name = node.__class__.__name__
         if op_name not in arith_lookup:
-            raise ValueError("unknown operation")
+            raise CompilerError("unknown operation", ctx_dict.get("latest_orig_ds_lnum_sf1"))
         emit(arith_lookup[op_name])
 
     elif isinstance(node, ast.If):
@@ -238,7 +239,7 @@ def visit_node(node, ctx_dict):
     elif isinstance(node, ast.Return):
         arg_count = myast.how_many_args(current_function, ctx_dict)
         if arg_count is None:
-            raise ValueError("Invalid arg count")
+            raise CompilerError("Invalid arg count", ctx_dict.get("latest_orig_ds_lnum_sf1"))
         emit(OP_RET, payload=arg_count)
 
     elif isinstance(node, myast.add_nop):
@@ -257,7 +258,7 @@ def visit_node(node, ctx_dict):
         emit(OP_ALLOC, payload=node.func_name)
 
     else:
-        raise ValueError("Unknown leaf node:", node)
+        raise CompilerError(f"Unknown leaf node: {node}", ctx_dict.get("latest_orig_ds_lnum_sf1"))
 
 def print_symtable(tbl, indent=0):
     pad = " " * indent
@@ -275,12 +276,12 @@ def print_symtable(tbl, indent=0):
 
 # ---------------------------
 
-def resolve_global_and_reserved_var_address(var_name, udgv_lookup):
+def resolve_global_and_reserved_var_address(var_name, udgv_lookup, ctx_dict):
     if var_name in reserved_variables_dict:
         return reserved_variables_dict[var_name]
     if var_name in udgv_lookup:
         return udgv_lookup[var_name]
-    raise ValueError(f"Unknown variable: {var_name}")
+    raise CompilerError(f"Unknown variable: {var_name}", ctx_dict.get('latest_orig_ds_lnum_sf1'))
 
 def group_vars(context_dict):
     grouped_data = defaultdict(lambda: {"args": [], "locals": []})
@@ -297,14 +298,14 @@ def group_vars(context_dict):
          grouped_data[key]['locals'].sort()
     return dict(grouped_data)
 
-def needs_resolving(inst):
+def needs_resolving(inst, ctx_dict):
     if inst.opcode.length == 1:
         return False
     if isinstance(inst.payload, str):
         return True
     if isinstance(inst.payload, int):
         return False
-    raise ValueError(f"needs_resolving: {inst}")
+    raise CompilerError(f"Unable to resolve: {inst}", ctx_dictp['latest_orig_ds_lnum_sf1'])
 
 def var_name_to_address_lookup_only_for_strprint(var_name, str_inst, arg_and_local_var_lookup, udgv_lookup):
     parent_func = str_inst.parent_func
@@ -409,7 +410,7 @@ def compile_to_bin(rdict):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
 
     if len(user_declared_global_var_addr_lookup) > MAX_UDV_COUNT:
-        raise ValueError("Too many user-declared variables")
+        raise CompilerError("Too many user-declared variables", rdict.get("latest_orig_ds_lnum_sf1"))
 
     print("\n--------- Global Variables ---------")
     print(user_declared_global_var_addr_lookup)
@@ -450,7 +451,7 @@ def compile_to_bin(rdict):
     generate str addresses?
     """
     for this_inst in final_assembly_list:
-        if needs_resolving(this_inst) is False:
+        if needs_resolving(this_inst, rdict) is False:
             continue
 
         if this_inst.opcode == OP_PUSHSTR:
@@ -468,7 +469,7 @@ def compile_to_bin(rdict):
                 pass
             this_inst.payload = local_vars_count
         elif this_inst.opcode in [OP_PUSHI, OP_POPI]: # global variables
-            this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)
+            this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup, rdict)
         elif this_inst.opcode in [OP_PUSHR, OP_POPR]: # local var or func args
             var_name = this_inst.payload
             parent_func = this_inst.parent_func
@@ -476,20 +477,20 @@ def compile_to_bin(rdict):
             if parent_func is None\
                 or len(parent_func) == 0\
                 or var_type not in [SymType.FUNC_LOCAL_VAR, SymType.FUNC_ARG]:
-                raise ValueError(f"Insufficient info for {var_name} in {parent_func}()")
+                raise CompilerError(f"Insufficient info for {var_name} in {parent_func}()", rdict.get("latest_orig_ds_lnum_sf1"))
             fun_info_dict = func_arg_and_local_var_lookup[parent_func]
             if var_type == SymType.FUNC_ARG:
                 arg_list = fun_info_dict['args']
                 if var_name not in arg_list:
-                    raise ValueError(f"Not an arg: {var_name} in {parent_func}()")
+                    raise CompilerError(f"Not an arg: {var_name} in {parent_func}()", rdict.get("latest_orig_ds_lnum_sf1"))
                 this_inst.payload = (arg_list.index(var_name) + 1) * 4
             if var_type == SymType.FUNC_LOCAL_VAR:
                 local_list = fun_info_dict['locals']
                 if var_name not in local_list:
-                    raise ValueError(f"Not an local: {var_name} in {parent_func}()")
+                    raise CompilerError(f"Not an local: {var_name} in {parent_func}()", rdict.get("latest_orig_ds_lnum_sf1"))
                 this_inst.payload = (local_list.index(var_name) + 1) * -4
         else:
-            raise ValueError("unknown instruction:", this_inst)
+            raise CompilerError("unknown instruction:", this_inst, rdict.get("latest_orig_ds_lnum_sf1"))
 
     user_str_addr = final_assembly_list[-1].addr + final_assembly_list[-1].opcode.length
     # Figrue out starting address of each string
@@ -520,7 +521,7 @@ def compile_to_bin(rdict):
     for key in user_strings_dict:
         output_bin_array += key
     if len(output_bin_array) > MAX_BIN_SIZE:
-        raise ValueError("Binary size too large")
+        raise CompilerError("Binary size too large", None)
     return output_bin_array
 
 def make_dsb_with_exception(program_listing):
@@ -528,10 +529,12 @@ def make_dsb_with_exception(program_listing):
     rdict = ds3_preprocessor.run_all(program_listing)
 
     if rdict['is_success'] is False:
-        print("Preprocessing failed!")
-        print(f"\t{rdict['comments']}")
-        print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
-        return rdict, None
+        comp_result = compile_result(
+            is_success=False,
+            error_comment=rdict['error_line_str'],
+            error_line_number_starting_from_1=rdict['error_line_number_starting_from_1']
+        )
+        return comp_result
 
     rdict["orig_listing"] = orig_listing
     post_pp_listing = rdict["dspp_listing_with_indent_level"]
@@ -555,30 +558,43 @@ def make_dsb_with_exception(program_listing):
         myast.postorder_walk(statement, visit_node, rdict)
 
     rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
-
     bin_array = compile_to_bin(rdict)
-    return None, bin_array
-    
+    comp_result = compile_result(
+        is_success=True,
+        bin_array=bytes(bin_array)
+    )
+    return comp_result
+
+def make_dsb_no_exception(program_listing):
+    try:
+        return make_dsb_with_exception(program_listing)
+    except Exception as e:
+        comp_result = compile_result(
+            is_success=False,
+            error_comment = str(e.comment),
+            error_line_number_starting_from_1 = e.line_number,
+        )
+    return comp_result
 
 # --------------------------
 
-if __name__ != "__main__":
-    exit()
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print(f"Usage: {__file__} <ds3_script> [output]")
+        exit()
 
-if len(sys.argv) < 2:
-    print(f"Usage: {__file__} <ds3_script> [output]")
-    exit()
+    text_file = open(sys.argv[1])
+    text_listing = text_file.readlines()
+    text_file.close()
 
-text_file = open(sys.argv[1])
-text_listing = text_file.readlines()
-text_file.close()
+    program_listing = []
+    for index, line in enumerate(text_listing):
+        line = line.rstrip("\r\n")
+        program_listing.append(ds_line(line, index + 1))
 
-program_listing = []
-for index, line in enumerate(text_listing):
-    line = line.rstrip("\r\n")
-    program_listing.append(ds_line(line, index + 1))
+    comp_result = make_dsb_no_exception(program_listing)
 
-
-result = make_dsb_with_exception(program_listing)
-
-print(result)
+    if comp_result.is_success is False:
+        error_msg = (f"Error on Line {comp_result.error_line_number_starting_from_1}: {comp_result.error_comment}")
+        print(error_msg)
+        exit()

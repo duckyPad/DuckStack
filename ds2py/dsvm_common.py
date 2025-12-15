@@ -371,6 +371,14 @@ class fun_info:
     args: set
     locals: set
 
+@dataclass(slots=True)
+class compile_result:
+    is_success: bool = False
+    error_comment: str = ""
+    error_line_number_starting_from_1 : int = 0
+    error_line_str: str = ""
+    bin_array : bytes = bytes()
+
 # CPU instructions
 OP_NOP = Opcode("NOP", 0, 1)
 OP_PUSHC16 = Opcode("PUSHC16", 1, 3)
@@ -801,4 +809,11 @@ def generate_c_code():
     print()
     print_C_opcode_def()
 
+class CompilerError(Exception):
+    def __init__(self, comment, line_number):
+        self.comment = comment
+        self.line_number = line_number
+        super().__init__(comment)
+    def __str__(self):
+        return f"Error on Line {self.line_number}: {self.comment}"
 
