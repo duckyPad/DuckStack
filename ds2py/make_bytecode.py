@@ -489,7 +489,7 @@ def compile_to_bin(rdict):
                     raise ValueError(f"Not an local: {var_name} in {parent_func}()")
                 this_inst.payload = (local_list.index(var_name) + 1) * -4
         else:
-            raise ValueError("unkown instruction:", this_inst)
+            raise ValueError("unknown instruction:", this_inst)
 
     user_str_addr = final_assembly_list[-1].addr + final_assembly_list[-1].opcode.length
     # Figrue out starting address of each string
