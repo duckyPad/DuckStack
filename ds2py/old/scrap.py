@@ -692,3 +692,16 @@ def how_many_args(name: str, context_dict):
     if params is None:
         return None
     return len(params)
+
+# -----------------------
+
+    print("----- Binary output ------")
+    for bbb in output_bin_array:
+        print(f"{bbb:02x}", end=" ")
+    print()
+    print()
+    file_path = "out.dsb"
+    with open(file_path, 'wb') as file_out:
+        bytes_written = file_out.write(output_bin_array)
+        print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
+    print(f"MAX_BIN_SIZE: {MAX_BIN_SIZE} Bytes")

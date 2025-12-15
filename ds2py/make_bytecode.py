@@ -519,20 +519,46 @@ def compile_to_bin(rdict):
         output_bin_array += pack_to_two_bytes(this_payload)
     for key in user_strings_dict:
         output_bin_array += key
-
     if len(output_bin_array) > MAX_BIN_SIZE:
         raise ValueError("Binary size too large")
+    return output_bin_array
 
-    print("----- Binary output ------")
-    for bbb in output_bin_array:
-        print(f"{bbb:02x}", end=" ")
-    print()
-    print()
-    file_path = "out.dsb"
-    with open(file_path, 'wb') as file_out:
-        bytes_written = file_out.write(output_bin_array)
-        print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
-    print(f"MAX_BIN_SIZE: {MAX_BIN_SIZE} Bytes")
+def make_dsb_with_exception(program_listing):
+    orig_listing = copy.deepcopy(program_listing)
+    rdict = ds3_preprocessor.run_all(program_listing)
+
+    if rdict['is_success'] is False:
+        print("Preprocessing failed!")
+        print(f"\t{rdict['comments']}")
+        print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
+        return rdict, None
+
+    rdict["orig_listing"] = orig_listing
+    post_pp_listing = rdict["dspp_listing_with_indent_level"]
+    save_lines_to_file(post_pp_listing, "ppds.txt")
+    pyout = ds2py.run_all(post_pp_listing)
+    rdict["ds2py_listing"] = pyout
+    save_lines_to_file(pyout, "pyds.py")
+    source = dsline_to_source(pyout)
+    my_tree = ast.parse(source, mode="exec", optimize=-1)
+    symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
+    rdict["root_assembly_list"] = []
+    rdict["root_assembly_list"].append(dsvm_instruction(OP_VMVER, payload=DS_VM_VERSION))
+    rdict["symtable_root"] = symtable_root
+    rdict['func_assembly_dict'] = {}
+    rdict['func_args_dict'] = get_func_args(symtable_root)
+    rdict['var_info_set'] = set()
+
+    for statement in my_tree.body:
+        rdict["func_def_name"] = None
+        rdict["caller_func_name"] = None
+        myast.postorder_walk(statement, visit_node, rdict)
+
+    rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
+
+    bin_array = compile_to_bin(rdict)
+    return None, bin_array
+    
 
 # --------------------------
 
@@ -552,41 +578,7 @@ for index, line in enumerate(text_listing):
     line = line.rstrip("\r\n")
     program_listing.append(ds_line(line, index + 1))
 
-orig_listing = copy.deepcopy(program_listing)
-rdict = ds3_preprocessor.run_all(program_listing)
 
-if rdict['is_success'] is False:
-    print("Preprocessing failed!")
-    print(f"\t{rdict['comments']}")
-    print(f"\tLine {rdict['error_line_number_starting_from_1']}: {rdict['error_line_str']}")
-    exit()
+result = make_dsb_with_exception(program_listing)
 
-# print(rdict['user_declared_var_dict'])
-
-rdict["orig_listing"] = orig_listing
-post_pp_listing = rdict["dspp_listing_with_indent_level"]
-save_lines_to_file(post_pp_listing, "ppds.txt")
-pyout = ds2py.run_all(post_pp_listing)
-rdict["ds2py_listing"] = pyout
-save_lines_to_file(pyout, "pyds.py")
-source = dsline_to_source(pyout)
-my_tree = ast.parse(source, mode="exec", optimize=-1)
-symtable_root = symtable.symtable(source, filename="ds2py", compile_type="exec")
-# print_symtable(symtable_root)
-rdict["root_assembly_list"] = []
-rdict["root_assembly_list"].append(dsvm_instruction(OP_VMVER, payload=DS_VM_VERSION))
-rdict["symtable_root"] = symtable_root
-rdict['func_assembly_dict'] = {}
-rdict['func_args_dict'] = get_func_args(symtable_root)
-rdict['var_info_set'] = set()
-
-for statement in my_tree.body:
-    rdict["func_def_name"] = None
-    rdict["caller_func_name"] = None
-    myast.postorder_walk(statement, visit_node, rdict)
-
-rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
-
-# print_assembly_list(rdict["root_assembly_list"])
-
-compile_to_bin(rdict)
+print(result)
