@@ -272,7 +272,17 @@ At end of a function, `return_value` is on TOS.
 |`FP ->`|Base (`F7FF`)|
 
 
-## To Change on C VM
+## To Do
+
+* generate PGV save flag on DSVM itself not compiler
+	* double check epilogue actions, which one by compiler which one by VM. probably most can be determined on runtime.
+* Implement WAIT_KEY
+* Implement in-VM epilogue actions
+* negative shift counts?
+* POW negative exponent?
+* allow inline comments?
+
+## Done
 
 * new opcode values
 * new opcode names
@@ -285,7 +295,6 @@ At end of a function, `return_value` is on TOS.
 * RSHIFT: logical or arithmetic?
 * comparison instructions: signed or unsigned?
 * new OLED instruction names
-* generate PGV save flag on DSVM itself not compiler
 * watch out for unused function return value clogging up stack, discard if no assign? in compiler
 * one-byte duckyscript commands, rewrite upper byte lower byte to 2ndLSB and LSB.
 * what does SP point to? next free byte or current entry?
@@ -300,21 +309,9 @@ At end of a function, `return_value` is on TOS.
 * `PUSHC16` zero extend or sign extend? Depend on mode?
 * default signed or unsigned ?
 * mention function always return 0 if not specified
-
-
-* Implement WAIT_KEY
-
-negative shift counts?
-POW negative exponent?
-
-
-$ no longer required for variables, EXCEPT in printing commands
-
-allow inline comments?
-
-double check epilogue actions, which one by compiler which one by VM. probably most can be determined on runtime.
-
-logical NOT operator
+* $ no longer required for variables, EXCEPT in printing commands
+* allow inline comments?
+* logical NOT operator
 
 ## Changelog
 
