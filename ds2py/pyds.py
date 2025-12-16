@@ -1,1 +1,1 @@
-_CHARJITTER = 3
+test = _SW_BITFIELD

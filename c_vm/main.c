@@ -517,6 +517,8 @@ uint32_t memread_u32(uint16_t addr)
     return 0;
   if (addr == _UNSIGNED_MATH)
     return unsigned_math;
+  if (addr == _SW_BITFIELD)
+    return DUMMY_DATA_REPLACE_ME;
   longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
 

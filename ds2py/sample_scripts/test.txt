@@ -1,1 +1,1 @@
-VAR _CHARJITTER = 3
+VAR test = _SW_BITFIELD

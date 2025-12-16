@@ -614,4 +614,13 @@ if __name__ == "__main__":
         error_msg = (f"Error on Line {comp_result.error_line_number_starting_from_1}: {comp_result.error_comment}\n\t{comp_result.error_line_str}")
         print(error_msg)
         exit()
-    print(comp_result)
+    # print(comp_result)
+    print("----- Binary output ------")
+    for bbb in comp_result.bin_array:
+        print(f"{bbb:02x}", end=" ")
+    print()
+    print()
+    file_path = "out.dsb"
+    with open(file_path, 'wb') as file_out:
+        bytes_written = file_out.write(comp_result.bin_array)
+        print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
