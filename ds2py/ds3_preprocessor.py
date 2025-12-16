@@ -385,10 +385,12 @@ def check_var_declare(pgm_line, var_dict, fss):
     if_valid_vn, vn_comment = is_valid_var_name(this_var_name)
     if if_valid_vn is False:
         return PARSE_ERROR, vn_comment
+    if this_var_name in reserved_variables_dict:
+        return PARSE_ERROR, "Re-declaration of reserved variable"
     parent_func_name = None
     if len(fss) > 0:
         parent_func_name = fss[-1]
-
+        
     if parent_func_name not in var_dict:
         var_dict[parent_func_name] = set()
 

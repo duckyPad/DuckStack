@@ -1,3 +1,1 @@
-VAR = 10
-REM = 20
-DEFINE = 20
+_CHARJITTER = 3

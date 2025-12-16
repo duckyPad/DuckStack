@@ -1,4 +1,1 @@
-
-VAR VAR = 10        // Error: keyword as identifier?
-VAR REM = 20        // Error: keyword as identifier?
-VAR SWCC = 20        // Error: keyword as identifier?
+VAR _CHARJITTER = 3
