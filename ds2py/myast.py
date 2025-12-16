@@ -18,15 +18,6 @@ def how_many_args(func_name, ctx_dict):
         return None
     return len(args_list)
 
-def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1):
-    if this_pylnum_sf1 is None:
-        return None
-    og_index_sf1 = None
-    for line_obj in rdict['ds2py_listing']:
-        if line_obj.py_lnum_sf1 == this_pylnum_sf1:
-            og_index_sf1 = line_obj.orig_lnum_sf1
-    return og_index_sf1
-
 def print_node_info(node):
     lineno = getattr(node, "lineno", None)
     print(f"---Line {lineno}: {type(node)}---")

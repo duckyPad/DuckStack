@@ -700,6 +700,15 @@ class dsvm_instruction:
         lines.append("".join(parts))
         return "\n".join(lines)
 
+def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1, onerr=None):
+    if this_pylnum_sf1 is None:
+        return onerr
+    og_index_sf1 = onerr
+    for line_obj in rdict['ds2py_listing']:
+        if line_obj.py_lnum_sf1 == this_pylnum_sf1:
+            og_index_sf1 = line_obj.orig_lnum_sf1
+    return og_index_sf1
+
 import uuid
 notequal_str = "!="
 op_placeholder = str(uuid.uuid4())
@@ -711,22 +720,6 @@ def replace_operators(this_line):
     return temp
 
 def pack_to_two_bytes(value: int) -> bytes:
-    """
-    Converts an integer into a two-byte sequence (little-endian),
-    treating it as uint16_t if non-negative (>= 0) or int16_t if negative (< 0).
-
-    Args:
-        value: The integer to convert.
-
-    Returns:
-        A bytes object of length 2 representing the packed value.
-
-    Raises:
-        ValueError: If the integer is outside the valid range for the 
-                    chosen 16-bit format (0 to 65535 for unsigned, 
-                    or -32768 to 32767 for signed).
-        TypeError: If the input is not an integer.
-    """
     if not isinstance(value, int):
         raise TypeError(f"Input must be an integer, but received {type(value)}")
 
@@ -809,11 +802,20 @@ def generate_c_code():
     print()
     print_C_opcode_def()
 
-class CompilerError(Exception):
-    def __init__(self, comment, line_number):
-        self.comment = comment
-        self.line_number = line_number
-        super().__init__(comment)
-    def __str__(self):
-        return f"Error on Line {self.line_number}: {self.comment}"
+def get_orig_ds_line_from_orig_ds_lnum_sf1(ctx_dict, lnumsf1):
+    try:
+        return ctx_dict['orig_listing'][lnumsf1-1].content
+    except Exception as e:
+        print("get_orig_ds_line_from_orig_ds_lnum_sf1:", e)
+    return ""
 
+ds_cmd_set = {v for k, v in globals().items() if k.startswith('cmd_')}
+
+def is_ds_keyword(name):
+    if keyword.iskeyword(name):
+        return True
+    if name in ds_cmd_set:
+        return True
+    if name in ds3_keyname_dict:
+        return True
+    return False

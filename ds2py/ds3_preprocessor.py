@@ -69,14 +69,14 @@ def skip_whitespace(pgm_line):
 
 def is_valid_var_name(varname):
     if len(varname) == 0:
-        return False, 'empty name'
+        return False, 'Empty name'
     if varname[0].isnumeric():
-        return False, "name can't begin with a number"
-    if keyword.iskeyword(varname):
-        return False, "invalid name"
+        return False, f"Name can't begin with a number: {varname}"
+    if is_ds_keyword(varname):
+        return False, f"Invalid Variable Name: {varname}"
     for letter in varname:
         if letter not in valid_var_chars:
-            return False, 'name contains invalid characters'
+            return False, f'Name contains invalid characters: {varname}'
     return True, ''
 
 def new_define(pgm_line, dd):

@@ -705,3 +705,25 @@ def how_many_args(name: str, context_dict):
         bytes_written = file_out.write(output_bin_array)
         print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
     print(f"MAX_BIN_SIZE: {MAX_BIN_SIZE} Bytes")
+
+
+-----
+
+def make_dsb_no_exception(program_listing):
+    try:
+        return make_dsb_with_exception(program_listing)
+    except Exception as e:
+        print("MDNE:", traceback.format_exc())
+        # print(e)
+        # print(global_context_dict)
+        # comp_result = compile_result(
+        #     is_success=False,
+        #     error_comment = str(e.comment),
+        #     error_line_number_starting_from_1 = e.line_number,
+        # )
+    return None
+    # return comp_result
+
+    wtf = make_dsb_with_exception(program_listing)
+    print(wtf)
+    exit()
