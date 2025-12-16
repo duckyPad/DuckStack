@@ -1,1 +1,2 @@
 test = _SW_BITFIELD
+WAIT_KEY(-0)

@@ -164,6 +164,8 @@ cmd_END_STRINGLN = "END_STRINGLN"
 cmd_STRING_BLOCK = "STRING_BLOCK"
 cmd_END_STRING = "END_STRING"
 
+cmd_WAIT_KEY = "WAIT_KEY"
+
 KEY_LEFT_CTRL =  0x01
 KEY_LEFT_SHIFT = 0x02
 KEY_LEFT_ALT =   0x04
@@ -444,6 +446,7 @@ OP_PREVP = Opcode("PREVP", 83, 1)
 OP_NEXTP = Opcode("NEXTP", 84, 1)
 OP_GOTOP = Opcode("GOTOP", 85, 1)
 OP_SLEEP = Opcode("SLEEP", 86, 1)
+OP_WAITK = Opcode("WAITK", 87, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -585,24 +588,25 @@ ds_keypress_func_lookup = {
 }
 
 ds_builtin_func_lookup = {
+    cmd_HALT : reserved_func_info(OP_HALT, 0),
     cmd_DELAY : reserved_func_info(OP_DELAY, 1),
-    cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
-    cmd_PREV_PROFILE : reserved_func_info(OP_PREVP, 0),
-    cmd_NEXT_PROFILE : reserved_func_info(OP_NEXTP, 0),
-    cmd_SWCC : reserved_func_info(OP_SWCC, 4),
+    cmd_MOUSE_WHEEL : reserved_func_info(OP_MSCL, 1),
+    cmd_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
     cmd_SWCF : reserved_func_info(OP_SWCF, 3),
+    cmd_SWCC : reserved_func_info(OP_SWCC, 4),
     cmd_SWCR : reserved_func_info(OP_SWCR, 1),
-    cmd_OLED_UPDATE : reserved_func_info(OP_OLED_UPDE, 0),
     cmd_OLED_CURSOR : reserved_func_info(OP_OLED_CUSR, 2),
+    cmd_OLED_UPDATE : reserved_func_info(OP_OLED_UPDE, 0),
     cmd_OLED_CLEAR : reserved_func_info(OP_OLED_CLR, 0),
     cmd_OLED_RESTORE : reserved_func_info(OP_OLED_REST, 0),
     cmd_OLED_LINE : reserved_func_info(OP_OLED_LINE, 4),
     cmd_OLED_RECT : reserved_func_info(OP_OLED_RECT, 5),
     cmd_OLED_CIRCLE : reserved_func_info(OP_OLED_CIRC, 4),
     cmd_BCLR : reserved_func_info(OP_BCLR, 0),
-    cmd_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
-    cmd_MOUSE_WHEEL : reserved_func_info(OP_MSCL, 1),
-    cmd_HALT : reserved_func_info(OP_HALT, 0),
+    cmd_PREV_PROFILE : reserved_func_info(OP_PREVP, 0),
+    cmd_NEXT_PROFILE : reserved_func_info(OP_NEXTP, 0),
+    cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
+    cmd_WAIT_KEY : reserved_func_info(OP_WAITK, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup

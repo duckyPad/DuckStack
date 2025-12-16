@@ -160,6 +160,7 @@ Binary as in **involving two operands**.
 |NEXTP|`84`/`0x54`| **Next profile**|
 |GOTOP|`85`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Go to profile name as<br>zero-terminated string at `ADDR`|
 |SLEEP|`86`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+|WAITK|`87`/`0x57`| **Wait for Keypress**<br>Pop **ONE** item as `KeyID`<br>Block until the key is pressed<br> 0 = Any key|
 
 ## Calling Convention
 
@@ -299,6 +300,9 @@ At end of a function, `return_value` is on TOS.
 * `PUSHC16` zero extend or sign extend? Depend on mode?
 * default signed or unsigned ?
 * mention function always return 0 if not specified
+
+
+* Implement WAIT_KEY
 
 negative shift counts?
 POW negative exponent?
