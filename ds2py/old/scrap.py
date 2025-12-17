@@ -727,3 +727,5 @@ def make_dsb_no_exception(program_listing):
     wtf = make_dsb_with_exception(program_listing)
     print(wtf)
     exit()
+
+# |WAITK|`86`/`0x57`| **Wait for Keypress**<br>Pop **ONE** item as `KeyID`<br>Block until the key is pressed<br> 0 = Any key|
