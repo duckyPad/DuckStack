@@ -691,13 +691,9 @@ def run_all(program_listing):
     epilogue = 0
     if rdict['loop_state_save_needed']:
         epilogue |= 0x1
-    # 0x2 is color_state_save_needed, generate on duckypad itself
-    # 0x4 is oled_restore_needed, generate on duckypad itself
-    # 0x8 is disable_autorepeat, generated on duckypad itself
-    # 0x10 is pgv_save_needed, generated on duckypad itself
 
     if epilogue != 0:
-        second_pass_program_listing.append(ds_line(content=f"_NEEDS_EPILOGUE = {epilogue}"))
+        second_pass_program_listing.append(ds_line(content=f"_EPILOGUE_ACTIONS = {epilogue}"))
     if rdict['loop_size'] is not None:
         second_pass_program_listing.append(ds_line(content=f"_LOOP_SIZE = {rdict['loop_size']+1}"))
     

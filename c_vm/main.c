@@ -470,7 +470,7 @@ uint32_t memread_u32(uint16_t addr)
     return loop_size;
   if (addr == _KEYPRESS_COUNT)
     return DUMMY_DATA_REPLACE_ME;
-  if (addr == _NEEDS_EPILOGUE)
+  if (addr == _EPILOGUE_ACTIONS)
     return epilogue_actions;
   if (addr == _TIME_S)
     return DUMMY_DATA_REPLACE_ME;
@@ -541,7 +541,7 @@ void memwrite_u32(uint16_t addr, uint32_t value)
     rand_max = value;
   else if (addr == _KEYPRESS_COUNT)
     DUMMY_DATA_REPLACE_ME;
-  else if (addr == _NEEDS_EPILOGUE)
+  else if (addr == _EPILOGUE_ACTIONS)
     epilogue_actions = value;
   else if (addr == _ALLOW_ABORT)
     allow_abort = value;
@@ -912,6 +912,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
     stack_pop(&data_stack, &green);
     stack_pop(&data_stack, &blue);
     printf("OP_SWCF: %d %d %d\n", red, green, blue);
+    DS_SET_BITS(epilogue_actions, EPI_SAVE_COLOR_STATE);
   }
   else if(opcode == OP_SWCC)
   {
@@ -921,6 +922,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
     stack_pop(&data_stack, &green);
     stack_pop(&data_stack, &blue);
     printf("OP_SWCC: %d %d %d %d\n", this_index, red, green, blue);
+    DS_SET_BITS(epilogue_actions, EPI_SAVE_COLOR_STATE);
   }
   else if(opcode == OP_SWCR)
   {
@@ -959,6 +961,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_OLED_UPDE)
   {
     printf("OP_OLED_UPDE\n");
+    DS_SET_BITS(epilogue_actions, EPI_RESTORE_OLED);
   }
   else if(opcode == OP_OLED_CLR)
   {
@@ -1074,6 +1077,8 @@ void run_dsb(exe_context* er, char* dsb_path)
       break;
   }
   printf("Execution Completed\n");
+  disable_autorepeat ? DS_SET_BITS(epilogue_actions, EPI_NO_AUTOREPEAT) : DS_CLEAR_BITS(epilogue_actions, EPI_NO_AUTOREPEAT);
+  printf("epilogue: %02x\n", epilogue_actions);
 }
 
 exe_context execon;
