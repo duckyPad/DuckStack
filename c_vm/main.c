@@ -944,6 +944,7 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
     printf("OP_SWCR: %d\n", this_value);
+    DS_CLEAR_BITS(epilogue_actions, EPI_SAVE_COLOR_STATE);
   }
   else if(opcode == OP_STR)
   {
