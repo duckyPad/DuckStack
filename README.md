@@ -281,6 +281,7 @@ At end of a function, `return_value` is on TOS.
 * negative shift counts?
 * POW negative exponent?
 * allow inline comments?
+* GOTO_PROFILE works with both string names, expressions, and numbers
 
 ## Done
 
