@@ -21,7 +21,7 @@ cmd_DP_SLEEP = "DP_SLEEP"
 cmd_PREV_PROFILE = "PREV_PROFILE"
 cmd_NEXT_PROFILE = "NEXT_PROFILE"
 cmd_GOTO_PROFILE = "GOTO_PROFILE"
-cmd_GOTO_PROFILE_NAME = "GOTO_PROFILE_NAME"
+cmd_SKIP_PROFILE = "SKIP_PROFILE"
 
 cmd_KEYDOWN = "KEYDOWN"
 cmd_KEYUP = "KEYUP"
@@ -443,10 +443,9 @@ OP_OLED_RECT = Opcode("OLED_RECT", 80, 1)
 OP_OLED_CIRC = Opcode("OLED_CIRC", 81, 1)
 OP_BCLR = Opcode("BCLR", 82, 1)
 OP_SKIPP = Opcode("SKIPP", 83, 1)
-OP_GOTOP_IDX = Opcode("GOTOP_IDX", 84, 1)
-OP_GOTOP_STR = Opcode("GOTOP_STR", 85, 1)
-OP_SLEEP = Opcode("SLEEP", 86, 1)
-OP_WAITK = Opcode("WAITK", 87, 1)
+OP_GOTOP = Opcode("GOTOP", 84, 1)
+OP_SLEEP = Opcode("SLEEP", 85, 1)
+OP_WAITK = Opcode("WAITK", 86, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -579,7 +578,7 @@ ds_str_func_lookup = {
     cmd_STRING : reserved_func_info(OP_STR, 1),
     cmd_STRINGLN : reserved_func_info(OP_STRLN, 1),
     cmd_OLED_PRINT : reserved_func_info(OP_OLED_PRNT, 1),
-    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP_STR, 1),
+    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
     }
 
 ds_keypress_func_lookup = {
@@ -603,8 +602,7 @@ ds_builtin_func_lookup = {
     cmd_OLED_RECT : reserved_func_info(OP_OLED_RECT, 5),
     cmd_OLED_CIRCLE : reserved_func_info(OP_OLED_CIRC, 4),
     cmd_BCLR : reserved_func_info(OP_BCLR, 0),
-    cmd_PREV_PROFILE : reserved_func_info(OP_PREVP, 0),
-    cmd_NEXT_PROFILE : reserved_func_info(OP_NEXTP, 0),
+    cmd_SKIP_PROFILE : reserved_func_info(OP_SKIPP, 1),
     cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
     cmd_WAIT_KEY : reserved_func_info(OP_WAITK, 1),
 }

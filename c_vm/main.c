@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "main.h"
 #include <setjmp.h>
+#include <stdlib.h>
 
 uint8_t str_print_format;
 uint8_t str_print_padding;
@@ -118,12 +119,12 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [80] OLED_RECT
 1, // [81] OLED_CIRC
 1, // [82] BCLR
-1, // [83] PREVP
-1, // [84] NEXTP
-1, // [85] GOTOPIDX
-1, // [86] GOTOPSTR
-1, // [87] SLEEP
-1, // [88] WAITK
+1, // [83] SKIPP
+1, // [84] GOTOP
+1, // [85] SLEEP
+1, // [86] WAITK
+255, // [87]
+255, // [88]
 255, // [89]
 255, // [90]
 255, // [91]
@@ -190,12 +191,10 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_OLED_RECT 80
 #define OP_OLED_CIRC 81
 #define OP_BCLR 82
-#define OP_PREVP 83
-#define OP_NEXTP 84
-#define OP_GOTOP_IDX 85
-#define OP_GOTOP_STR 86
-#define OP_SLEEP 87
-#define OP_WAITK 88
+#define OP_SKIPP 83
+#define OP_GOTOP 84
+#define OP_SLEEP 85
+#define OP_WAITK 86
 #define OP_VMVER 255
 
 // ---------------------------
@@ -578,6 +577,19 @@ uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
   if(bin_buf[1] != dsvm_version)
     return EXE_DSB_INCOMPATIBLE_VERSION;
   return EXE_OK;
+}
+
+uint8_t str_is_integer(const char *str, long *out_value)
+{
+  char *endptr;
+  long val = strtol(str, &endptr, 0);
+  if (str == endptr)
+    return 0;
+  if (*endptr != '\0')
+    return 0;
+  if (out_value)
+    *out_value = val;    
+  return 1;
 }
 
 uint8_t inst_size_lookup(uint8_t opcode)
@@ -1007,26 +1019,19 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   {
     printf("OP_BCLR\n");
   }
-  else if(opcode == OP_PREVP)
+  else if(opcode == OP_SKIPP)
   {
-    printf("OP_PREVP\n");
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    printf("OP_SKIPP: %d\n", this_value);
   }
-  else if(opcode == OP_NEXTP)
-  {
-    printf("OP_NEXTP\n");
-  }
-  else if(opcode == OP_GOTOP_STR)
+  else if(opcode == OP_GOTOP)
   {
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
     char* str_buf = make_str((uint16_t)this_value);
-    printf("OP_GOTOP_STR: %s\n", str_buf);
-  }
-  else if(opcode == OP_GOTOP_IDX)
-  {
-    uint32_t this_value;
-    stack_pop(&data_stack, &this_value);
-    printf("OP_GOTOP_IDX: %d\n", this_value);
+    uint8_t is_int = str_is_integer(str_buf, NULL);
+    printf("OP_GOTOP_STR %d: %s\n", is_int, str_buf);
   }
   else if(opcode == OP_SLEEP)
   {

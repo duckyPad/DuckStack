@@ -157,10 +157,9 @@ Binary as in **involving two operands**.
 |OLED_CIRC|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
 |BCLR|`82`/`0x52`|**Clear switch event queue**|
 |SKIPP|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from current the one|
-|GOTOP_IDX|`84`/`0x54`| **Goto Profile by INDEX**<br>Pop **ONE** item as `n`<br>Go to `n`-th profile|
-|GOTOP_STR|`85`/`0x55`| **Goto Profile by NAME**<br>Pop **ONE** item as `ADDR`<br>Go to profile name as<br>zero-terminated string at `ADDR`|
-|SLEEP|`86`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
-|WAITK|`87`/`0x57`| **Wait for Keypress**<br>Pop **ONE** item as `KeyID`<br>Block until the key is pressed<br> 0 = Any key|
+|GOTOP|`84`/`0x55`| **Goto Profile by NAME**<br>Pop **ONE** item as `ADDR`<br>Go to profile name as<br>zero-terminated string at `ADDR`|
+|SLEEP|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+|WAITK|`86`/`0x57`| **Wait for Keypress**<br>Pop **ONE** item as `KeyID`<br>Block until the key is pressed<br> 0 = Any key|
 
 ## Calling Convention
 
@@ -281,7 +280,7 @@ At end of a function, `return_value` is on TOS.
 * negative shift counts?
 * POW negative exponent?
 * allow inline comments?
-* GOTO_PROFILE works with both string names, expressions, and numbers
+* GOTO_PROFILE works with both string names, numbers, and a single variable. NO EXPREESIONS, assign to a variable beforehand!
 * SKIP_PROFILE n, jump ahead or back n profiles. Preprocess PREVP AND NEXTP into it
 
 ## Done
