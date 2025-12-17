@@ -444,9 +444,10 @@ OP_OLED_CIRC = Opcode("OLED_CIRC", 81, 1)
 OP_BCLR = Opcode("BCLR", 82, 1)
 OP_PREVP = Opcode("PREVP", 83, 1)
 OP_NEXTP = Opcode("NEXTP", 84, 1)
-OP_GOTOP = Opcode("GOTOP", 85, 1)
-OP_SLEEP = Opcode("SLEEP", 86, 1)
-OP_WAITK = Opcode("WAITK", 87, 1)
+OP_GOTOP_IDX = Opcode("GOTOP_IDX", 85, 1)
+OP_GOTOP_STR = Opcode("GOTOP_STR", 86, 1)
+OP_SLEEP = Opcode("SLEEP", 87, 1)
+OP_WAITK = Opcode("WAITK", 88, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -579,7 +580,7 @@ ds_str_func_lookup = {
     cmd_STRING : reserved_func_info(OP_STR, 1),
     cmd_STRINGLN : reserved_func_info(OP_STRLN, 1),
     cmd_OLED_PRINT : reserved_func_info(OP_OLED_PRNT, 1),
-    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
+    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP_STR, 1),
     }
 
 ds_keypress_func_lookup = {
@@ -825,3 +826,5 @@ def is_ds_keyword(name):
     if name in ds3_keyname_dict:
         return True
     return False
+
+generate_c_code()
