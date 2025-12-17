@@ -164,8 +164,6 @@ cmd_END_STRINGLN = "END_STRINGLN"
 cmd_STRING_BLOCK = "STRING_BLOCK"
 cmd_END_STRING = "END_STRING"
 
-cmd_WAIT_KEY = "WAIT_KEY"
-
 KEY_LEFT_CTRL =  0x01
 KEY_LEFT_SHIFT = 0x02
 KEY_LEFT_ALT =   0x04
@@ -445,7 +443,6 @@ OP_BCLR = Opcode("BCLR", 82, 1)
 OP_SKIPP = Opcode("SKIPP", 83, 1)
 OP_GOTOP = Opcode("GOTOP", 84, 1)
 OP_SLEEP = Opcode("SLEEP", 85, 1)
-OP_WAITK = Opcode("WAITK", 86, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -604,7 +601,6 @@ ds_builtin_func_lookup = {
     cmd_BCLR : reserved_func_info(OP_BCLR, 0),
     cmd_SKIP_PROFILE : reserved_func_info(OP_SKIPP, 1),
     cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
-    cmd_WAIT_KEY : reserved_func_info(OP_WAITK, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup

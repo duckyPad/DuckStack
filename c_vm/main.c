@@ -122,7 +122,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [83] SKIPP
 1, // [84] GOTOP
 1, // [85] SLEEP
-1, // [86] WAITK
+255, // [86]
 255, // [87]
 255, // [88]
 255, // [89]
@@ -194,7 +194,6 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_SKIPP 83
 #define OP_GOTOP 84
 #define OP_SLEEP 85
-#define OP_WAITK 86
 #define OP_VMVER 255
 
 // ---------------------------
@@ -1036,10 +1035,6 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_SLEEP)
   {
     printf("OP_SLEEP\n");
-  }
-  else if(opcode == OP_WAITK)
-  {
-    printf("OP_WAITK\n");
   }
   else
   {
