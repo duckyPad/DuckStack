@@ -315,6 +315,8 @@ At end of a function, `return_value` is on TOS.
 
 ## Changelog
 
+* increase sampling rate?
+
 * `VMVER` instruction: version number now on byte 1 (LSB)
 
 * Adjusted starting address and entry offset for
