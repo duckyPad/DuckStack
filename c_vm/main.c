@@ -986,6 +986,8 @@ void execute_instruction(uint16_t curr_pc, exe_context* exe)
   else if(opcode == OP_OLED_REST)
   {
     printf("OP_OLED_REST\n");
+    // user already restored OLED content, no need to do it again.
+    DS_CLEAR_BITS(epilogue_actions, EPI_RESTORE_OLED);
   }
   else if(opcode == OP_OLED_LINE)
   {
