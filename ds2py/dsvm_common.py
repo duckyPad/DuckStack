@@ -824,4 +824,4 @@ def is_ds_keyword(name):
         return True
     return False
 
-generate_c_code()
+# generate_c_code()

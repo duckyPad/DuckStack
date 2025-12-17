@@ -672,6 +672,16 @@ def run_all(program_listing):
             if cpos != -1:
                 line_obj.content = line_obj.content[:cpos].rstrip(" \t")
             line_obj.content = replace_operators(line_obj.content)
+        if first_word == cmd_PREV_PROFILE:
+            line_obj.content = f"{cmd_SKIP_PROFILE} -1"
+        if first_word == cmd_NEXT_PROFILE:
+            line_obj.content = f"{cmd_SKIP_PROFILE} 1"
+        if line_obj.content.strip() == cmd_GOTO_PROFILE:
+            rdict['is_success'] = False
+            rdict['comments'] = "Missing profile name"
+            rdict['error_line_number_starting_from_1'] = line_obj.orig_lnum_sf1
+            rdict['error_line_str'] = line_obj.content
+            return rdict
         line_obj.content = line_obj.content.lstrip(" \t")
         new_program_listing.append(line_obj)
 
