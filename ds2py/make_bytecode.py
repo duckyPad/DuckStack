@@ -31,6 +31,7 @@ complete overhaul
 new opcode values
 single stack
 32 bit stack width and arithmetics
+a lot more look at notes
 
 """
 DS_VM_VERSION = 2
@@ -86,7 +87,7 @@ def make_instruction_pushc32(value, comment: str = ""):
     return inst_list
 
 def print_assembly_list(asmlist):
-    if print_asm:
+    if print_asm is False:
         return
     for item in asmlist:
         print(item)
@@ -450,11 +451,6 @@ def compile_to_bin(rdict):
             continue
         label_to_addr_dict[this_inst.label] = this_inst.addr
 
-    """
-    Go over each instruction, resolve indirect addresses
-    generate payload bytes
-    generate str addresses?
-    """
     for this_inst in final_assembly_list:
         if needs_resolving(this_inst) is False:
             continue
@@ -550,10 +546,10 @@ def make_dsb_with_exception(program_listing, should_print=False):
     global_context_dict = rdict
     rdict["orig_listing"] = orig_listing
     post_pp_listing = rdict["dspp_listing_with_indent_level"]
-    save_lines_to_file(post_pp_listing, "ppds.txt")
+    # save_lines_to_file(post_pp_listing, "ppds.txt")
     pyout = ds2py.run_all(post_pp_listing)
     rdict["ds2py_listing"] = pyout
-    save_lines_to_file(pyout, "pyds.py")
+    # save_lines_to_file(pyout, "pyds.py")
     source = dsline_to_source(pyout)
     try:
         my_tree = ast.parse(source, mode="exec")
@@ -626,7 +622,7 @@ if __name__ == "__main__":
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
 
-    comp_result = make_dsb_no_exception(program_listing, should_print=False)
+    comp_result = make_dsb_no_exception(program_listing, should_print=True)
     if comp_result.is_success is False:
         error_msg = (f"Error on Line {comp_result.error_line_number_starting_from_1}: {comp_result.error_comment}\n\t{comp_result.error_line_str}")
         print(error_msg)
@@ -636,4 +632,4 @@ if __name__ == "__main__":
     file_path = "out.dsb"
     with open(file_path, 'wb') as file_out:
         bytes_written = file_out.write(comp_result.bin_array)
-        print(f"Successfully wrote {bytes_written} bytes to '{file_path}'")
+        print(f"Wrote {bytes_written} bytes to '{file_path}'")

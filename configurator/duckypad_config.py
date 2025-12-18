@@ -1848,8 +1848,8 @@ def repeat_func():
 root.after(500, repeat_func)
 
 
-THIS_DUCKYPAD.device_type = THIS_DUCKYPAD.dp24
-select_root_folder("sample_dp24", is_dir_for_dp24=True)
+# THIS_DUCKYPAD.device_type = THIS_DUCKYPAD.dp24
+# select_root_folder("sample_dp24", is_dir_for_dp24=True)
 # connect_button_click()
 # export_profile_click()
 # import_profile_click()
