@@ -34,6 +34,7 @@ single stack
 
 """
 DS_VM_VERSION = 2
+print_asm = False
 
 arith_lookup = {
     "Eq" : OP_EQ,
@@ -85,10 +86,10 @@ def make_instruction_pushc32(value, comment: str = ""):
     return inst_list
 
 def print_assembly_list(asmlist):
-    # print()
+    if print_asm:
+        return
     for item in asmlist:
         print(item)
-    # print()
 
 AST_ARITH_NODES = (
     ast.operator,
@@ -393,12 +394,13 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
     return result
 
 def compile_to_bin(rdict):
-    print("\n\n--------- Assembly Listing, Unresolved: ---------")
-    print_assembly_list(rdict['root_assembly_list'])
-    for key in rdict['func_assembly_dict']:
-        print(f'----FUNC: {key}----')
-        print_assembly_list(rdict['func_assembly_dict'][key])
-        print(f'----END {key}----')
+    if print_asm:
+        print("\n\n--------- Assembly Listing, Unresolved: ---------")
+        print_assembly_list(rdict['root_assembly_list'])
+        for key in rdict['func_assembly_dict']:
+            print(f'----FUNC: {key}----')
+            print_assembly_list(rdict['func_assembly_dict'][key])
+            print(f'----END {key}----')
 
     """
     this is generated from walking the nodes, not the symtable and AST.
@@ -506,10 +508,11 @@ def compile_to_bin(rdict):
             this_inst.opcode = OP_PUSHC16
             this_inst.payload = user_strings_dict[this_inst.payload]
 
-    print("\n\n--------- Assembly Listing, Resolved: ---------")
-    print_assembly_list(final_assembly_list)
-    for key in user_strings_dict:
-        print(f"{user_strings_dict[key]}  DATA: {key}")
+    if print_asm:
+        print("\n\n--------- Assembly Listing, Resolved: ---------")
+        print_assembly_list(final_assembly_list)
+        for key in user_strings_dict:
+            print(f"{user_strings_dict[key]}  DATA: {key}")
 
     # ------------------ generate binary ------------------
 
@@ -526,8 +529,11 @@ def compile_to_bin(rdict):
         raise ValueError("Binary size too large")
     return output_bin_array
 
-def make_dsb_with_exception(program_listing):
+def make_dsb_with_exception(program_listing, should_print=False):
     global global_context_dict
+    global print_asm
+    print_asm = should_print
+
     orig_listing = copy.deepcopy(program_listing)
     rdict = ds3_preprocessor.run_all(program_listing)
 
@@ -579,9 +585,11 @@ def make_dsb_with_exception(program_listing):
     )
     return comp_result
 
-def make_dsb_no_exception(program_listing):
+def make_dsb_no_exception(program_listing, should_print=False):
+    global print_asm
+    print_asm = should_print
     try:
-        return make_dsb_with_exception(program_listing)
+        return make_dsb_with_exception(program_listing, should_print)
     except Exception as e:
         print("MDNE:", traceback.format_exc())
         comp_result = compile_result(
@@ -591,6 +599,15 @@ def make_dsb_no_exception(program_listing):
             error_line_str = get_orig_ds_line_from_orig_ds_lnum_sf1(global_context_dict, global_context_dict.get('latest_orig_ds_lnum_sf1', ''))
         )
         return comp_result
+
+def print_bin_output(binarr):
+    if print_asm is False:
+        return
+    print("----- Binary output ------")
+    for bbb in binarr:
+        print(f"{bbb:02x}", end=" ")
+    print()
+    print()
 
 # --------------------------
 
@@ -609,17 +626,12 @@ if __name__ == "__main__":
         program_listing.append(ds_line(line, index + 1))
 
     comp_result = make_dsb_no_exception(program_listing)
-
     if comp_result.is_success is False:
         error_msg = (f"Error on Line {comp_result.error_line_number_starting_from_1}: {comp_result.error_comment}\n\t{comp_result.error_line_str}")
         print(error_msg)
         exit()
-    # print(comp_result)
-    print("----- Binary output ------")
-    for bbb in comp_result.bin_array:
-        print(f"{bbb:02x}", end=" ")
-    print()
-    print()
+
+    print_bin_output(comp_result.bin_array)
     file_path = "out.dsb"
     with open(file_path, 'wb') as file_out:
         bytes_written = file_out.write(comp_result.bin_array)
