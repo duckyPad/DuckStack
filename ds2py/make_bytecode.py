@@ -105,6 +105,7 @@ def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
     for line_obj in rdict['ds2py_listing']:
         if line_obj.py_lnum_sf1 == this_pylnum_sf1:
             og_index_sf0 = line_obj.orig_lnum_sf1 - 1
+            break
     if og_index_sf0 is None:
         return ""
     return rdict['orig_listing'][og_index_sf0].content
@@ -625,7 +626,7 @@ if __name__ == "__main__":
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
 
-    comp_result = make_dsb_no_exception(program_listing)
+    comp_result = make_dsb_no_exception(program_listing, should_print=False)
     if comp_result.is_success is False:
         error_msg = (f"Error on Line {comp_result.error_line_number_starting_from_1}: {comp_result.error_comment}\n\t{comp_result.error_line_str}")
         print(error_msg)

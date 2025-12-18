@@ -707,6 +707,7 @@ def get_orig_ds_lnumsf1_from_py_lnumsf1(rdict, this_pylnum_sf1, onerr=None):
     for line_obj in rdict['ds2py_listing']:
         if line_obj.py_lnum_sf1 == this_pylnum_sf1:
             og_index_sf1 = line_obj.orig_lnum_sf1
+            break
     return og_index_sf1
 
 import uuid
