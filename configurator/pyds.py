@@ -1,0 +1,4 @@
+KEYDOWN('CTRL')
+KEYDOWN('l')
+KEYUP('l')
+KEYUP('CTRL')

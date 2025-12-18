@@ -774,17 +774,17 @@ def compile_all_scripts():
                     continue
                 text_list = make_final_script(this_key, this_key.script.lstrip().split('\n'))
                 obj_list = make_list_of_ds_line_obj_from_str_listing(text_list)
-                result_dict, bin_arr = make_bytecode.make_dsb_with_exception(obj_list, profile_list)
-                if bin_arr is None:
+                comp_result = make_bytecode.make_dsb_with_exception(obj_list)
+                if comp_result.is_success is False:
                     raise ValueError("Compile failed")
-                this_key.binary_array = bin_arr
+                this_key.binary_array = comp_result.bin_array
                 if len(this_key.script_on_release.lstrip()) > 0:
                     tl_or = make_final_script(this_key, this_key.script_on_release.lstrip().split('\n'))
                     ol_or = make_list_of_ds_line_obj_from_str_listing(tl_or)
-                    result_dict, bin_arr = make_bytecode.make_dsb_with_exception(ol_or, profile_list)
-                    if bin_arr is None:
+                    comp_result = make_bytecode.make_dsb_with_exception(ol_or)
+                    if comp_result.is_success is False:
                         raise ValueError("Compile failed")
-                    this_key.binary_array_on_release = bin_arr
+                    this_key.binary_array_on_release = comp_result.bin_array
                 if len(this_key.binary_array) >= 65000 or (this_key.binary_array_on_release is not None and len(this_key.binary_array_on_release) >= 65000):
                     messagebox.showerror("Error", f'Script size too large!\n\nProfile: {this_profile.name}\nKey: {this_key.name}')
                     return False
@@ -1595,13 +1595,13 @@ def check_syntax():
         return
     last_check_syntax_listing = program_listing.copy()
     ds_line_obj_list = make_list_of_ds_line_obj_from_str_listing(program_listing)
-    result_dict, bin_arr = make_bytecode.make_dsb_no_exception(ds_line_obj_list, profile_list)
+    comp_result = make_bytecode.make_dsb_no_exception(ds_line_obj_list) #result_dict, bin_arr 
     script_textbox.tag_remove("error", '1.0', 'end')
-    if result_dict is None:
+    if comp_result.is_success:
         check_syntax_label.config(text="Code seems OK..", fg="green")       
         return
-    error_lnum = result_dict['error_line_number_starting_from_1']
-    error_text = result_dict['comments']
+    error_lnum = comp_result.error_line_number_starting_from_1
+    error_text = comp_result.error_comment
     script_textbox.tag_add("error", str(error_lnum)+".0", str(error_lnum)+".0 lineend")
     check_syntax_label.config(text=error_text, fg='red')
 
@@ -1848,8 +1848,8 @@ def repeat_func():
 root.after(500, repeat_func)
 
 
-# THIS_DUCKYPAD.device_type = THIS_DUCKYPAD.dp24
-# select_root_folder("sample_dp24", is_dir_for_dp24=True)
+THIS_DUCKYPAD.device_type = THIS_DUCKYPAD.dp24
+select_root_folder("sample_dp24", is_dir_for_dp24=True)
 # connect_button_click()
 # export_profile_click()
 # import_profile_click()

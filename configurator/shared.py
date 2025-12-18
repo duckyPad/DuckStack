@@ -9,6 +9,8 @@ target_dir = os.path.abspath("../ds2py")
 if target_dir not in sys.path:
     sys.path.append(target_dir)
 import make_bytecode
+from dsvm_common import *
+
 
 MAX_EXPANSION_MODULE_COUNT = 4
 CHANNELS_PER_EXPANSION_MODULE = 8
