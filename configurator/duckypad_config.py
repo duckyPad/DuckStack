@@ -785,7 +785,7 @@ def compile_all_scripts():
                     if comp_result.is_success is False:
                         raise ValueError("Compile failed")
                     this_key.binary_array_on_release = comp_result.bin_array
-                if len(this_key.binary_array) >= 65000 or (this_key.binary_array_on_release is not None and len(this_key.binary_array_on_release) >= 65000):
+                if len(this_key.binary_array) >= MAX_BIN_SIZE or (this_key.binary_array_on_release is not None and len(this_key.binary_array_on_release) >= MAX_BIN_SIZE):
                     messagebox.showerror("Error", f'Script size too large!\n\nProfile: {this_profile.name}\nKey: {this_key.name}')
                     return False
         return True
