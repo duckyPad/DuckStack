@@ -695,8 +695,9 @@ char* make_str(uint16_t str_start_addr)
   return read_buffer;
 }
 
-void execute_instruction(uint16_t curr_pc, exe_context* exe)
+void execute_instruction(exe_context* exe)
 {
+  uint16_t curr_pc = exe->this_pc;
   uint8_t opcode = read_byte(curr_pc);
   uint8_t instruction_size_bytes = inst_size_lookup(opcode);
   uint16_t payload = 0;
@@ -1057,7 +1058,6 @@ void run_dsb(exe_context* er, char* dsb_path)
     return;
   }
 
-  uint16_t current_pc = 0;
   uint16_t data_stack_size_bytes = STACK_BASE_ADDR - this_dsb_size - STACK_MOAT_BYTES;
   stack_init(&data_stack, bin_buf, STACK_BASE_ADDR, data_stack_size_bytes);
 
@@ -1077,27 +1077,49 @@ void run_dsb(exe_context* er, char* dsb_path)
   if(panic_code != 0)
   {
     printf("VM Crashed! Panic: %d\n", panic_code);
+    er->result = panic_code;
     return;
   }
   
   while(1)
   {
-    execute_instruction(current_pc, er);
-    current_pc = er->next_pc;
+    execute_instruction(er);
+    er->this_pc = er->next_pc;
     if(er->result != EXE_OK)
       break;
-    if(current_pc > this_dsb_size)
+    if(er->this_pc > this_dsb_size)
       break;
   }
   printf("Execution Complete\n");
   disable_autorepeat ? DS_SET_BITS(epilogue_actions, EPI_NO_AUTOREPEAT) : DS_CLEAR_BITS(epilogue_actions, EPI_NO_AUTOREPEAT);
-  printf("Epilogue: %02x\n", epilogue_actions);
 }
 
-exe_context execon;
+void exe_ctx_init(exe_context* ctx)
+{
+  ctx->result = EXE_OK;
+  ctx->this_pc = 0;
+  ctx->next_pc = 0;
+  ctx->data = 0;
+  ctx->epilogue_actions = 0;
+}
+
+void print_exe_context(exe_context *ctx) {
+  if (ctx == NULL) return;
+  printf("--- Execution Context ---\n");
+  printf("Result:           %u\n", ctx->result);
+  printf("Current PC:       %u\n", ctx->this_pc);
+  printf("Next PC:          %u\n", ctx->next_pc);
+  printf("Data:             %u\n", ctx->data);
+  printf("Epilogue Actions: 0x%02X\n", ctx->epilogue_actions);
+  printf("-------------------------\n");
+}
 
 int main()
 {
-  run_dsb(&execon, "../ds2py/out.dsb");
+  
+  exe_context exe_ctx;
+  exe_ctx_init(&exe_ctx);
+  run_dsb(&exe_ctx, "../ds2py/out.dsb");
+  print_exe_context(&exe_ctx);
   return 0;
 }
