@@ -1047,14 +1047,14 @@ void execute_instruction(exe_context* exe)
   }
 }
 
-void run_dsb(exe_context* er, char* dsb_path)
+void run_dsb(exe_context* ctx, char* dsb_path)
 {
   uint32_t this_dsb_size = 0;
   uint8_t dsb_load_result = load_dsb(dsb_path, &this_dsb_size);
   if(dsb_load_result)
   {
     printf("DSB load fail: %d\n", dsb_load_result);
-    er->result = dsb_load_result;
+    ctx->result = dsb_load_result;
     return;
   }
 
@@ -1077,17 +1077,17 @@ void run_dsb(exe_context* er, char* dsb_path)
   if(panic_code != 0)
   {
     printf("VM Crashed! Panic: %d\n", panic_code);
-    er->result = panic_code;
+    ctx->result = panic_code;
     return;
   }
   
   while(1)
   {
-    execute_instruction(er);
-    er->this_pc = er->next_pc;
-    if(er->result != EXE_OK)
+    execute_instruction(ctx);
+    ctx->this_pc = ctx->next_pc;
+    if(ctx->result != EXE_OK)
       break;
-    if(er->this_pc > this_dsb_size)
+    if(ctx->this_pc > this_dsb_size)
       break;
   }
   printf("Execution Complete\n");
