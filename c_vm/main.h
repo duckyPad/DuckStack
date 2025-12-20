@@ -157,7 +157,7 @@ void stack_print(my_stack* ms, char* comment);
 #define DS_SET_BITS(variable, mask)   ((variable) |= (mask))
 #define DS_CLEAR_BITS(variable, mask) ((variable) &= ~(mask))
 
-#define PRINT_DEBUG 0
+#define PRINT_DEBUG 1
 
 #endif
 
