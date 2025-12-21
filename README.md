@@ -272,15 +272,6 @@ At end of a function, `return_value` is on TOS.
 
 ## To Do
 
-* generate PGV save flag on DSVM itself not compiler
-	* double check epilogue actions, which one by compiler which one by VM. probably most can be determined on runtime.
-* Implement WAIT_KEY
-* Implement in-VM epilogue actions
-* negative shift counts?
-* POW negative exponent?
-* allow inline comments?
-* GOTO_PROFILE works with both string names, numbers, and a single variable. NO EXPREESIONS, assign to a variable beforehand!
-* SKIP_PROFILE n, jump ahead or back n profiles. Preprocess PREVP AND NEXTP into it
 
 ## Done
 
@@ -312,6 +303,16 @@ At end of a function, `return_value` is on TOS.
 * $ no longer required for variables, EXCEPT in printing commands
 * allow inline comments?
 * logical NOT operator
+* SW bitfield
+* GOTO_PROFILE works with both string names, numbers, and a single variable. NO EXPREESIONS, assign to a variable beforehand!
+* SKIP_PROFILE n, jump ahead or back n profiles. Preprocess PREVP AND NEXTP into it
+* Implement in-VM epilogue actions
+* negative shift counts?
+* POW negative exponent?
+* allow inline comments?
+* generate PGV save flag on DSVM itself not compiler
+	* double check epilogue actions, which one by compiler which one by VM. probably most can be determined on runtime.
+
 
 ## Changelog
 
