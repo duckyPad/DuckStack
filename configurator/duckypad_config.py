@@ -685,7 +685,7 @@ def profile_add_click():
         # print('insert:', e)
         pass
 
-    answer = clean_input(answer, 16)
+    answer = clean_input(answer, MAX_PROFILE_NAME_LEN)
 
     if len(answer) <= 0:# or answer in [x.name for x in profile_list]:
         return
@@ -720,7 +720,7 @@ def profile_dupe_click():
     answer = simpledialog.askstring("Input", "New name?", parent=profiles_lf, initialvalue=profile_list[selection[0]].name)
     if answer is None:
         return
-    answer = clean_input(answer, 13)
+    answer = clean_input(answer, MAX_PROFILE_NAME_LEN)
     if len(answer) <= 0: # or answer in [x.name for x in profile_list]:
         return
     new_profile = copy.deepcopy(profile_list[selection[0]])
@@ -739,7 +739,7 @@ def profile_rename_click():
     answer = simpledialog.askstring("Input", "New name?", parent=profiles_lf, initialvalue=profile_list[selection[0]].name)
     if answer is None:
         return
-    answer = clean_input(answer, 13)
+    answer = clean_input(answer, MAX_PROFILE_NAME_LEN)
     if len(answer) <= 0 or answer in [x.name for x in profile_list]:
         return
     profile_list[selection[0]].name = answer
