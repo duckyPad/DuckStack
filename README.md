@@ -269,6 +269,18 @@ At end of a function, `return_value` is on TOS.
 ||...|
 |`FP ->`|Base (`F7FF`)|
 
+## Ideas
+
+PEEK and POKE commands?
+
+PEEK8 PEEK32
+POKE8 POKE32
+
+write to any address
+
+in single-arg non-str commands, preprocess to remove spaces after first word?
+
+
 
 ## To Do
 
