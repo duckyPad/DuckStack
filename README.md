@@ -95,25 +95,25 @@ Binary as in **involving two operands**.
 
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
-|EQ|`32`/`0x20`|Equal|
-|NOTEQ|`33`/`0x21`|Not Equal|
-|LT|`34`/`0x22`|⚠️Less Than|
-|LTE|`35`/`0x23`|⚠️Less Than or Equal|
-|GT|`36`/`0x24`|⚠️Greater Than|
-|GTE|`37`/`0x25`|⚠️Greater Than or Equal|
-|ADD|`38`/`0x26`|Add|
-|SUB|`39`/`0x27`|Subtract|
-|MULT|`40`/`0x28`|Multiply|
-|DIV|`41`/`0x29`|⚠️Integer Division|
-|MOD|`42`/`0x2a`|⚠️Modulus|
-|POW|`43`/`0x2b`|Power of|
-|LSHIFT|`44`/`0x2c`|Left shift|
-|RSHIFT|`45`/`0x2d`|⚠️Right shift<br>Signed Mode: Arithmetic (sign-extend)<br>Unsigned Mode: Logical (0-extend)|
-|BITOR|`46`/`0x2e`|Bitwise OR|
-|BITXOR|`47`/`0x2f`|Bitwise XOR|
-|BITAND|`48`/`0x30`|Bitwise AND|
-|LOGIAND|`49`/`0x31`|Logical AND|
-|LOGIOR|`50`/`0x32`|Logical OR|
+|`EQ`|`32`/`0x20`|Equal|
+|`NOTEQ`|`33`/`0x21`|Not Equal|
+|`LT`|`34`/`0x22`|⚠️Less Than|
+|`LTE`|`35`/`0x23`|⚠️Less Than or Equal|
+|`GT`|`36`/`0x24`|⚠️Greater Than|
+|`GTE`|`37`/`0x25`|⚠️Greater Than or Equal|
+|`ADD`|`38`/`0x26`|Add|
+|`SUB`|`39`/`0x27`|Subtract|
+|`MULT`|`40`/`0x28`|Multiply|
+|`DIV`|`41`/`0x29`|⚠️Integer Division|
+|`MOD`|`42`/`0x2a`|⚠️Modulus|
+|`POW`|`43`/`0x2b`|Power of|
+|`LSHIFT`|`44`/`0x2c`|Left shift|
+|`RSHIFT`|`45`/`0x2d`|⚠️Right shift<br>Signed Mode: Arithmetic (sign-extend)<br>Unsigned Mode: Logical (0-extend)|
+|`BITOR`|`46`/`0x2e`|Bitwise OR|
+|`BITXOR`|`47`/`0x2f`|Bitwise XOR|
+|`BITAND`|`48`/`0x30`|Bitwise AND|
+|`LOGIAND`|`49`/`0x31`|Logical AND|
+|`LOGIOR`|`50`/`0x32`|Logical OR|
 
 ## Unary Operators
 
@@ -127,9 +127,9 @@ Binary as in **involving two operands**.
 
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
-|BITINV|`55`/`0x37`|Bitwise Invert|
-|LOGINOT|`56`/`0x38`|Logical NOT|
-|USUB|`57`/`0x39`|Unary Minus|
+|`BITINV`|`55`/`0x37`|Bitwise Invert|
+|`LOGINOT`|`56`/`0x38`|Logical NOT|
+|`USUB`|`57`/`0x39`|Unary Minus|
 
 ## duckyScript Command Instructions
 
@@ -137,28 +137,28 @@ Binary as in **involving two operands**.
 
 |Name|Opcode<br>Byte 0|Comment|
 |:-------:|:----------:|:---------:|
-|DELAY|`64`/`0x40`| **Delay**<br>Pop **ONE** item<br>Delay amount in **milliseconds**|
-|KDOWN|`65`/`0x41`| **Press Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
-|KUP|`66`/`0x42`|**Release Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
-|MSCL|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>Scroll number of lines|
-|MMOV|`68`/`0x44`|**Mouse Move**<br>Pop **TWO** items: `x` then `y`|
-|SWCF|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
-|SWCC|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
-|SWCR|`71`/`0x47`| **Switch Color Reset**<br>Pop **ONE** item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
-|STR|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`|None||
-|STRLN|`73`/`0x49`|**Type Line**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`<br>**Press ENTER at end**|
-|OLED_CUSR|`74`/`0x4a`|**OLED Set Cursor**<br>Pop **TWO** items: `x` then `y`||
-|OLED_PRNT|`75`/`0x4b`|**OLED Print**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED|None|
-|OLED_UPDE|`76`/`0x4c`|**OLED Update**|
-|OLED_CLR|`77`/`0x4d`|**OLED Clear**|
-|OLED_REST|`78`/`0x4e`| **OLED Restore**|
-|OLED_LINE|`79`/`0x4f`|**OLED Draw Line**<br>Pop **FOUR** items<br>`x1, y1, x2, y2`<br>Draw single-pixel line in-between|
-|OLED_RECT|`80`/`0x50`|**OLED Draw Rectangle**<br>Pop **FIVE** items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|
-|OLED_CIRC|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
-|BCLR|`82`/`0x52`|**Clear switch event queue**|
-|SKIPP|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from the current one|
-|GOTOP|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
-|SLEEP|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+|`DELAY`|`64`/`0x40`| **Delay**<br>Pop **ONE** item<br>Delay amount in **milliseconds**|
+|`KDOWN`|`65`/`0x41`| **Press Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
+|`KUP`|`66`/`0x42`|**Release Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
+|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>Scroll number of lines|
+|`MMOV`|`68`/`0x44`|**Mouse Move**<br>Pop **TWO** items: `x` then `y`|
+|`SWCF`|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
+|`SWCC`|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
+|`SWCR`|`71`/`0x47`| **Switch Color Reset**<br>Pop **ONE** item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
+|`STR`|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`|None||
+|`STRLN`|`73`/`0x49`|**Type Line**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`<br>**Press ENTER at end**|
+|`OLED_CUSR`|`74`/`0x4a`|**OLED Set Cursor**<br>Pop **TWO** items: `x` then `y`||
+|`OLED_PRNT`|`75`/`0x4b`|**OLED Print**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED|None|
+|`OLED_UPDE`|`76`/`0x4c`|**OLED Update**|
+|`OLED_CLR`|`77`/`0x4d`|**OLED Clear**|
+|`OLED_REST`|`78`/`0x4e`| **OLED Restore**|
+|`OLED_LINE`|`79`/`0x4f`|**OLED Draw Line**<br>Pop **FOUR** items<br>`x1, y1, x2, y2`<br>Draw single-pixel line in-between|
+|`OLED_RECT`|`80`/`0x50`|**OLED Draw Rectangle**<br>Pop **FIVE** items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|
+|`OLED_CIRC`|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
+|`BCLR`|`82`/`0x52`|**Clear switch event queue**|
+|`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from the current one|
+|`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
+|`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
 
 ## Calling Convention
 
