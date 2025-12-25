@@ -1090,7 +1090,7 @@ void run_dsb(exe_context* ctx, char* dsb_path)
     if(ctx->this_pc > this_dsb_size)
       break;
   }
-  printf("Execution Complete\n");
+  printf("Execution Complete\n\n");
   disable_autorepeat ? DS_SET_BITS(epilogue_actions, EPI_NO_AUTOREPEAT) : DS_CLEAR_BITS(epilogue_actions, EPI_NO_AUTOREPEAT);
 }
 
@@ -1114,12 +1114,17 @@ void print_exe_context(exe_context *ctx) {
   printf("-------------------------\n");
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-  
+  if (argc < 2)
+  {
+    fprintf(stderr, "Usage: %s dsb_file\n", argv[0]);
+    return 1;
+  }
+  char *file_path = argv[1];
   exe_context exe_ctx;
   exe_ctx_init(&exe_ctx);
-  run_dsb(&exe_ctx, "../ds2py/out.dsb");
+  run_dsb(&exe_ctx, file_path);
   print_exe_context(&exe_ctx);
   return 0;
 }

@@ -4,13 +4,82 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 [duckyPad](https://dekunukem.github.io/duckyPad-Pro/doc/landing.html) uses it for HID macro scripting.
 
-This repo contains:
+## Table of Contents
 
-* Docs
-* duckyScript Preprocessor & Compiler
-* Sample VM implementation in C
+- [How to Use](#how-to-use)
+    - [Compile](#compile)
+    - [Execute](#execute)
+- [Architecture Overview](#architecture-overview)
+    - [Memory Map](#memory-map)
+- [Instruction Set](#instruction-set)
+    - [CPU Instructions](#cpu-instructions)
+    - [Binary Operator Instructions](#binary-operator-instructions)
+    - [Unary Operators](#unary-operators)
+    - [duckyScript Command Instructions](#duckyscript-command-instructions)
+- [Calling Convention](#calling-convention)
+    - [Stack Set-up](#stack-set-up)
+    - [Function Arguments](#function-arguments)
+    - [Stack Unwinding](#stack-unwinding)
 
-## Architecture
+## How to Use
+
+### Compile
+
+* Download / clone this repo
+* Prepare a duckyScript source file `test.txt`.
+	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.htm)
+```
+VAR foo = 5 * 8 + 2
+STRING The answer is: $foo!
+```
+* In `ds_compiler` directory, run:
+
+`python3 ./make_bytecode.py test.txt test.dsb`
+
+* Output file can have any extension.
+	* I like to use `.dsb` for duckyScript Binary
+
+Outputs:
+
+```
+--------- Assembly Listing, Resolved: ---------
+0    VMVER     2     0x2
+3    PUSHC16   5     0x5           ;VAR value = 5 * 8 + 2
+6    PUSHC16   8     0x8           ;VAR value = 5 * 8 + 2
+9    MULT
+10   PUSHC16   2     0x2           ;VAR value = 5 * 8 + 2
+13   ADD
+14   POPI      63488 0xf800        ;VAR value = 5 * 8 + 2
+17   PUSHC16   22    0x16          ;STRING The answer is: $value!
+20   STR                           ;STRING The answer is: $value!
+21   HALT
+22   DATA: b'The answer is: \x1f\x00\xf8\x1f!\x00'
+----------------------------
+Wrote 43 bytes to 'test.dsb'
+```
+
+### Execute
+
+An VM written in C is provided.
+
+It is similar to what's used in real duckyPads, but uses dummy values for reserved variables and placeholders for hardware commands.
+
+----
+
+In `ds_c_vm` folder, run `python3 ./compile.py` to compile the source. (Or write your own Makefile)
+
+Run the VM: `./main test.dsb`
+
+Output:
+
+```
+>>>>> STRING: The answer is: 42!
+Execution Complete
+```
+
+Set `PRINT_DEBUG` to 1 in `main.h` for execution and stack trace.
+
+## Architecture Overview
 
 duckStack uses **32-bit** variables, arithmetics, and stack width.
 
@@ -25,7 +94,7 @@ duckStack uses **32-bit** variables, arithmetics, and stack width.
 * Frame Pointer (FP)
 	* Points to current function base frame
 
-## Memory Map
+### Memory Map
 
 * Flat memory map
 * Byte-addressed
@@ -49,13 +118,11 @@ duckStack uses **32-bit** variables, arithmetics, and stack width.
 **Variable-length** between **1 to 3 bytes**.
 
 * First byte (Byte 0): **Opcode**.
-
 * Byte 1 & 2: **Optional payload**.
-
 * ⚠️Integer arithmetics are **signed** BY DEFAULT
 	* Set reserved variable `_UNSIGNED_MATH = 1` to switch to **unsigned mode**
 
-## CPU Instructions
+### CPU Instructions
 
 * **1 stack item** = 4 **bytes**
 
@@ -81,18 +148,14 @@ duckStack uses **32-bit** variables, arithmetics, and stack width.
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
-## Binary Operator Instructions
+### Binary Operator Instructions
 
 Binary as in **involving two operands**.
 
 * All **single-byte** instruction
-
 * Pop **TWO** items off TOS
-
 * Top item is right-hand-side, lower item is left-hand-side.
-
 * Perform operation
-
 * Push result back on TOS
 
 -----
@@ -123,14 +186,11 @@ Binary as in **involving two operands**.
 |`LOGIAND`|`49`/`0x31`|Logical AND|
 |`LOGIOR`|`50`/`0x32`|Logical OR|
 
-## Unary Operators
+### Unary Operators
 
 * All **single-byte** instruction
-
 * Pop **ONE** items off TOS
-
 * Perform operation
-
 * Push result back on TOS
 
 |Name|Opcode<br>Byte 0|Comment|
@@ -139,7 +199,7 @@ Binary as in **involving two operands**.
 |`LOGINOT`|`56`/`0x38`|Logical NOT|
 |`USUB`|`57`/`0x39`|Unary Minus|
 
-## duckyScript Command Instructions
+### duckyScript Command Instructions
 
 * All **single-byte** instruction
 
@@ -277,95 +337,6 @@ At end of a function, `return_value` is on TOS.
 ||...|
 |`FP ->`|Base (`F7FF`)|
 
-## Ideas
+## Questions or Comments?
 
-PEEK and POKE commands?
-
-PEEK8 PEEK32
-POKE8 POKE32
-
-write to any address
-
-in single-arg non-str commands, preprocess to remove spaces after first word?
-
-
-
-## To Do
-
-
-## Done
-
-* new opcode values
-* new opcode names
-* calling convention
-* single stack
-* internal registers
-* PUSHC16 zero extension or sign extension?
-* PUSHI POPI make sure little endian
-* binOPs: Signed or unsigned?
-* RSHIFT: logical or arithmetic?
-* comparison instructions: signed or unsigned?
-* new OLED instruction names
-* watch out for unused function return value clogging up stack, discard if no assign? in compiler
-* one-byte duckyscript commands, rewrite upper byte lower byte to 2ndLSB and LSB.
-* what does SP point to? next free byte or current entry?
-* reserved variable to switch signed or unsigned mode?
-* VM runtime traps
-	* stack underflow / overflow
-	* invalid opcode
-	* invalid PC
-	* invalid alignment
-	* version mismatch
-	* divide zero
-* `PUSHC16` zero extend or sign extend? Depend on mode?
-* default signed or unsigned ?
-* mention function always return 0 if not specified
-* $ no longer required for variables, EXCEPT in printing commands
-* allow inline comments?
-* logical NOT operator
-* SW bitfield
-* GOTO_PROFILE works with both string names, numbers, and a single variable. NO EXPREESIONS, assign to a variable beforehand!
-* SKIP_PROFILE n, jump ahead or back n profiles. Preprocess PREVP AND NEXTP into it
-* Implement in-VM epilogue actions
-* negative shift counts?
-* POW negative exponent?
-* allow inline comments?
-* generate PGV save flag on DSVM itself not compiler
-	* double check epilogue actions, which one by compiler which one by VM. probably most can be determined on runtime.
-
-
-## Changelog
-
-* increase sampling rate?
-
-* `VMVER` instruction: version number now on byte 1 (LSB)
-
-* Adjusted starting address and entry offset for
-	* User-defined Variables
-	* PGVs
-	* Reserved Variables
-
-* Added 32-bit push constant
-	* By combining `PUSH16`, `LSHIFT`, and `BITOR.
-
-* Opcode New Values
-
-variable instruction length
-
-## Symbol searching
-
-first pass: treat as valid as long as is in any symbol table
-
-when generating address, double check against global variable table?  classify_name()
-
-error if try to read a variable name without it being ever assigned to?
-
-## Variable Scoping
-
-* A variable declared at root level has **global scope** and can be accessed inside functions.
-	* All non-function variables have **Global Scope**
-	* INCLUDING THOSE DECLARED WITHIN LOOPS AND IF STATEMENTS
-
-* A variable declared **inside a function** only has scope **within that function**
-
-* If a local variable has the same name as a global variable, **local variable** takes priority.
+Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issues), ask in the [official duckyPad discord](https://discord.gg/4sJCBx5), or email `dekuNukem`@`gmail`.`com`!

@@ -629,7 +629,10 @@ if __name__ == "__main__":
         exit()
 
     print_bin_output(comp_result.bin_array)
-    file_path = "out.dsb"
-    with open(file_path, 'wb') as file_out:
-        bytes_written = file_out.write(comp_result.bin_array)
-        print(f"Wrote {bytes_written} bytes to '{file_path}'")
+    if len(sys.argv) >= 3:
+        file_path = sys.argv[2]
+        with open(file_path, 'wb') as file_out:
+            bytes_written = file_out.write(comp_result.bin_array)
+            print(f"Wrote {bytes_written} bytes to '{file_path}'")
+    else:
+        print("No output path provided; skipping file save.")
