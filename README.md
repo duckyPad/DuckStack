@@ -4,6 +4,14 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 [duckyPad](https://dekunukem.github.io/duckyPad-Pro/doc/landing.html) uses it for HID macro scripting.
 
+## Highlights
+
+* 32-Bit Data Path, 16-bit Addressing.
+* Flexible Executable & Stack Region
+* Variable-length Instructions
+* Function Arguments, Locals, & Recursions.
+* HID-specific Instructions
+
 ## Table of Contents
 
 - [How to Use](#how-to-use)
@@ -84,7 +92,7 @@ Set `PRINT_DEBUG` to 1 in `main.h` for execution and stack trace.
 
 duckStack uses **32-bit** variables, arithmetics, and stack width.
 
-**16-bit** addressing, 64KB max.
+Addressing is **16-bit**, executable 64KB max.
 
 * Single **Data Stack**
 * Program Counter (PC)
@@ -228,6 +236,10 @@ Binary as in **involving two operands**.
 |`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from the current one|
 |`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
 |`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+
+## Run-time Exceptions
+
+Exceptions such as Division-by-Zero, Stack Over/Underflow, etc, result in immediate termination of the VM execution.
 
 ## Calling Convention
 
