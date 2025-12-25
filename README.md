@@ -1,10 +1,18 @@
-# DuckStack Bytecode Stack Machine
+# DuckStack Bytecode Virtual Machine
 
-DuckStack is a domain-specific stack-based bytecode VM for executing compiled **duckyScript** binary on 32-bit microcontrollers.
+DuckStack is a simple **stack-based bytecode VM** for executing compiled **duckyScript** binaries.
+
+[duckyPad](https://dekunukem.github.io/duckyPad-Pro/doc/landing.html) uses it for HID macro scripting.
+
+This repo contains:
+
+* Docs
+* duckyScript Preprocessor & Compiler
+* Sample VM implementation in C
 
 ## Architecture
 
-**32-bit** variables, arithmetics, and stack width.
+duckStack uses **32-bit** variables, arithmetics, and stack width.
 
 **16-bit** addressing, 64KB max.
 
