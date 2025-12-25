@@ -13,13 +13,14 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
     - [Memory Map](#memory-map)
 - [Instruction Set](#instruction-set)
     - [CPU Instructions](#cpu-instructions)
-    - [Binary Operator Instructions](#binary-operator-instructions)
+    - [Binary Operators](#binary-operators)
     - [Unary Operators](#unary-operators)
-    - [duckyScript Command Instructions](#duckyscript-command-instructions)
+    - [duckyScript Commands](#duckyscript-commands)
 - [Calling Convention](#calling-convention)
     - [Stack Set-up](#stack-set-up)
-    - [Function Arguments](#function-arguments)
+    - [Arguments / Locals](#arguments--locals)
     - [Stack Unwinding](#stack-unwinding)
+- [Questions or Comments?](#questions-or-comments)
 
 ## How to Use
 
@@ -148,7 +149,7 @@ duckStack uses **32-bit** variables, arithmetics, and stack width.
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
-### Binary Operator Instructions
+### Binary Operators
 
 Binary as in **involving two operands**.
 
@@ -199,7 +200,7 @@ Binary as in **involving two operands**.
 |`LOGINOT`|`56`/`0x38`|Logical NOT|
 |`USUB`|`57`/`0x39`|Unary Minus|
 
-### duckyScript Command Instructions
+### duckyScript Commands
 
 * All **single-byte** instruction
 
@@ -275,7 +276,7 @@ Caller then executes `CALL` instruction, which:
 ||...|
 ||Base (`F7FF`)|
 
-### Function Arguments
+### Arguments / Locals
 
 Once in function, callee uses `ALLOC n` to make space for local variables.
 
