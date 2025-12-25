@@ -35,7 +35,7 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 ### Compile
 
 * Download / clone this repo
-* Prepare a duckyScript source file `test.txt`.
+* Prepare a duckyScript source file `test.txt`
 	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.htm)
 ```
 VAR foo = 5 * 8 + 2
@@ -48,7 +48,7 @@ STRING The answer is: $foo!
 * Output file can have any extension.
 	* I like to use `.dsb` for duckyScript Binary
 
-Outputs:
+Output:
 
 ```
 --------- Assembly Listing, Resolved: ---------
@@ -236,6 +236,63 @@ Binary as in **involving two operands**.
 |`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from the current one|
 |`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
 |`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+
+## String Encoding
+
+The following commands involves user-provided strings:
+
+* `STRING`
+* `STRINGLN`
+* `OLED_PRINT`
+* `GOTO_PROFILE`
+
+Strings are **zero-terminated** and appended at the **end of the binary executable**.
+
+The **starting address** of a string is **pushed onto stack** before calling one of those commands, who pops off the address and fetch the string there.
+
+Identical strings are deduplicated and share the same address.
+
+```
+STRING Hello World!
+STRINGLN Hello World!
+OLED_PRINT Hi there!
+```
+```
+0    VMVER     2     0x2
+3    PUSHC16   16    0x10          ;STRING Hello World!
+6    STR                           ;STRING Hello World!
+7    PUSHC16   16    0x10          ;STRINGLN Hello World!
+10   STRLN                         ;STRINGLN Hello World!
+11   PUSHC16   29    0x1d          ;OLED_PRINT Hi there!
+14   OLED_PRNT                     ;OLED_PRINT Hi there!
+15   HALT
+16   DATA: b'Hello World!\x00'
+29   DATA: b'Hi there!\x00'
+```
+
+-----------
+
+When user **prints an variable**, its info is embedded into the string between **two separator bytes**.
+
+* `0x1f` for **Global Variables**
+	* Contains: **Little-endian** memory address
+* `0x1e` for **Local Variables and Arguments inside functions**
+	* Contains: **FP-Relative Offset**
+```
+VAR foo = 5
+STRING The number is: $foo!
+```
+```
+0    VMVER     2     0x2
+3    PUSHC16   5     0x5           ;VAR foo = 5
+6    POPI      63488 0xf800        ;VAR foo = 5
+9    PUSHC16   14    0xe           ;STRING The number is: $foo!
+12   STR                           ;STRING The number is: $foo!
+13   HALT
+14   DATA: b'The number is: \x1f\x00\xf8\x1f!\x00'
+```
+
+When VM encounters the separator byte, it reads the value from **memory address** or **FP-relative** and inserts it into the string.
 
 ## Run-time Exceptions
 
