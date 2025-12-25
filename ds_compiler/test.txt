@@ -1,2 +1,0 @@
-VAR foo = 5
-STRING The number is: $foo!
