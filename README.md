@@ -43,7 +43,7 @@ STRING The answer is: $foo!
 ```
 * In `ds_compiler` directory, run:
 
-`python3 ./make_bytecode.py test.txt test.dsb`
+`python3 ./dsvm_make_bytecode.py test.txt test.dsb`
 
 * Output file can have any extension.
 	* I like to use `.dsb` for duckyScript Binary
