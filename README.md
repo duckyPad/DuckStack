@@ -36,7 +36,7 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 * Download / clone this repo
 * Prepare a duckyScript source file `test.txt`
-	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.htm)
+	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.html)
 ```
 VAR foo = 5 * 8 + 2
 STRING The answer is: $foo!
