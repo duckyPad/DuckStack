@@ -397,7 +397,7 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
 
 def compile_to_bin(rdict):
     if print_asm:
-        print("\n\n--------- Assembly Listing, Unresolved: ---------")
+        print("\n\n--------- Assembly Listing, Mildly Optimised, Unresolved: ---------")
         print_assembly_list(rdict['root_assembly_list'])
         for key in rdict['func_assembly_dict']:
             print(f'----FUNC: {key}----')
@@ -509,7 +509,7 @@ def compile_to_bin(rdict):
         print("\n\n--------- Assembly Listing, Resolved: ---------")
         print_assembly_list(final_assembly_list)
         for key in user_strings_dict:
-            print(f"{user_strings_dict[key]}  DATA: {key}")
+            print(f"{user_strings_dict[key]}   DATA: {key}")
 
     # ------------------ generate binary ------------------
 
@@ -525,6 +525,20 @@ def compile_to_bin(rdict):
     if len(output_bin_array) > MAX_BIN_SIZE:
         raise ValueError("Binary size too large")
     return output_bin_array
+
+def optimize_push_drop(instructions):
+    optimized_list = []
+    i = 0
+    while i < len(instructions):
+        current_instr = instructions[i]
+        if i + 1 < len(instructions):
+            next_instr = instructions[i + 1]
+            if current_instr.opcode == OP_PUSH0 and next_instr.opcode == OP_DROP:
+                i += 2
+                continue
+        optimized_list.append(current_instr)
+        i += 1
+    return optimized_list
 
 def make_dsb_with_exception(program_listing, should_print=False):
     global global_context_dict
@@ -575,12 +589,17 @@ def make_dsb_with_exception(program_listing, should_print=False):
         rdict["caller_func_name"] = None
         dsvm_myast.postorder_walk(statement, visit_node, rdict)
 
+    print("\n\n--------- Assembly Listing, Unoptimised, Unresolved: ---------")
+    print_assembly_list(rdict["root_assembly_list"])
+
     for this_instruction in rdict["root_assembly_list"]:
         if this_instruction.opcode == OP_POPI and this_instruction.payload == DUMMY_VAR_NAME:
             this_instruction.opcode = OP_DROP
             this_instruction.payload = None
-
+    
+    rdict["root_assembly_list"] = optimize_push_drop(rdict["root_assembly_list"])
     rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
+
     bin_array = compile_to_bin(rdict)
     comp_result = compile_result(
         is_success=True,

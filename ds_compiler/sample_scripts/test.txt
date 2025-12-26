@@ -1,1 +1,12 @@
-SWC_FILL(DELAY(3), DELAY(4), DELAY(5))
+// Compiler Test Script
+VAR alpha = 10
+VAR beta = 32
+VAR result = alpha + beta
+
+IF result == 42 THEN
+    STRING The answer is $result!
+ELSE
+    STRING Error: $result is wrong.
+END_IF
+
+HALT
