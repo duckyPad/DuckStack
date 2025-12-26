@@ -247,14 +247,14 @@ void stack_pop(my_stack* ms, uint32_t *out_value)
 
 uint8_t read_byte(uint16_t addr)
 {
-  if(addr >= USER_VAR_END_ADDRESS_INCLUSIVE)
+  if(addr >= BIN_BUF_SIZE)
     longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
   return bin_buf[addr];
 }
 
 void write_byte(uint16_t addr, uint8_t value)
 {
-  if(addr >= USER_VAR_END_ADDRESS_INCLUSIVE)
+  if(addr >= BIN_BUF_SIZE)
     longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
   bin_buf[addr] = value;
 }

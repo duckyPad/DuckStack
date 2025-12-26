@@ -118,8 +118,9 @@ Addressing is **16-bit**, executable 64KB max.
 |:-:|:--:|:--:|:--:|
 |`0000`<br>`F7FF` |Shared<br>**Executable**<br>and **Stack**|63488 Bytes|See Notes Below|
 |`F800`<br>`F9FF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|ZI Data|
-|`FA00`<br>`FCFF` |Unused|768 Bytes||
-|`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |NV Data<br>Saved on SD card|
+|`FA00`<br>`FAFF` |Scratch<br>Memory|256 Bytes|General-purpose<br>User-accessible|
+|`FB00`<br>`FCFF` |Unused|512 Bytes||
+|`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |Non-volatile Data<br>Saved on SD card|
 |`FE00`<br>`FFFF` |VM<br>Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Read/Adjust<br>VM Settings|
 
 * Binary executable is loaded at `0x0`
@@ -160,8 +161,8 @@ Addressing is **16-bit**, executable 64KB max.
 |`CALL`|3|`9`/`0x9` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`RET`|3|`10`/`0xa` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
-|`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
-|`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
+|`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>`ADDR <= 0xFAFF`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
+|`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>`ADDR <= 0xFAFF`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators
