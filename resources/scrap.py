@@ -11,6 +11,23 @@ WHILE curr_addr != MAX_ADDR
 END_WHILE
 """
 
+"""
+_UNSIGNED_MATH = 1
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 4
+
+POKE8(0xfa02, 0x9)
+POKE8(0xfa04, 0xff)
+
+VAR start_addr = 0xfa00
+VAR end_addr = start_addr + 5
+VAR curr_addr = start_addr
+WHILE curr_addr <= end_addr
+    VAR value = PEEK8(curr_addr)
+    STRINGLN Addr $curr_addr: $value
+    curr_addr = curr_addr + 1
+END_WHILE
+"""
 
     # no need to pop unused stack item for reserved func
     for key in ds_reserved_funcs:
