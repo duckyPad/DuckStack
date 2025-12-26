@@ -1,3 +1,9 @@
+    # no need to pop unused stack item for reserved func
+    for key in ds_reserved_funcs:
+        if f"{key}(" in line_obj.content:
+            return False
+
+
 def test_func(spam, eggs):
 	foo = 10
 	return spam * eggs + foo

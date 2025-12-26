@@ -234,7 +234,10 @@ def visit_node(node, ctx_dict):
     elif isinstance(node, ast.Call):
         func_name = node.func.id
         if func_name in ds_reserved_funcs:
-            emit(ds_reserved_funcs[func_name].opcode)
+            fun_info = ds_reserved_funcs[func_name]
+            emit(fun_info.opcode)
+            if fun_info.has_return_value is False:
+                emit(OP_PUSH0)
         else:
             emit(OP_CALL, payload=f"func_{func_name}")
 
@@ -543,10 +546,11 @@ def make_dsb_with_exception(program_listing, should_print=False):
     global_context_dict = rdict
     rdict["orig_listing"] = orig_listing
     post_pp_listing = rdict["dspp_listing_with_indent_level"]
-    # save_lines_to_file(post_pp_listing, "ppds.txt")
     pyout = dsvm_ds2py.run_all(post_pp_listing)
     rdict["ds2py_listing"] = pyout
-    # save_lines_to_file(pyout, "pyds.py")
+    if should_print:
+        save_lines_to_file(post_pp_listing, "ppds.txt")
+        save_lines_to_file(pyout, "pyds.py")
     source = dsline_to_source(pyout)
     try:
         my_tree = ast.parse(source, mode="exec")
@@ -570,6 +574,11 @@ def make_dsb_with_exception(program_listing, should_print=False):
         rdict["func_def_name"] = None
         rdict["caller_func_name"] = None
         dsvm_myast.postorder_walk(statement, visit_node, rdict)
+
+    for this_instruction in rdict["root_assembly_list"]:
+        if this_instruction.opcode == OP_POPI and this_instruction.payload == DUMMY_VAR_NAME:
+            this_instruction.opcode = OP_DROP
+            this_instruction.payload = None
 
     rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
     bin_array = compile_to_bin(rdict)

@@ -397,6 +397,8 @@ OP_RET = Opcode("RET", 10, 3)
 OP_HALT = Opcode("HALT", 11, 1)
 OP_PEEK8 = Opcode("PEEK8", 12, 1)
 OP_POKE8 = Opcode("POKE8", 13, 1)
+OP_PUSH0 = Opcode("PUSH0", 14, 1)
+OP_DROP = Opcode("DROP", 15, 1)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators
@@ -452,6 +454,7 @@ OP_SLEEP = Opcode("SLEEP", 85, 1)
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
 
+MEM_END_ADDR = 0xFFFF
 USER_VAR_START_ADDRESS = 0xF800
 USER_VAR_BYTE_WIDTH = 4
 USER_VAR_END_ADDRESS_INCLUSIVE = 0xF9FF
@@ -464,12 +467,14 @@ PGV_END_ADDRESS_INCLUSIVE = 0xFDFF
 
 INTERAL_VAR_START_ADDRESS = 0xFE00
 INTERAL_VAR_BYTE_WIDTH = 4
-INTERAL_VAR_END_ADDRESS_INCLUSIVE = 0xFFFF
+INTERAL_VAR_END_ADDRESS_INCLUSIVE = MEM_END_ADDR
+OP_DROP_REPLACEMENT_ADDR = MEM_END_ADDR
 
 STACK_BASE_ADDR = 0xF7FF
 MIN_STACK_SIZE_BYTES = 512
 STACK_MOAT_BYTES = 32
 MAX_BIN_SIZE = STACK_BASE_ADDR - MIN_STACK_SIZE_BYTES - STACK_MOAT_BYTES
+DUMMY_VAR_NAME = "_UNUSED"
 
 reserved_variables_dict = {
     '_DEFAULTDELAY': (INTERAL_VAR_START_ADDRESS + 0 * INTERAL_VAR_BYTE_WIDTH),
@@ -504,9 +509,8 @@ reserved_variables_dict = {
     "_RTC_YDAY": (INTERAL_VAR_START_ADDRESS + 29 * INTERAL_VAR_BYTE_WIDTH),
     "_STR_PRINT_FORMAT": (INTERAL_VAR_START_ADDRESS + 30 * INTERAL_VAR_BYTE_WIDTH),
     "_STR_PRINT_PADDING": (INTERAL_VAR_START_ADDRESS + 31 * INTERAL_VAR_BYTE_WIDTH),
-    "_UNUSED": (INTERAL_VAR_START_ADDRESS + 32 * INTERAL_VAR_BYTE_WIDTH),
-    "_UNSIGNED_MATH": (INTERAL_VAR_START_ADDRESS + 33 * INTERAL_VAR_BYTE_WIDTH),
-    "_SW_BITFIELD": (INTERAL_VAR_START_ADDRESS + 34 * INTERAL_VAR_BYTE_WIDTH),
+    "_UNSIGNED_MATH": (INTERAL_VAR_START_ADDRESS + 32 * INTERAL_VAR_BYTE_WIDTH),
+    "_SW_BITFIELD": (INTERAL_VAR_START_ADDRESS + 33 * INTERAL_VAR_BYTE_WIDTH),
     
     "_GV0": (PGV_START_ADDRESS + 0 * PGV_BYTE_WIDTH),
     "_GV1": (PGV_START_ADDRESS + 1 * PGV_BYTE_WIDTH),
@@ -540,6 +544,8 @@ reserved_variables_dict = {
     "_GV29": (PGV_START_ADDRESS + 29 * PGV_BYTE_WIDTH),
     "_GV30": (PGV_START_ADDRESS + 30 * PGV_BYTE_WIDTH),
     "_GV31": (PGV_START_ADDRESS + 31 * PGV_BYTE_WIDTH),
+
+    DUMMY_VAR_NAME: OP_DROP_REPLACEMENT_ADDR,
 }
 
 class ds_line:
@@ -575,7 +581,7 @@ REPEAT_MAX_SIZE = 256
 class reserved_func_info:
     opcode: Opcode
     arg_len: int
-    has_stack_return: bool = False
+    has_return_value: bool = False
 
 ds_str_func_lookup = {
     cmd_STRING : reserved_func_info(OP_STR, 1),
@@ -607,8 +613,8 @@ ds_builtin_func_lookup = {
     cmd_BCLR : reserved_func_info(OP_BCLR, 0),
     cmd_SKIP_PROFILE : reserved_func_info(OP_SKIPP, 1),
     cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
-    cmd_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_stack_return=True),
-    cmd_POKE8 : reserved_func_info(OP_POKE8, 2, has_stack_return=True),
+    cmd_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_return_value=True),
+    cmd_POKE8 : reserved_func_info(OP_POKE8, 2),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup

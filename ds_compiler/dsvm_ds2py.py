@@ -28,10 +28,6 @@ def line_has_unconsumed_stack_value(line_obj):
         print("line_has_unconsumed_stack_value:", e)
     if is_expr is False:
         return False
-    # no need to pop unused stack item for reserved func
-    for key in ds_reserved_funcs:
-        if f"{key}(" in line_obj.content:
-            return False
     return True
 
 def run_all(program_listing):
@@ -96,7 +92,7 @@ def run_all(program_listing):
     for index, line_obj in enumerate(new_listing):
         line_obj.py_lnum_sf1 = index+1
         if line_has_unconsumed_stack_value(line_obj):
-            line_obj.content = "_UNUSED = " + line_obj.content
+            line_obj.content = f"{DUMMY_VAR_NAME} = " + line_obj.content
     return new_listing
 
 if __name__ == "__main__":
