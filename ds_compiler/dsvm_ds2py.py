@@ -3,7 +3,6 @@ from dsvm_common import *
 import dsvm_preprocessor
 import copy
 import ast
-import dsvm_myast
 
 def make_str_func(first_word, this_line):
     str_content = this_line[len(first_word)+1:]

@@ -9,6 +9,9 @@ cmd_REPEAT = "REPEAT"
 cmd_REM = "REM"
 cmd_C_COMMENT = "//"
 
+cmd_PEEK8 = "PEEK8"
+cmd_POKE8 = "POKE8"
+
 cmd_DEFAULTDELAY = "DEFAULTDELAY"
 cmd_DEFAULTCHARDELAY = "DEFAULTCHARDELAY"
 cmd_CHARJITTER = "CHARJITTER"
@@ -572,6 +575,7 @@ REPEAT_MAX_SIZE = 256
 class reserved_func_info:
     opcode: Opcode
     arg_len: int
+    has_stack_return: bool = False
 
 ds_str_func_lookup = {
     cmd_STRING : reserved_func_info(OP_STR, 1),
@@ -603,6 +607,8 @@ ds_builtin_func_lookup = {
     cmd_BCLR : reserved_func_info(OP_BCLR, 0),
     cmd_SKIP_PROFILE : reserved_func_info(OP_SKIPP, 1),
     cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
+    cmd_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_stack_return=True),
+    cmd_POKE8 : reserved_func_info(OP_POKE8, 2, has_stack_return=True),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup

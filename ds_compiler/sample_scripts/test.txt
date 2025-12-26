@@ -1,1 +1,1 @@
-VAR test = !test
+CTRL ALT DELETE
