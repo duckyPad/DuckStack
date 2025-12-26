@@ -1,3 +1,6 @@
+|`PEEK32`|1|`14`/`0xe` |Pop **ONE** item off TOS as `ADDR`<br>Read **4 bytes** from `ADDR` to `ADDR+3`<br>Push on stack|None|
+|`POKE32`|1|`15`/`0xf` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>Write **FOUR bytes** of `VAL` to `ADDR`-`ADDR+3`|None|
+
 
 ## Ideas
 

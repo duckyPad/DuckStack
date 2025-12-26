@@ -71,6 +71,9 @@ DuckStack is a domain-specific stack-based bytecode VM for executing compiled **
 |`CALL`|3|`9`/`0x9` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`RET`|3|`10`/`0xa` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
+|`POKE8`|1|`12`/`0xc` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
+|`POKE32`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>Write **FOUR bytes** of `VAL` to `ADDR`-`ADDR+3`|None|
+|`PEEK32`|1|`14`/`0xe` |Pop **ONE** item off TOS as `ADDR`<br>Read **4 bytes** at `ADDR`<br>Push on stack|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ## Binary Operator Instructions

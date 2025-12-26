@@ -4,7 +4,13 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 [duckyPad](https://dekunukem.github.io/duckyPad-Pro/doc/landing.html) uses it for HID macro scripting.
 
-## Highlights
+## ⚠️⚠️ UNDER ACTIVE DEVELOPMENT ⚠️⚠️
+
+This VM is **under developement** and specs may change at any time!
+
+Public beta is expected **Jan 2026**.
+
+## Features
 
 * 32-Bit Data Path, 16-bit Addressing.
 * Flexible Executable & Stack Region
@@ -130,12 +136,11 @@ Addressing is **16-bit**, executable 64KB max.
 * Byte 1 & 2: **Optional payload**.
 * ⚠️Integer arithmetics are **signed** BY DEFAULT
 	* Set reserved variable `_UNSIGNED_MATH = 1` to switch to **unsigned mode**
+* All multi-byte operations are **Little-endian**
 
 ### CPU Instructions
 
 * **1 stack item** = 4 **bytes**
-
-* All multi-byte operations are **Little-endian**
 
 * `PUSHR` / `POPR` **Offset** is a **byte-addressed signed 16-bit integer**
 	* Positive: Towards larger address / Base of Stack
@@ -155,13 +160,15 @@ Addressing is **16-bit**, executable 64KB max.
 |`CALL`|3|`9`/`0x9` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`RET`|3|`10`/`0xa` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
+|`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
+|`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators
 
 Binary as in **involving two operands**.
 
-* All **single-byte** instruction
+* All **single-byte** instructions
 * Pop **TWO** items off TOS
 * Top item is right-hand-side, lower item is left-hand-side.
 * Perform operation
