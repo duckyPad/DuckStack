@@ -1,9 +1,13 @@
-alpha = 10
-beta = 32
-result = alpha + beta
-IF result == 42 THEN
-    STRING The answer is $result!
-ELSE
-    STRING Error: $result is wrong.
-END_IF
-HALT
+_UNSIGNED_MATH = 1
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 4
+_DSVM_DUMMY = POKE8(0xfa02, 0x9)
+_DSVM_DUMMY = POKE8(0xfa04, 0xff)
+start_addr = 0xfa00
+end_addr = start_addr + 5
+curr_addr = start_addr
+WHILE curr_addr <= end_addr
+    value = PEEK8(curr_addr)
+    STRINGLN Addr $curr_addr: $value
+    curr_addr = curr_addr + 1
+END_WHILE

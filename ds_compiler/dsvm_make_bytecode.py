@@ -397,7 +397,7 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
 
 def compile_to_bin(rdict):
     if print_asm:
-        print("\n\n--------- Assembly Listing, Mildly Optimised, Unresolved: ---------")
+        print("\n\n--------- Assembly Listing, (Mildly) Optimised, Unresolved: ---------")
         print_assembly_list(rdict['root_assembly_list'])
         for key in rdict['func_assembly_dict']:
             print(f'----FUNC: {key}----')

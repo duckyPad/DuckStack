@@ -1,3 +1,17 @@
+"""
+DEFINE MAX_ADDR 64
+VAR curr_addr = 0
+_UNSIGNED_MATH = 1
+_STR_PRINT_FORMAT = 3
+_STR_PRINT_PADDING = 2
+WHILE curr_addr != MAX_ADDR
+    VAR value = PEEK8(curr_addr)
+    STRINGLN Addr $curr_addr: $value
+    curr_addr = curr_addr + 1
+END_WHILE
+"""
+
+
     # no need to pop unused stack item for reserved func
     for key in ds_reserved_funcs:
         if f"{key}(" in line_obj.content:

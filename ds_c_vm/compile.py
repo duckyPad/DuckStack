@@ -59,7 +59,7 @@ def main():
             print("-" * 30)
             input(f"Press [Enter] to run '{EXE_NAME}' or [Ctrl+C] to exit...")
             print("-" * 30)
-            subprocess.call([RUN_CMD])
+            subprocess.call([RUN_CMD] + sys.argv[1:])
         except KeyboardInterrupt:
             print("\n[EXIT] Exiting without running.")
             sys.exit(0)
