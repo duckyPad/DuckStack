@@ -94,6 +94,8 @@ def new_define(pgm_line, dd):
     # if define_source in dd and define_destination != dd[define_source]:
     #     return PARSE_ERROR, f"{define_source} is already defined"
     dd[define_source] = define_destination
+    print("ddict:", dd)
+    input()
     return PARSE_OK, ''
 
 def check_loop(pgm_line):
