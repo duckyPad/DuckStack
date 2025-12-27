@@ -5,41 +5,39 @@ import copy
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
 
+import re
+
 def replace_DEFINE_once(pgm_line, dd):
-    if pgm_line.startswith(cmd_STRING+" ") or pgm_line.startswith(cmd_STRINGLN+" "):
-        dd.pop("TRUE", None)
-        dd.pop("FALSE", None)
+    # 1. Update dictionary based on command strings
+    # We create a local copy to avoid mutating the original dictionary if undesired
+    targets = dd.copy()
+    if pgm_line.startswith((cmd_STRING + " ", cmd_STRINGLN + " ")):
+        targets.pop("TRUE", None)
+        targets.pop("FALSE", None)
     else:
-        dd['TRUE'] = 1
-        dd['FALSE'] = 0
-    dd_list_longest_first = sorted(list(dd.keys()), key=len, reverse=True)
-    temp_line = f" {pgm_line} "
-    print(dd_list_longest_first)
-    print(temp_line)
-    for key in dd_list_longest_first:
-        start_index = 0
-        loop_count = 0
-        while 1:
-            loop_count += 1
-            # hacky way to detect recursive DEFINE
-            if loop_count > 127:
-                return False, ""
-            # print("start_index", start_index)
-            key_location = str(temp_line).find(key, start_index)
-            if key_location == -1:
-                break
-            # print(key, "still in:", temp_line, 'at location', key_location)
-            letter_before = temp_line[key_location - 1]
-            letter_after = temp_line[key_location + len(key)]
-            # print("letter_before:", letter_before)
-            # print("letter_after:", letter_after)
-            if (not letter_before.isalnum()) and (not letter_after.isalnum()):
-                print("STRING BEFORE", temp_line[:key_location])
-                print("STRING AFTER", temp_line[key_location + len(key):])
-                temp_line = temp_line[:key_location] + str(dd[key]) + temp_line[key_location + len(key):]
-            else:
-                start_index = key_location + len(key)
-    return True, temp_line[1:len(temp_line)-1]
+        targets['TRUE'] = 1
+        targets['FALSE'] = 0
+
+    if not targets:
+        return True, pgm_line
+
+    # 2. Sort keys by length (descending) 
+    # This ensures "VARIABLE_LONG" is matched before "VARIABLE"
+    keys = sorted(targets.keys(), key=len, reverse=True)
+    
+    # 3. Create a regex pattern that matches any of the keys
+    # \b ensures word boundaries (the "isalnum" check you had)
+    # re.escape handles keys that might contain special regex characters
+    pattern = re.compile(r'\b(' + '|'.join(re.escape(str(k)) for k in keys) + r')\b')
+
+    # 4. Define the replacement logic
+    def replace_func(match):
+        return str(targets[match.group(0)])
+
+    # 5. Perform the substitution in a single pass
+    result = pattern.sub(replace_func, pgm_line)
+    
+    return True, result
 
 def replace_DEFINE(pgm_line, dd):
     any_success = False
@@ -48,7 +46,7 @@ def replace_DEFINE(pgm_line, dd):
     while True:
         # Attempt one pass of replacement
         is_success, replaced_line = replace_DEFINE_once(current_line, dd)
-        print("!!!!", is_success, replaced_line)
+        print("!!!!",is_success, replaced_line)
         # Break if no replacement was made or the string didn't change
         if not is_success or replaced_line == current_line:
             break
