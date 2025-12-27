@@ -165,6 +165,7 @@ Addressing is **16-bit**, executable 64KB max.
 |`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>`ADDR <= 0xFAFF`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
 |`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
 |`DROP`|1|`15`/`0xf` |Discard **ONE** item off TOS|None|
+|`DUP`|1|`16`/`0x10` |**Duplicate the item** on TOS|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators

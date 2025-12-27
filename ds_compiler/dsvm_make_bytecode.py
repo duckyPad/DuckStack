@@ -254,7 +254,7 @@ def visit_node(node, ctx_dict):
         emit(OP_JMP, payload=node.label)
 
     elif isinstance(node, dsvm_myast.add_push0):
-        emit(OP_PUSH0, label=node.label)
+        emit(OP_PUSH0)
 
     elif isinstance(node, dsvm_myast.add_default_return):
         emit(OP_RET, payload=node.arg_count)
