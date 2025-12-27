@@ -1,16 +1,11 @@
+// 1. Global Variable Test (POPI + PUSHI)
+VAR global_var = 10
+VAR result = global_var + 5
 
-_UNSIGNED_MATH = 1
-_STR_PRINT_FORMAT = 3
-_STR_PRINT_PADDING = 4
+// 2. Local Variable Test (POPR + PUSHR)
+FUNCTION TEST_OPTIMIZER(arg1)
+    VAR local_var = arg1 * 2
+    RETURN local_var // Should trigger DUP + POPR here
+END_FUNCTION
 
-POKE8(0xfa02, 0x9)
-POKE8(0xfa04, 0xff)
-
-VAR start_addr = 0xfa00
-VAR end_addr = start_addr + 5
-VAR curr_addr = start_addr
-WHILE curr_addr <= end_addr
-	VAR value = PEEK8(curr_addr)
-    STRINGLN Addr $curr_addr: $value
-    curr_addr = curr_addr + 1
-END_WHILE
+TEST_OPTIMIZER(21)

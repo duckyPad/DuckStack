@@ -399,6 +399,7 @@ OP_PEEK8 = Opcode("PEEK8", 12, 1)
 OP_POKE8 = Opcode("POKE8", 13, 1)
 OP_PUSH0 = Opcode("PUSH0", 14, 1)
 OP_DROP = Opcode("DROP", 15, 1)
+OP_DUP = Opcode("DUP", 16, 1)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators

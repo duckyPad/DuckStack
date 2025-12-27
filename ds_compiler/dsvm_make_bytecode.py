@@ -86,8 +86,11 @@ def make_instruction_pushc32(value, comment: str = ""):
 def print_assembly_list(asmlist):
     if print_asm is False:
         return
+    bin_size_bytes = 0
     for item in asmlist:
         print(item)
+        bin_size_bytes += item.opcode.length
+    # print(f"Total: {bin_size_bytes} Bytes")
 
 AST_ARITH_NODES = (
     ast.operator,
@@ -526,18 +529,39 @@ def compile_to_bin(rdict):
         raise ValueError("Binary size too large")
     return output_bin_array
 
-def optimize_push_drop(instructions):
+def optimize_pass(instruction_list):
     optimized_list = []
     i = 0
-    while i < len(instructions):
-        current_instr = instructions[i]
-        if i + 1 < len(instructions):
-            next_instr = instructions[i + 1]
+    while i < len(instruction_list):
+        current_instr = instruction_list[i]
+        
+        # Lookahead for peephole optimizations
+        if i + 1 < len(instruction_list):
+            next_instr = instruction_list[i + 1]
+            
+            # 1. Optimize: PUSH0 + DROP -> Remove both
             if current_instr.opcode == OP_PUSH0 and next_instr.opcode == OP_DROP:
                 i += 2
                 continue
+
+            # 2. Optimize: POPI/POPR [X] + PUSHI/PUSHR [X] -> DUP + POPI/POPR [X]
+            # This handles both Global (POPI) and Local (POPR) variables
+            is_same_mem_save_load = (current_instr.opcode == OP_POPI and next_instr.opcode == OP_PUSHI) or (current_instr.opcode == OP_POPR and next_instr.opcode == OP_PUSHR)
+            if is_same_mem_save_load and current_instr.payload == next_instr.payload:
+                optimized_list.append(dsvm_instruction(opcode=OP_DUP))
+                optimized_list.append(current_instr)
+                i += 2
+                continue
+
+        # 3. Optimize: PUSHC16 0 -> PUSH0
+        if current_instr.opcode == OP_PUSHC16 and current_instr.payload == 0:
+            optimized_list.append(dsvm_instruction(opcode=OP_PUSH0, label=current_instr.label, comment=current_instr.comment))
+            i += 1
+            continue
+
         optimized_list.append(current_instr)
         i += 1
+    
     return optimized_list
 
 def make_dsb_with_exception(program_listing, should_print=False):
@@ -591,13 +615,17 @@ def make_dsb_with_exception(program_listing, should_print=False):
 
     print("\n\n--------- Assembly Listing, Unoptimised, Unresolved: ---------")
     print_assembly_list(rdict["root_assembly_list"])
+    for key in rdict['func_assembly_dict']:
+        print(f'----FUNC: {key}----')
+        print_assembly_list(rdict['func_assembly_dict'][key])
+        print(f'----END {key}----')
 
     for this_instruction in rdict["root_assembly_list"]:
         if this_instruction.opcode == OP_POPI and this_instruction.payload == DUMMY_VAR_NAME:
             this_instruction.opcode = OP_DROP
             this_instruction.payload = None
     
-    rdict["root_assembly_list"] = optimize_push_drop(rdict["root_assembly_list"])
+    rdict["root_assembly_list"] = optimize_pass(rdict["root_assembly_list"])
     rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
     bin_array = compile_to_bin(rdict)
