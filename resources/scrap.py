@@ -1,3 +1,5 @@
+
+
 """
 DEFINE MAX_ADDR 64
 VAR curr_addr = 0
@@ -28,6 +30,13 @@ WHILE curr_addr <= end_addr
     curr_addr = curr_addr + 1
 END_WHILE
 """
+
+
+def print_assembly_list(asmlist):
+    if print_asm is False:
+        return
+    for item in asmlist:
+        print(item)
 
     # no need to pop unused stack item for reserved func
     for key in ds_reserved_funcs:

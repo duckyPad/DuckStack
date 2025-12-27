@@ -86,11 +86,23 @@ def make_instruction_pushc32(value, comment: str = ""):
 def print_assembly_list(asmlist):
     if print_asm is False:
         return
-    bin_size_bytes = 0
     for item in asmlist:
         print(item)
+
+def print_full_assembly_from_context_dict(ctx_dict):
+    if print_asm is False:
+        return
+    bin_size_bytes = 0
+    for item in ctx_dict["root_assembly_list"]:
+        print(item)
         bin_size_bytes += item.opcode.length
-    # print(f"Total: {bin_size_bytes} Bytes")
+    for key in ctx_dict['func_assembly_dict']:
+        print(f'----FUNC: {key}----')
+        for item in ctx_dict['func_assembly_dict'][key]:
+            print(item)
+            bin_size_bytes += item.opcode.length
+        print(f'----END {key}----')
+    print(f"Total: {bin_size_bytes} Bytes")
 
 AST_ARITH_NODES = (
     ast.operator,
@@ -401,11 +413,7 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
 def compile_to_bin(rdict):
     if print_asm:
         print("\n\n--------- Assembly Listing, (Mildly) Optimised, Unresolved: ---------")
-        print_assembly_list(rdict['root_assembly_list'])
-        for key in rdict['func_assembly_dict']:
-            print(f'----FUNC: {key}----')
-            print_assembly_list(rdict['func_assembly_dict'][key])
-            print(f'----END {key}----')
+        print_full_assembly_from_context_dict(rdict)
 
     """
     this is generated from walking the nodes, not the symtable and AST.
@@ -564,6 +572,22 @@ def optimize_pass(instruction_list):
     
     return optimized_list
 
+def optimize_full_assembly_from_context_dict(ctx_dict):
+    ctx_dict["root_assembly_list"] = optimize_pass(ctx_dict["root_assembly_list"])
+    for key in ctx_dict['func_assembly_dict']:
+        ctx_dict['func_assembly_dict'][key] = optimize_pass(ctx_dict['func_assembly_dict'][key])
+
+def replace_dummy_with_drop(instruction_list):
+    for this_instruction in instruction_list:
+        if this_instruction.opcode == OP_POPI and this_instruction.payload == DUMMY_VAR_NAME:
+            this_instruction.opcode = OP_DROP
+            this_instruction.payload = None
+
+def replace_dummy_with_drop_from_context_dict(ctx_dict):
+    replace_dummy_with_drop(ctx_dict["root_assembly_list"])
+    for key in ctx_dict['func_assembly_dict']:
+        replace_dummy_with_drop(ctx_dict['func_assembly_dict'][key])
+
 def make_dsb_with_exception(program_listing, should_print=False):
     global global_context_dict
     global print_asm
@@ -614,18 +638,10 @@ def make_dsb_with_exception(program_listing, should_print=False):
         dsvm_myast.postorder_walk(statement, visit_node, rdict)
 
     print("\n\n--------- Assembly Listing, Unoptimised, Unresolved: ---------")
-    print_assembly_list(rdict["root_assembly_list"])
-    for key in rdict['func_assembly_dict']:
-        print(f'----FUNC: {key}----')
-        print_assembly_list(rdict['func_assembly_dict'][key])
-        print(f'----END {key}----')
+    print_full_assembly_from_context_dict(rdict)
 
-    for this_instruction in rdict["root_assembly_list"]:
-        if this_instruction.opcode == OP_POPI and this_instruction.payload == DUMMY_VAR_NAME:
-            this_instruction.opcode = OP_DROP
-            this_instruction.payload = None
-    
-    rdict["root_assembly_list"] = optimize_pass(rdict["root_assembly_list"])
+    replace_dummy_with_drop_from_context_dict(rdict)
+    optimize_full_assembly_from_context_dict(rdict)
     rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))
 
     bin_array = compile_to_bin(rdict)

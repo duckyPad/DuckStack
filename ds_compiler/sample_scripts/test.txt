@@ -1,11 +1,41 @@
-// 1. Global Variable Test (POPI + PUSHI)
-VAR global_var = 10
-VAR result = global_var + 5
+// peephole_opt_test.txt
 
-// 2. Local Variable Test (POPR + PUSHR)
-FUNCTION TEST_OPTIMIZER(arg1)
-    VAR local_var = arg1 * 2
-    RETURN local_var // Should trigger DUP + POPR here
+REM ---------------------------------------------------------
+REM Peephole optimizer regression test
+REM Targets:
+REM   (1)  PUSH0 + DROP      -> removed   (if your compiler ever emits it)
+REM   (2)  POPI/POPR X + PUSHI/PUSHR X -> DUP + POPI/POPR X
+REM   (3)  PUSHC16 0         -> PUSH0
+REM ---------------------------------------------------------
+
+// ---- Rule (3): force a literal 0 to be pushed
+DELAY 0
+
+// ---- Rule (2) global: "store then immediately read same global"
+VAR g = 25
+DELAY g            // should compile as: PUSHC16 25; POPI g; PUSHI g; DELAY
+
+g = 7
+DELAY g            // another POPI g + PUSHI g back-to-back
+
+// ---- Rule (2) local: "store then immediately read same local"
+FUNCTION local_test(dummy)
+    VAR l = 99
+    DELAY l        // should compile as: PUSHC16 99; POPR l; PUSHR l; DELAY
+
+    // Rule (3) again, but inside a function
+    l = 0
+    DELAY l
+
+    RETURN l
 END_FUNCTION
 
-TEST_OPTIMIZER(21)
+// call the function so the local path is definitely emitted
+VAR ret = local_test(123)
+STRINGLN ret=$ret g=$g
+
+// Optional: if your front-end allows/implements “call as a statement”,
+// and drops unused return values, this is a common place a DROP shows up.
+local_test(1)
+
+HALT
