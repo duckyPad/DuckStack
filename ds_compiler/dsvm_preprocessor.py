@@ -5,7 +5,7 @@ import copy
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
 
-def replace_DEFINE(pgm_line, dd):
+def replace_DEFINE_once(pgm_line, dd):
     if pgm_line.startswith(cmd_STRING+" ") or pgm_line.startswith(cmd_STRINGLN+" "):
         dd.pop("TRUE", None)
         dd.pop("FALSE", None)
@@ -14,6 +14,8 @@ def replace_DEFINE(pgm_line, dd):
         dd['FALSE'] = 0
     dd_list_longest_first = sorted(list(dd.keys()), key=len, reverse=True)
     temp_line = f" {pgm_line} "
+    print(dd_list_longest_first)
+    print(temp_line)
     for key in dd_list_longest_first:
         start_index = 0
         loop_count = 0
@@ -32,13 +34,28 @@ def replace_DEFINE(pgm_line, dd):
             # print("letter_before:", letter_before)
             # print("letter_after:", letter_after)
             if (not letter_before.isalnum()) and (not letter_after.isalnum()):
-                # print("STRING BEFORE", temp_line[:key_location])
-                # print("STRING AFTER", temp_line[key_location + len(key):])
+                print("STRING BEFORE", temp_line[:key_location])
+                print("STRING AFTER", temp_line[key_location + len(key):])
                 temp_line = temp_line[:key_location] + str(dd[key]) + temp_line[key_location + len(key):]
             else:
                 start_index = key_location + len(key)
-    # print("AFTER REPLACEMENT:", temp_line)
     return True, temp_line[1:len(temp_line)-1]
+
+def replace_DEFINE(pgm_line, dd):
+    any_success = False
+    current_line = pgm_line
+
+    while True:
+        # Attempt one pass of replacement
+        is_success, replaced_line = replace_DEFINE_once(current_line, dd)
+        print("!!!!", is_success, replaced_line)
+        # Break if no replacement was made or the string didn't change
+        if not is_success or replaced_line == current_line:
+            break
+        # Update state for the next iteration
+        current_line = replaced_line
+        any_success = True  # Track if at least one replacement happened overall
+    return any_success, current_line
 
 def replace_delay_statements(pgm_line):
     first_word = pgm_line.split()[0]
@@ -94,8 +111,6 @@ def new_define(pgm_line, dd):
     # if define_source in dd and define_destination != dd[define_source]:
     #     return PARSE_ERROR, f"{define_source} is already defined"
     dd[define_source] = define_destination
-    print("ddict:", dd)
-    input()
     return PARSE_OK, ''
 
 def check_loop(pgm_line):

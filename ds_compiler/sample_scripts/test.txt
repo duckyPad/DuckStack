@@ -1,6 +1,6 @@
 DEFINE START_ADDR (0xfa00)
 DEFINE MAX_ADDR (START_ADDR + 5)
-
+VAR wtf = 0
 VAR curr_addr = START_ADDR
 WHILE curr_addr <= MAX_ADDR
     VAR value = PEEK8(curr_addr)
