@@ -1,61 +1,36 @@
 import sys
 from dsvm_common import *
 import copy
+import re
 
 def needs_rstrip(first_word):
     return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
 
-def replace_DEFINE_once(pgm_line, dd):
+def replace_DEFINE_once(pgm_line, def_dict):
     if pgm_line.startswith(cmd_STRING+" ") or pgm_line.startswith(cmd_STRINGLN+" "):
-        dd.pop("TRUE", None)
-        dd.pop("FALSE", None)
+        def_dict.pop("TRUE", None)
+        def_dict.pop("FALSE", None)
     else:
-        dd['TRUE'] = 1
-        dd['FALSE'] = 0
-    dd_list_longest_first = sorted(list(dd.keys()), key=len, reverse=True)
-    temp_line = f" {pgm_line} "
-    print(dd_list_longest_first)
-    print(temp_line)
-    for key in dd_list_longest_first:
-        start_index = 0
-        loop_count = 0
-        while 1:
-            loop_count += 1
-            # hacky way to detect recursive DEFINE
-            if loop_count > 127:
-                return False, ""
-            # print("start_index", start_index)
-            key_location = str(temp_line).find(key, start_index)
-            if key_location == -1:
-                break
-            # print(key, "still in:", temp_line, 'at location', key_location)
-            letter_before = temp_line[key_location - 1]
-            letter_after = temp_line[key_location + len(key)]
-            # print("letter_before:", letter_before)
-            # print("letter_after:", letter_after)
-            if (not letter_before.isalnum()) and (not letter_after.isalnum()):
-                print("STRING BEFORE", temp_line[:key_location])
-                print("STRING AFTER", temp_line[key_location + len(key):])
-                temp_line = temp_line[:key_location] + str(dd[key]) + temp_line[key_location + len(key):]
-            else:
-                start_index = key_location + len(key)
-    return True, temp_line[1:len(temp_line)-1]
+        def_dict['TRUE'] = 1
+        def_dict['FALSE'] = 0
+    def_dict_list_longest_first = sorted(list(def_dict.keys()), key=len, reverse=True)
+    for key in def_dict_list_longest_first:
+        value = str(def_dict[key])
+        pattern = r'\b' + re.escape(key) + r'\b'
+        pgm_line = re.sub(pattern, value, pgm_line)
+    return pgm_line
 
-def replace_DEFINE(pgm_line, dd):
-    any_success = False
-    current_line = pgm_line
-
-    while True:
-        # Attempt one pass of replacement
-        is_success, replaced_line = replace_DEFINE_once(current_line, dd)
-        print("!!!!",is_success, replaced_line)
-        # Break if no replacement was made or the string didn't change
-        if not is_success or replaced_line == current_line:
-            break
-        # Update state for the next iteration
-        current_line = replaced_line
-        any_success = True  # Track if at least one replacement happened overall
-    return any_success, current_line
+def replace_DEFINE(source, def_dict):
+    last_source = ""
+    iterations = 0
+    max_iterations = len(def_dict) + 1
+    while last_source != source:
+        if iterations > max_iterations:
+            raise ValueError("Recursive DEFINE")
+        last_source = source
+        source = replace_DEFINE_once(source, def_dict)
+        iterations += 1
+    return source
 
 def replace_delay_statements(pgm_line):
     first_word = pgm_line.split()[0]
@@ -460,14 +435,7 @@ def single_pass(program_listing, define_dict):
         pcomment = f"single_pass: Unknown error"
 
         if first_word != cmd_DEFINE:
-            is_success, replaced_str = replace_DEFINE(this_line, define_dict)
-            if is_success is False:
-                return_dict['is_success'] = False
-                return_dict['comments'] = "Recursive DEFINE"
-                return_dict['error_line_number_starting_from_1'] = line_number_starting_from_1
-                return_dict['error_line_str'] = this_line
-                return return_dict
-            this_line = replaced_str
+            this_line = replace_DEFINE(this_line, define_dict)
 
         first_word, this_line = replace_delay_statements(this_line)
 
@@ -737,13 +705,7 @@ def run_all(program_listing):
         if needs_rstrip(first_word):
             line_obj.content = this_line.rstrip(" \t")
         if first_word != cmd_DEFINE:
-            is_success, replaced_str = replace_DEFINE(this_line, all_def_dict)
-            if is_success is False:
-                rdict['is_success'] = False
-                rdict['comments'] = "Recursive DEFINE"
-                return rdict
-            else:
-                line_obj.content = replaced_str
+                line_obj.content = replace_DEFINE(this_line, all_def_dict)
         else:
             continue
         this_line = line_obj.content.lstrip(' \t')

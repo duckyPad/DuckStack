@@ -31,6 +31,35 @@ WHILE curr_addr <= end_addr
 END_WHILE
 """
 
+this_indent_level = len(if_search_stack) + len(func_search_stack) + len(while_search_stack)
+
+        presult = PARSE_ERROR
+        pcomment = f"single_pass: Unknown error"
+
+        if first_word != cmd_DEFINE:
+            is_success, replaced_str = replace_DEFINE(this_line, define_dict)
+            if is_success is False:
+                return_dict['is_success'] = False
+                return_dict['comments'] = "Recursive DEFINE"
+                return_dict['error_line_number_starting_from_1'] = line_number_starting_from_1
+                return_dict['error_line_str'] = this_line
+                return return_dict
+            this_line = replaced_str
+
+
+if needs_rstrip(first_word):
+            line_obj.content = this_line.rstrip(" \t")
+        if first_word != cmd_DEFINE:
+            is_success, replaced_str = replace_DEFINE(this_line, all_def_dict)
+            if is_success is False:
+                rdict['is_success'] = False
+                rdict['comments'] = "Recursive DEFINE"
+                return rdict
+            else:
+                line_obj.content = replaced_str
+        else:
+            continue
+
 
 def print_assembly_list(asmlist):
     if print_asm is False:

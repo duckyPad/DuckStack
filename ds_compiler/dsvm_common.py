@@ -730,6 +730,8 @@ notequal_str = "!="
 op_placeholder = str(uuid.uuid4())
 
 def replace_operators(this_line):
+    if this_line.lstrip().startswith(cmd_DEFINE):
+        return this_line
     temp = this_line.replace(notequal_str, op_placeholder)
     temp = temp.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ").replace("!", " not ")
     temp = temp.replace(op_placeholder, notequal_str)
