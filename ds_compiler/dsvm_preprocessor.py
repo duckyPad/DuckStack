@@ -4,7 +4,13 @@ import copy
 import re
 
 def needs_rstrip(first_word):
-    return not (first_word.startswith(cmd_STRING) or first_word == cmd_OLED_PRINT)
+    if first_word == cmd_STRING:
+        return False
+    if first_word == cmd_STRINGLN:
+        return False
+    if first_word == cmd_OLED_PRINT:
+        return False
+    return True
 
 def replace_DEFINE_once(pgm_line, def_dict):
     if pgm_line.startswith(cmd_STRING+" ") or pgm_line.startswith(cmd_STRINGLN+" "):
