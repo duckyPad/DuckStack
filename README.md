@@ -421,3 +421,10 @@ At end of a function, `return_value` is on TOS.
 ## Questions or Comments?
 
 Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issues), ask in the [official duckyPad discord](https://discord.gg/4sJCBx5), or email `dekuNukem`@`gmail`.`com`!
+
+## TODO
+
+* Mention built-in functions
+	* POKE8() and PEEK8()
+* Mention optimisation in changelog, smaller code size.
+
