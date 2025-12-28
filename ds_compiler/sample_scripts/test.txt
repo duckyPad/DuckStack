@@ -1,9 +1,8 @@
 DEFINE START_ADDR (0xfa00)
 DEFINE MAX_ADDR (START_ADDR + 5)
-
 VAR curr_addr = START_ADDR
 WHILE curr_addr <= MAX_ADDR
     VAR value = PEEK8(curr_addr)
-    STRINGLN Addr $curr_addr: $value   
+    STRINGLN Addr $curr_addr: $value
     curr_addr = curr_addr + 1
 END_WHILE
