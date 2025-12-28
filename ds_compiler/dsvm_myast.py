@@ -99,7 +99,6 @@ def postorder_walk(node, action, ctx_dict):
         action(add_alloc(func_name), ctx_dict)
         for item in node.body:
             postorder_walk(item, action, ctx_dict)
-        action(add_push0(), ctx_dict)
         action(add_default_return(this_arg_count), ctx_dict)
     elif isinstance(node, ast.Return):
         if node.value is None:

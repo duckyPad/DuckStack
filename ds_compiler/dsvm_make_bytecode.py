@@ -272,7 +272,9 @@ def visit_node(node, ctx_dict):
         emit(OP_PUSH0)
 
     elif isinstance(node, dsvm_myast.add_default_return):
-        emit(OP_RET, payload=node.arg_count)
+        if instruction_list[-1].opcode != OP_RET:
+            emit(OP_PUSH0)
+            emit(OP_RET, payload=node.arg_count)
 
     elif isinstance(node, dsvm_myast.add_alloc):
         emit(OP_ALLOC, payload=node.func_name)
