@@ -249,6 +249,23 @@ void stack_pop(my_stack* ms, uint32_t *out_value)
     memcpy(out_value, host_addr, sizeof(uint32_t));
 }
 
+uint32_t stack_peek(my_stack* ms)
+{
+  // The 'top' of the stack is 4 bytes above the current SP
+  uint16_t top_address = ms->sp + sizeof(uint32_t);
+
+  // Check if the stack is empty (Underflow)
+  if (top_address >= ms->upper_bound)
+    longjmp(jmpbuf, EXE_STACK_UNDERFLOW);
+
+  // Calculate host address and return the value
+  uint32_t value;
+  uint8_t* host_addr = ms->ram_base + top_address;
+  memcpy(&value, host_addr, sizeof(uint32_t));
+  
+  return value;
+}
+
 uint8_t read_byte(uint16_t addr)
 {
   if(addr >= BIN_BUF_SIZE)
@@ -864,6 +881,11 @@ void execute_instruction(exe_context* exe)
   else if(opcode == OP_DROP)
   {
     stack_pop(&data_stack, NULL);
+  }
+  else if(opcode == OP_DUP)
+  {
+    uint32_t topval = stack_peek(&data_stack);
+    stack_push(&data_stack, topval);
   }
   else if(opcode == OP_EQ)
   {

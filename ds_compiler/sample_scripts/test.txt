@@ -1,9 +1,5 @@
-DEFINE SIZE 128
-VAR count = 0
-WHILE 1
-    IF count > SIZE
-        LBREAK
-    END_IF
-    RANDCHR(0x30f)
-    count = count + 1
-END_WHILE
+VAR foo = 4
+
+foo *= 2+5
+
+STRING $foo
