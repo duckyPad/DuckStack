@@ -1,4 +1,14 @@
-
+_RAND_CHR(channel, chr_type)
+    channel: bit mask
+        bit 0: kb
+        bit 1: oled
+    chr_type: bit mask
+        bit 0: letter upper
+        bit 1: letter lower
+        bit 2: number
+        bit 3: symbol
+_RAND_INT(lower, upper)
+_PUTS(channel, n, addr)
 
 """
 DEFINE MAX_ADDR 64

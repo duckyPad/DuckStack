@@ -11,6 +11,7 @@ cmd_C_COMMENT = "//"
 
 cmd_PEEK8 = "PEEK8"
 cmd_POKE8 = "POKE8"
+cmd_RANDCHR = "RANDCHR"
 
 cmd_DEFAULTDELAY = "DEFAULTDELAY"
 cmd_DEFAULTCHARDELAY = "DEFAULTCHARDELAY"
@@ -451,6 +452,7 @@ OP_BCLR = Opcode("BCLR", 82, 1)
 OP_SKIPP = Opcode("SKIPP", 83, 1)
 OP_GOTOP = Opcode("GOTOP", 84, 1)
 OP_SLEEP = Opcode("SLEEP", 85, 1)
+OP_RANDCHR = Opcode("RANDCHR", 86, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -616,6 +618,7 @@ ds_builtin_func_lookup = {
     cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
     cmd_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_return_value=True),
     cmd_POKE8 : reserved_func_info(OP_POKE8, 2),
+    cmd_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup

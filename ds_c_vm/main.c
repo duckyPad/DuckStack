@@ -4,6 +4,7 @@
 #include "main.h"
 #include <setjmp.h>
 #include <stdlib.h>
+#include <time.h>
 
 uint8_t str_print_format;
 uint8_t str_print_padding;
@@ -51,7 +52,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [13] POKE8
 1, // [14] PUSH0
 1, // [15] DROP
-255, // [16]
+1, // [16] DUP
 255, // [17]
 255, // [18]
 255, // [19]
@@ -121,7 +122,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [83] SKIPP
 1, // [84] GOTOP
 1, // [85] SLEEP
-255, // [86]
+1, // [86] RANDCHR
 255, // [87]
 255, // [88]
 255, // [89]
@@ -153,6 +154,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_POKE8 13
 #define OP_PUSH0 14
 #define OP_DROP 15
+#define OP_DUP 16
 #define OP_EQ 32
 #define OP_NOTEQ 33
 #define OP_LT 34
@@ -197,8 +199,8 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_SKIPP 83
 #define OP_GOTOP 84
 #define OP_SLEEP 85
+#define OP_RANDCHR 86
 #define OP_VMVER 255
-
 // ---------------------------
 
 my_stack data_stack;
@@ -707,6 +709,33 @@ char* make_str(uint16_t str_start_addr)
   return read_buffer;
 }
 
+#define RANDCHR_LOWER (1 << 0) // 1
+#define RANDCHR_UPPER (1 << 1) // 2
+#define RANDCHR_DIGITS       (1 << 2) // 4
+#define RANDCHR_SYMBOLS      (1 << 3) // 8
+#define RANDCHR_PRINT_KB (1 << 0) // 1
+#define RANDCHR_PRINT_OLED (1 << 1) // 2
+
+const char* chr_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char* chr_lower = "abcdefghijklmnopqrstuvwxyz";
+const char* chr_nums  = "0123456789";
+const char* chr_syms  = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}";
+#define RANDCHAR_POOL_SIZE 128
+char randchar_pool[RANDCHAR_POOL_SIZE];
+
+char get_random_char(uint8_t bitmask)
+{
+  memset(randchar_pool, 0, RANDCHAR_POOL_SIZE);
+  if (bitmask & RANDCHR_UPPER) strcat(randchar_pool, chr_upper);
+  if (bitmask & RANDCHR_LOWER) strcat(randchar_pool, chr_lower);
+  if (bitmask & RANDCHR_DIGITS) strcat(randchar_pool, chr_nums);
+  if (bitmask & RANDCHR_SYMBOLS) strcat(randchar_pool, chr_syms);
+  uint32_t pool_size = strlen(randchar_pool);
+  if (pool_size == 0)
+    return 0;
+  return randchar_pool[rand() % pool_size];
+}
+
 void execute_instruction(exe_context* exe)
 {
   uint16_t curr_pc = exe->this_pc;
@@ -1074,6 +1103,15 @@ void execute_instruction(exe_context* exe)
   {
     printf("OP_SLEEP\n");
   }
+  else if(opcode == OP_RANDCHR)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    uint8_t char_type = this_value & 0xff;
+    uint8_t stream_type = (this_value >> 8) & 0xff;
+    char randc = get_random_char(char_type);
+    printf("OP_RANDCHR %x: %c\n", stream_type, randc);
+  }
   else
   {
     printf("Unimplemented opcode: %d\n", opcode);
@@ -1155,6 +1193,7 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Usage: %s dsb_file\n", argv[0]);
     return 1;
   }
+  srand(time(NULL));
   char *file_path = argv[1];
   exe_context exe_ctx;
   exe_ctx_init(&exe_ctx);

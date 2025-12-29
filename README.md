@@ -247,6 +247,22 @@ Binary as in **involving two operands**.
 |`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from the current one|
 |`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
 |`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+|`RANDCHR`|`86`/`0x57`| **Random Character**<br>See notes below.|
+
+#### RANDCHR Instruction
+
+* Pops **ONE** item (4 bytes)
+	* LSB: `char_type`
+	* Second Byte: `stream_type`.
+	* BOTH are **bitmasks**.
+* `char_type`
+	* Bit 0: Letter Lowercase (a-z)
+	* Bit 1: Letter Uppercase (A-Z)
+	* Bit 2: Digits (0-9)
+	* Bit 3: Symbols (\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\})
+* `stream_type`
+	* Bit 0: Type via Keyboard
+	* Bit 1: Print on OLED (Don't forget `OLED_UPDATE`)
 
 ## String Encoding
 
