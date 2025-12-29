@@ -195,10 +195,8 @@ def func_end_check(lnum, fss, fdict):
     return PARSE_OK, ''
 
 def if_check(pgm_line, lnum, iss):
-    if pgm_line.endswith(cmd_THEN) is False:
-        return PARSE_ERROR, "missing THEN at end"
     if_expr = pgm_line.replace(cmd_IF, '', 1)
-    if_expr = if_expr[:len(if_expr) - len(cmd_THEN)]
+    if_expr = if_expr[:len(if_expr)]
     iss.append({lnum:{"else_if":[], "else":None, "end_if":None}})
     return PARSE_OK, ''
 
@@ -243,8 +241,6 @@ def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table):
     return PARSE_OK, ''
 
 def elseif_check(pgm_line, lnum, iss):
-    if pgm_line.endswith(cmd_THEN) is False:
-        return PARSE_ERROR, "missing THEN"
     if len(iss) == 0:
         return PARSE_ERROR, "orphan ELSE IF"
     ifdict = iss[-1]
@@ -254,7 +250,7 @@ def elseif_check(pgm_line, lnum, iss):
         ifdict[key]['else_if'].append(lnum)
     # print(ifdict)
     elseif_expr = pgm_line.replace(cmd_ELSE_IF, '', 1)
-    elseif_expr = elseif_expr[:len(elseif_expr) - len(cmd_THEN)]
+    elseif_expr = elseif_expr[:len(elseif_expr)]
     return PARSE_OK, ''
 
 def else_check(pgm_line, lnum, iss):
@@ -738,7 +734,7 @@ def run_all(program_listing):
             presult, pcomment, value = check_loop(this_line)
             if needs_end_if:
                 second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
-            loop_str = f'{cmd_IF} _KEYPRESS_COUNT % _LOOP_SIZE == {value} {cmd_THEN}'
+            loop_str = f'{cmd_IF} _KEYPRESS_COUNT % _LOOP_SIZE == {value}'
             second_pass_program_listing.append(ds_line(loop_str, line_number_starting_from_1))
             needs_end_if = True
         else:

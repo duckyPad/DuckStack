@@ -1,7 +1,7 @@
 DEFINE SIZE 128
 VAR count = 0
 WHILE 1
-    IF count > SIZE THEN
+    IF count > SIZE
         LBREAK
     END_IF
     RANDCHR(0x30f)

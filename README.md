@@ -438,9 +438,11 @@ At end of a function, `return_value` is on TOS.
 
 Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issues), ask in the [official duckyPad discord](https://discord.gg/4sJCBx5), or email `dekuNukem`@`gmail`.`com`!
 
-## TODO
+## To mention in doc
 
-* Mention built-in functions
+* built-in functions
 	* POKE8() and PEEK8()
-* Mention optimisation in changelog, smaller code size.
+	* RANDCHR(chr_info)
+* Mild optimisations, smaller code size.
+* `THEN` no longer required
 

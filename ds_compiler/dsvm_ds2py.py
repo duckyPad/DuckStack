@@ -53,11 +53,11 @@ def run_all(program_listing):
             new_listing.append(new_obj)
         elif first_word == cmd_IF:
             new_obj = copy.deepcopy(line_obj)
-            new_obj.content = f"if {this_line[len(cmd_IF):len(this_line)-len(cmd_THEN)].strip()}:"
+            new_obj.content = f"if {this_line[len(cmd_IF):len(this_line)].strip().removesuffix(cmd_THEN)}:"
             new_listing.append(new_obj)
         elif this_line.startswith(f"{cmd_ELSE_IF} "):
             new_obj = copy.deepcopy(line_obj)
-            new_obj.content = f"elif {this_line[len(cmd_ELSE_IF):len(this_line)-len(cmd_THEN)].strip()}:"
+            new_obj.content = f"elif {this_line[len(cmd_ELSE_IF):len(this_line)].strip().removesuffix(cmd_THEN)}:"
             new_listing.append(new_obj)
         elif first_word == cmd_ELSE:
             new_obj = copy.deepcopy(line_obj)
