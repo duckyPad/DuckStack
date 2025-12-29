@@ -18,17 +18,11 @@ def make_arg_func(first_word, this_line):
 
 def line_has_unconsumed_stack_value(line_obj):
     try:
-        ast_root = ast.parse(line_obj.content, mode="exec").body
-    except Exception as e:
-        return False
-    is_expr = False
-    try:
-        is_expr = isinstance(ast_root[0], ast.Expr)
+        nodes = ast.parse(line_obj.content).body
+        return bool(nodes and isinstance(nodes[0], ast.Expr))
     except Exception as e:
         print("line_has_unconsumed_stack_value:", e)
-    if is_expr is False:
-        return False
-    return True
+    return False
 
 def run_all(program_listing):
     new_listing = []
