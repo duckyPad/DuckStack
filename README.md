@@ -298,14 +298,35 @@ OLED_PRINT Hi there!
 29   DATA: b'Hi there!\x00'
 ```
 
------------
+### Printing Variables
+
+* To print a variable, use `$` prefix:
+
+```
+VAR count = 255
+STRING I have $count apples!
+```
+
+* C `printf()` style **format specifiers** can be added **RIGHT AFTER** the variable name.
+	* Only `d`, `u`, `x`, and `X` are supported.
+
+```
+VAR count = 255
+STRING $count in hex is $count%x!
+```
 
 When user **prints an variable**, its info is embedded into the string between **two separator bytes**.
+
 
 * `0x1f` for **Global Variables**
 	* Contains: **Little-endian** memory address
 * `0x1e` for **Local Variables and Arguments inside functions**
 	* Contains: **FP-Relative Offset**
+
+```
+[Separator][ADDR_LSB][ADDR_MSB][Format Specifiers][Separator]
+```
+
 ```
 VAR foo = 5
 STRING The number is: $foo!

@@ -1,3 +1,62 @@
+char* make_str(uint16_t str_start_addr)
+{
+  uint16_t curr_addr = str_start_addr;
+  uint8_t this_char, lsb, msb;
+  memset(read_buffer, 0, READ_BUF_SIZE);
+  while(1)
+  {
+    this_char = read_byte(curr_addr);
+    if(this_char == 0)
+      break;
+
+    if(this_char == MAKESTR_VAR_BOUNDARY_IMM)
+    {
+      curr_addr++;
+      lsb = read_byte(curr_addr);
+      curr_addr++;
+      msb = read_byte(curr_addr);
+      curr_addr++;
+      char* format_spec_start = bin_buf+curr_addr;
+      char* 
+      memset(format_spec_buf, 0, FORMAT_SPEC_BUF_SIZE);
+      if(*format_spec_start != MAKESTR_VAR_BOUNDARY_IMM)
+        copy_format_specifier(format_spec_start, format_spec_buf, FORMAT_SPEC_BUF_SIZE, MAKESTR_VAR_BOUNDARY_IMM);
+      exit(0);
+      // here
+      curr_addr++;
+      uint16_t var_addr = make_uint16(lsb, msb);
+      uint32_t var_value = memread_u32(var_addr);
+      memset(make_str_buf, 0, STR_BUF_SIZE);
+      // my_snprintf
+      strcat(read_buffer, make_str_buf);
+      continue;
+    }
+    if(this_char == MAKESTR_VAR_BOUNDARY_REL)
+    {
+      curr_addr++;
+      lsb = read_byte(curr_addr);
+      curr_addr++;
+      msb = read_byte(curr_addr);
+      curr_addr++;
+      curr_addr++;
+      int16_t fp_offset = (int16_t)make_uint16(lsb, msb);
+      uint32_t var_value;
+      stack_read_fp_rel(&data_stack, fp_offset, &var_value);
+      memset(make_str_buf, 0, STR_BUF_SIZE);
+      // my_snprintf
+      strcat(read_buffer, make_str_buf);
+      continue;
+    }
+    memset(make_str_buf, 0, STR_BUF_SIZE);
+    snprintf(make_str_buf, STR_BUF_SIZE, "%c", this_char);
+    strcat(read_buffer, make_str_buf);
+    curr_addr++;
+  }
+  return read_buffer;
+}
+
+
+
  stack_push(&data_stack, 65535);
   stack_push(&data_stack, 6);
   stack_pop(&data_stack, NULL);

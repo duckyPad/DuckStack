@@ -1,8 +1,6 @@
-VAR i = 0
-_UNSIGNED_MATH = 1
-_STR_PRINT_FORMAT = 0
-WHILE i < 25
-	VAR temp = _RANDOM_INT
-	STRINGLN $temp
-	i += 1
-END_WHILE
+FUNCTION test(arg1)
+	VAR loc1 = 98
+	STRING loc $loc1%04d $arg1%x
+END_FUNCTION
+
+test(254)

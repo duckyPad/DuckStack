@@ -638,97 +638,95 @@ uint8_t inst_size_lookup(uint8_t opcode)
   return opcode_len_lookup[opcode];
 }
 
-void my_snprintf_int_only(char* buf, uint8_t buf_size,
-                         uint32_t value,
-                         uint8_t print_format,
-                         uint8_t precision)
+void my_snprintf(const char* format, uint32_t value, uint8_t* buf, uint32_t buf_size)
 {
-  if (buf == NULL || buf_size <= 2)
+  if (buf == NULL || buf_size == 0)
     return;
-
-  memset(buf, 0, buf_size);
-
-  if (precision == 0 && value == 0)
-  {
-    buf[0] = '0';
-    return;
-  }
-
-  if(precision > 8)
-    precision = 8;
-
-  switch (print_format)
-  {
-    case STR_PRINT_FORMAT_DEC_UNSIGNED:
-      snprintf(buf, buf_size, "%.*u", (int)precision, (unsigned int)value);
-      break;
-
-    case STR_PRINT_FORMAT_DEC_SIGNED:
-      snprintf(buf, buf_size, "%.*d", (int)precision, (int)value);
-      break;
-
-    case STR_PRINT_FORMAT_HEX_LOWER_CASE:
-      snprintf(buf, buf_size, "%.*x", (int)precision, (unsigned int)value);
-      break;
-
-    case STR_PRINT_FORMAT_HEX_UPPER_CASE:
-      snprintf(buf, buf_size, "%.*X", (int)precision, (unsigned int)value);
-      break;
-  }
-  buf[buf_size - 1] = '\0';
+  if (format == NULL || strlen(format) == 0)
+    snprintf((char*)buf, (size_t)buf_size, "%d", (int32_t)value);
+  else 
+    snprintf((char*)buf, (size_t)buf_size, format, value);
 }
 
-#define STR_BUF_SIZE 32
-char make_str_buf[STR_BUF_SIZE];
+char* copy_format_specifier(char* src, char* spec_buf, uint8_t spec_buf_size, uint8_t boundary)
+{
+  memset(spec_buf, 0, spec_buf_size);
+  uint8_t i = 0;
+  while(1)
+  {
+    if(src[i] == 0)
+      return NULL;
+    if(i >= spec_buf_size)
+      return NULL;
+    if((uint8_t)src[i] == boundary)
+      return &src[i];
+    spec_buf[i] = src[i];
+    i++;
+  }
+  return NULL;
+}
+
+#define MKSTR_BUF_SIZE 32
+char make_str_buf[MKSTR_BUF_SIZE];
 #define READ_BUF_SIZE (256 * 5)
 char read_buffer[READ_BUF_SIZE];
+#define FORMAT_SPEC_BUF_SIZE 16
+char format_spec_buf[FORMAT_SPEC_BUF_SIZE];
 
 char* make_str(uint16_t str_start_addr)
 {
-  uint16_t curr_addr = str_start_addr;
+  char* curr_char = bin_buf + str_start_addr;
   uint8_t this_char, lsb, msb;
   memset(read_buffer, 0, READ_BUF_SIZE);
   while(1)
   {
-    this_char = read_byte(curr_addr);
+    this_char = *curr_char;
     if(this_char == 0)
       break;
 
     if(this_char == MAKESTR_VAR_BOUNDARY_IMM)
     {
-      curr_addr++;
-      lsb = read_byte(curr_addr);
-      curr_addr++;
-      msb = read_byte(curr_addr);
-      curr_addr++;
-      curr_addr++;
+      curr_char++; // now at addr LSB
+      lsb = *curr_char;
+      curr_char++; // now at addr MSB
+      msb = *curr_char;
+      curr_char++; // now at format specifier (if exist), or boundary byte
+      if(*curr_char != MAKESTR_VAR_BOUNDARY_IMM)
+        curr_char = copy_format_specifier(curr_char, format_spec_buf, FORMAT_SPEC_BUF_SIZE, MAKESTR_VAR_BOUNDARY_IMM);
+      if(curr_char == NULL)
+        longjmp(jmpbuf, EXE_STR_ERROR);
+      curr_char++;
       uint16_t var_addr = make_uint16(lsb, msb);
       uint32_t var_value = memread_u32(var_addr);
-      memset(make_str_buf, 0, STR_BUF_SIZE);
-      my_snprintf_int_only(make_str_buf, STR_BUF_SIZE, var_value, str_print_format, str_print_padding);
+      memset(make_str_buf, 0, MKSTR_BUF_SIZE);
+      my_snprintf(format_spec_buf, var_value, make_str_buf, MKSTR_BUF_SIZE);
       strcat(read_buffer, make_str_buf);
       continue;
     }
     if(this_char == MAKESTR_VAR_BOUNDARY_REL)
     {
-      curr_addr++;
-      lsb = read_byte(curr_addr);
-      curr_addr++;
-      msb = read_byte(curr_addr);
-      curr_addr++;
-      curr_addr++;
+      curr_char++; // now at addr LSB
+      lsb = *curr_char;
+      curr_char++; // now at addr MSB
+      msb = *curr_char;
+      curr_char++; // now at format specifier (if exist), or boundary byte
+      if(*curr_char != MAKESTR_VAR_BOUNDARY_REL)
+        curr_char = copy_format_specifier(curr_char, format_spec_buf, FORMAT_SPEC_BUF_SIZE, MAKESTR_VAR_BOUNDARY_REL);
+      if(curr_char == NULL)
+        longjmp(jmpbuf, EXE_STR_ERROR);
+      curr_char++;
       int16_t fp_offset = (int16_t)make_uint16(lsb, msb);
       uint32_t var_value;
       stack_read_fp_rel(&data_stack, fp_offset, &var_value);
-      memset(make_str_buf, 0, STR_BUF_SIZE);
-      my_snprintf_int_only(make_str_buf, STR_BUF_SIZE, var_value, str_print_format, str_print_padding);
+      memset(make_str_buf, 0, MKSTR_BUF_SIZE);
+      my_snprintf(format_spec_buf, var_value, make_str_buf, MKSTR_BUF_SIZE);
       strcat(read_buffer, make_str_buf);
       continue;
     }
-    memset(make_str_buf, 0, STR_BUF_SIZE);
-    snprintf(make_str_buf, STR_BUF_SIZE, "%c", this_char);
+    memset(make_str_buf, 0, MKSTR_BUF_SIZE);
+    snprintf(make_str_buf, MKSTR_BUF_SIZE, "%c", this_char);
     strcat(read_buffer, make_str_buf);
-    curr_addr++;
+    curr_char++;
   }
   return read_buffer;
 }

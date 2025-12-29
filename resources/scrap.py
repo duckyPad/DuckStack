@@ -2,6 +2,21 @@
     * 1 item, channel, n, addr
 * STRING Answer is $foo%ld 
 
+VAR i = 0
+_UNSIGNED_MATH = 1
+_STR_PRINT_FORMAT = 0
+WHILE i < 25
+    VAR temp = _RANDOM_INT
+    STRINGLN $temp
+    i += 1
+END_WHILE
+
+void wrap_print(const char* format, uint32_t value, uint8_t* buf, uint32_t buf_size)
+
+wrap_print("%x", 255, buf, 32)
+
+buf should have "ff"
+
 _RAND_CHR(channel, chr_type)
     channel: bit mask
         bit 0: kb

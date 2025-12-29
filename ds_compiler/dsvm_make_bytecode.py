@@ -8,6 +8,7 @@ import dsvm_myast
 import copy
 from collections import defaultdict
 import traceback
+import re
 
 """
 duckyscript VM changelog
@@ -367,6 +368,19 @@ def get_func_args(symtable_root):
     _traverse(symtable_root)
     return func_args
 
+def extract_printf_specifier(text):
+    # ^             : Start of the string
+    # %             : Literal percent sign
+    # [-+ #0]* : Optional flags (left-align, sign, space, hash, zero-padding)
+    # (\d+)?        : Optional width (one or more digits)
+    # (\.\d+)?      : Optional precision (a dot followed by digits)
+    # [duxX]        : The type specifier (d, u, x, X)
+    pattern = r"^%[-+ #0]*(\d+)?(\.\d+)?[duxX]"
+    match = re.match(pattern, text)
+    if match:
+        return match.group(0)
+    return ""
+
 endianness = 'little'
 var_boundary_fp_rel = 0x1e
 var_boundary_udgv = 0x1f
@@ -400,12 +414,14 @@ def replace_var_in_str(instruction, arg_and_local_var_lookup, udgv_lookup):
 
             # Skip over '$' + variable name
             i += 1 + len(var_name)
-
+            printf_format_specifier = extract_printf_specifier(msg[i:])
             # Emit boundary, payload, boundary
             result.extend(boundary.to_bytes(1, endianness))
             result.extend(payload_bytes)
+            result.extend(printf_format_specifier.encode("ascii", errors="ignore"))
             result.extend(boundary.to_bytes(1, endianness))
-
+            # skip over format specifier (if any)
+            i += len(printf_format_specifier)
         else:
             result.extend(ch.encode())
             i += 1
