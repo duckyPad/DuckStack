@@ -1,3 +1,7 @@
+* PUTS() function and instruction
+    * 1 item, channel, n, addr
+* STRING Answer is $foo%ld 
+
 _RAND_CHR(channel, chr_type)
     channel: bit mask
         bit 0: kb

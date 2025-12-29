@@ -726,7 +726,7 @@ char* make_str(uint16_t str_start_addr)
       continue;
     }
     memset(make_str_buf, 0, STR_BUF_SIZE);
-    sprintf(make_str_buf, "%c", this_char);
+    snprintf(make_str_buf, STR_BUF_SIZE, "%c", this_char);
     strcat(read_buffer, make_str_buf);
     curr_addr++;
   }
