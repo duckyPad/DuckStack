@@ -1,6 +1,8 @@
+VAR glo = -65535
+
 FUNCTION test(arg1)
 	VAR loc1 = 98
-	STRING loc $loc1%04d $arg1%x
+	STRING $loc1%04d $arg1%x $glo%u
 END_FUNCTION
 
 test(254)

@@ -638,14 +638,14 @@ uint8_t inst_size_lookup(uint8_t opcode)
   return opcode_len_lookup[opcode];
 }
 
-void my_snprintf(const char* format, uint32_t value, uint8_t* buf, uint32_t buf_size)
+void my_snprintf(const char* format, uint32_t value, char* buf, uint32_t buf_size)
 {
   if (buf == NULL || buf_size == 0)
     return;
   if (format == NULL || strlen(format) == 0)
-    snprintf((char*)buf, (size_t)buf_size, "%d", (int32_t)value);
+    snprintf(buf, buf_size, "%d", (int32_t)value);
   else 
-    snprintf((char*)buf, (size_t)buf_size, format, value);
+    snprintf(buf, buf_size, format, value);
 }
 
 char* copy_format_specifier(char* src, char* spec_buf, uint8_t spec_buf_size, uint8_t boundary)
@@ -668,7 +668,7 @@ char* copy_format_specifier(char* src, char* spec_buf, uint8_t spec_buf_size, ui
 
 #define MKSTR_BUF_SIZE 32
 char make_str_buf[MKSTR_BUF_SIZE];
-#define READ_BUF_SIZE (256 * 5)
+#define READ_BUF_SIZE (256 * 4)
 char read_buffer[READ_BUF_SIZE];
 #define FORMAT_SPEC_BUF_SIZE 16
 char format_spec_buf[FORMAT_SPEC_BUF_SIZE];
@@ -678,54 +678,52 @@ char* make_str(uint16_t str_start_addr)
   char* curr_char = bin_buf + str_start_addr;
   uint8_t this_char, lsb, msb;
   memset(read_buffer, 0, READ_BUF_SIZE);
-  while(1)
+  while (1)
   {
     this_char = *curr_char;
-    if(this_char == 0)
+    if (this_char == 0)
       break;
 
-    if(this_char == MAKESTR_VAR_BOUNDARY_IMM)
+    if (this_char == MAKESTR_VAR_BOUNDARY_IMM || this_char == MAKESTR_VAR_BOUNDARY_REL)
     {
+      uint8_t boundary_type = this_char;
+      
       curr_char++; // now at addr LSB
       lsb = *curr_char;
       curr_char++; // now at addr MSB
       msb = *curr_char;
       curr_char++; // now at format specifier (if exist), or boundary byte
-      if(*curr_char != MAKESTR_VAR_BOUNDARY_IMM)
-        curr_char = copy_format_specifier(curr_char, format_spec_buf, FORMAT_SPEC_BUF_SIZE, MAKESTR_VAR_BOUNDARY_IMM);
-      if(curr_char == NULL)
+      
+      memset(format_spec_buf, 0, FORMAT_SPEC_BUF_SIZE);
+      if (*curr_char != boundary_type)
+        curr_char = copy_format_specifier(curr_char, format_spec_buf, FORMAT_SPEC_BUF_SIZE, boundary_type);
+      if (curr_char == NULL)
         longjmp(jmpbuf, EXE_STR_ERROR);
+      
       curr_char++;
-      uint16_t var_addr = make_uint16(lsb, msb);
-      uint32_t var_value = memread_u32(var_addr);
+
+      uint16_t addr_val = make_uint16(lsb, msb);
+      uint32_t var_value = 0;
+
+      // Fetch the value based on the boundary type
+      if (boundary_type == MAKESTR_VAR_BOUNDARY_IMM)
+        var_value = memread_u32(addr_val);
+      else
+        stack_read_fp_rel(&data_stack, (int16_t)addr_val, &var_value);
+
       memset(make_str_buf, 0, MKSTR_BUF_SIZE);
       my_snprintf(format_spec_buf, var_value, make_str_buf, MKSTR_BUF_SIZE);
       strcat(read_buffer, make_str_buf);
       continue;
     }
-    if(this_char == MAKESTR_VAR_BOUNDARY_REL)
+
+    // Handle Literal Characters
+    uint32_t len = strlen(read_buffer);
+    if (len < READ_BUF_SIZE - 1)
     {
-      curr_char++; // now at addr LSB
-      lsb = *curr_char;
-      curr_char++; // now at addr MSB
-      msb = *curr_char;
-      curr_char++; // now at format specifier (if exist), or boundary byte
-      if(*curr_char != MAKESTR_VAR_BOUNDARY_REL)
-        curr_char = copy_format_specifier(curr_char, format_spec_buf, FORMAT_SPEC_BUF_SIZE, MAKESTR_VAR_BOUNDARY_REL);
-      if(curr_char == NULL)
-        longjmp(jmpbuf, EXE_STR_ERROR);
-      curr_char++;
-      int16_t fp_offset = (int16_t)make_uint16(lsb, msb);
-      uint32_t var_value;
-      stack_read_fp_rel(&data_stack, fp_offset, &var_value);
-      memset(make_str_buf, 0, MKSTR_BUF_SIZE);
-      my_snprintf(format_spec_buf, var_value, make_str_buf, MKSTR_BUF_SIZE);
-      strcat(read_buffer, make_str_buf);
-      continue;
+      read_buffer[len] = this_char;
+      read_buffer[len + 1] = '\0';
     }
-    memset(make_str_buf, 0, MKSTR_BUF_SIZE);
-    snprintf(make_str_buf, MKSTR_BUF_SIZE, "%c", this_char);
-    strcat(read_buffer, make_str_buf);
     curr_char++;
   }
   return read_buffer;
