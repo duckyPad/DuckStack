@@ -40,19 +40,6 @@ def replace_DEFINE(source, def_dict):
         iterations += 1
     return source
 
-def replace_delay_statements(pgm_line):
-    first_word = pgm_line.split()[0]
-    if first_word == cmd_DEFAULTDELAY:
-        pgm_line = pgm_line.replace(cmd_DEFAULTDELAY, f"_{cmd_DEFAULTDELAY} =")
-        first_word = pgm_line.split()[0]
-    elif first_word == cmd_DEFAULTCHARDELAY:
-        pgm_line = pgm_line.replace(cmd_DEFAULTCHARDELAY, f"_{cmd_DEFAULTCHARDELAY} =")
-        first_word = pgm_line.split()[0]
-    elif first_word == cmd_CHARJITTER:
-        pgm_line = pgm_line.replace(cmd_CHARJITTER, f"_{cmd_CHARJITTER} =")
-        first_word = pgm_line.split()[0]
-    return first_word, pgm_line
-
 def skip_whitespace(pgm_line):
     whitespace_chars = [' ', '\t']
     search_index = len(cmd_DEFINE)
@@ -441,8 +428,6 @@ def single_pass(program_listing, define_dict):
         if first_word != cmd_DEFINE:
             this_line = replace_DEFINE(this_line, define_dict)
 
-        first_word, this_line = replace_delay_statements(this_line)
-
         if first_word == cmd_END_REM:
             presult, pcomment = rem_block_end_check(line_number_starting_from_1, rem_block_search_stack, rem_block_table)
         elif is_within_rem_block(line_number_starting_from_1, rem_block_table):
@@ -609,8 +594,22 @@ def single_pass(program_listing, define_dict):
     
     return return_dict
 
+def get_default_def_dict():
+    default_dict = {
+        cmd_RANDOM_LOWERCASE_LETTER : f"{cmd_RANDCHR}(0x101)",
+        cmd_RANDOM_UPPERCASE_LETTER : f"{cmd_RANDCHR}(0x102)",
+        cmd_RANDOM_LETTER : f"{cmd_RANDCHR}(0x103)",
+        cmd_RANDOM_NUMBER : f"{cmd_RANDCHR}(0x104)",
+        cmd_RANDOM_SPECIAL : f"{cmd_RANDCHR}(0x108)",
+        cmd_RANDOM_CHAR : f"{cmd_RANDCHR}(0x10f)",
+        cmd_DEFAULTDELAY : "_DEFAULTDELAY =",
+        cmd_DEFAULTCHARDELAY : "_DEFAULTCHARDELAY =",
+        cmd_CHARJITTER : "_CHARJITTER =",
+    }
+    return default_dict
+
 def run_all(program_listing):
-    all_def_dict = {}
+    all_def_dict = get_default_def_dict()
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
     rdict = single_pass(program_listing, all_def_dict)
     if rdict['is_success'] is False:
@@ -631,7 +630,6 @@ def run_all(program_listing):
             continue
 
         first_word = line_obj.content.split(" ")[0]
-        first_word, line_obj.content = replace_delay_statements(line_obj.content)
 
         if first_word in [cmd_STRINGLN_BLOCK, cmd_END_STRINGLN, cmd_STRING_BLOCK, cmd_END_STRING]:
             continue
