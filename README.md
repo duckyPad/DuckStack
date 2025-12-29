@@ -166,6 +166,7 @@ Addressing is **16-bit**, executable 64KB max.
 |`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
 |`DROP`|1|`15`/`0xf` |Discard **ONE** item off TOS|None|
 |`DUP`|1|`16`/`0x10` |**Duplicate the item** on TOS|None|
+|`RANDINT`|1|`17`/`0x11` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators

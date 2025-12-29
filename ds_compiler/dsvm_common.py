@@ -12,6 +12,7 @@ cmd_C_COMMENT = "//"
 cmd_PEEK8 = "PEEK8"
 cmd_POKE8 = "POKE8"
 cmd_RANDCHR = "RANDCHR"
+cmd_RANDINT = "RANDINT"
 
 cmd_RANDOM_LOWERCASE_LETTER = "RANDOM_LOWERCASE_LETTER"
 cmd_RANDOM_UPPERCASE_LETTER = "RANDOM_UPPERCASE_LETTER"
@@ -408,6 +409,7 @@ OP_POKE8 = Opcode("POKE8", 13, 1)
 OP_PUSH0 = Opcode("PUSH0", 14, 1)
 OP_DROP = Opcode("DROP", 15, 1)
 OP_DUP = Opcode("DUP", 16, 1)
+OP_RANDINT = Opcode("RANDINT", 17, 1)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators
@@ -626,6 +628,7 @@ ds_builtin_func_lookup = {
     cmd_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_return_value=True),
     cmd_POKE8 : reserved_func_info(OP_POKE8, 2),
     cmd_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
+    cmd_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
