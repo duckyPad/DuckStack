@@ -491,8 +491,14 @@ uint32_t memread_u32(uint16_t addr)
     return rand_min;
   if (addr == _RANDOM_MAX)
     return rand_max;
-  if (addr == _RANDOM_INT)
-    return DUMMY_DATA_REPLACE_ME;
+  if (addr == _RANDOM_INT && unsigned_math)
+  {
+    return random_uint32_between(rand_min, rand_max);
+  }
+  if (addr == _RANDOM_INT && !unsigned_math)
+  {
+    return (uint32_t)random_int32_between((int32_t)rand_min, (int32_t)rand_max);
+  }
   if (addr == _TIME_MS)
     return DUMMY_DATA_REPLACE_ME;
   if (addr == _READKEY)
@@ -754,7 +760,9 @@ char get_random_char(uint8_t bitmask)
   return randchar_pool[rand() % pool_size];
 }
 
-uint32_t arc4random(void) {
+// USE ESP32 BUILT IN RANDOM FUNCTION
+uint32_t arc4random(void)
+{
   uint32_t r = 0;
   r |= (uint32_t)rand() & 0xFF;
   r |= ((uint32_t)rand() & 0xFF) << 8;
@@ -1203,7 +1211,7 @@ void run_dsb(exe_context* ctx, char* dsb_path)
   defaultdelay = DEFAULT_CMD_DELAY_MS;
   defaultchardelay = DEFAULT_CHAR_DELAY_MS;
   charjitter = 0;
-  rand_max = 0xffffffff;
+  rand_max = 0xffff;
   rand_min = 0;
   loop_size = 0;
   epilogue_actions = 0;

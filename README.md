@@ -447,3 +447,4 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 * Mild optimisations, smaller code size.
 * `THEN` no longer required
 * AugAssign operator `+=, -=, etc`
+* RANDINT() function

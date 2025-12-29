@@ -2,7 +2,7 @@ VAR i = 0
 _UNSIGNED_MATH = 1
 _STR_PRINT_FORMAT = 0
 WHILE i < 25
-	VAR temp = RANDINT(0, 0xffffffff)
+	VAR temp = _RANDOM_INT
 	STRINGLN $temp
 	i += 1
 END_WHILE

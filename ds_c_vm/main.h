@@ -152,6 +152,11 @@ typedef uint32_t (*FUNC_PTR_BINOP)(uint32_t, uint32_t);
 typedef uint32_t (*FUNC_PTR_UNARY)(uint32_t);
 
 void stack_print(my_stack* ms, char* comment);
+uint32_t arc4random(void);
+uint32_t arc4random_uniform(uint32_t range);
+uint32_t random_uint32_between(uint32_t lower, uint32_t upper);
+int32_t random_int32_between(int32_t lower, int32_t upper);
+
 
 #define EPI_SAVE_LOOP_STATE 0x1
 #define EPI_SAVE_COLOR_STATE 0x2
