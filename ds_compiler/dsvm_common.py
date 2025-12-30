@@ -5,179 +5,179 @@ import keyword
 
 DSVM_VERSION = 2
 
-cmd_REPEAT = "REPEAT"
-cmd_REM = "REM"
-cmd_C_COMMENT = "//"
+kw_REPEAT = "REPEAT"
+kw_REM = "REM"
+kw_C_COMMENT = "//"
 
-cmd_PEEK8 = "PEEK8"
-cmd_POKE8 = "POKE8" # POKE8(addr, val)
-cmd_RANDCHR = "RANDCHR"
-cmd_RANDINT = "RANDINT"
-cmd_PUTS = "PUTS"
+kw_PEEK8 = "PEEK8"
+kw_POKE8 = "POKE8" # POKE8(addr, val)
+kw_RANDCHR = "RANDCHR"
+kw_RANDINT = "RANDINT"
+kw_PUTS = "PUTS"
 
-cmd_RANDOM_LOWERCASE_LETTER = "RANDOM_LOWERCASE_LETTER"
-cmd_RANDOM_UPPERCASE_LETTER = "RANDOM_UPPERCASE_LETTER"
-cmd_RANDOM_LETTER = "RANDOM_LETTER"
-cmd_RANDOM_NUMBER = "RANDOM_NUMBER"
-cmd_RANDOM_SPECIAL = "RANDOM_SPECIAL"
-cmd_RANDOM_CHAR = "RANDOM_CHAR"
+kw_RANDOM_LOWERCASE_LETTER = "RANDOM_LOWERCASE_LETTER"
+kw_RANDOM_UPPERCASE_LETTER = "RANDOM_UPPERCASE_LETTER"
+kw_RANDOM_LETTER = "RANDOM_LETTER"
+kw_RANDOM_NUMBER = "RANDOM_NUMBER"
+kw_RANDOM_SPECIAL = "RANDOM_SPECIAL"
+kw_RANDOM_CHAR = "RANDOM_CHAR"
 
-cmd_DEFAULTDELAY = "DEFAULTDELAY"
-cmd_DEFAULTCHARDELAY = "DEFAULTCHARDELAY"
-cmd_CHARJITTER = "CHARJITTER"
-cmd_DELAY = "DELAY"
-cmd_STRING = "STRING"
-cmd_STRINGLN = "STRINGLN"
+kw_DEFAULTDELAY = "DEFAULTDELAY"
+kw_DEFAULTCHARDELAY = "DEFAULTCHARDELAY"
+kw_CHARJITTER = "CHARJITTER"
+kw_DELAY = "DELAY"
+kw_STRING = "STRING"
+kw_STRINGLN = "STRINGLN"
 
-cmd_LOOP = "LOOP"
-cmd_DP_SLEEP = "DP_SLEEP"
-cmd_PREV_PROFILE = "PREV_PROFILE"
-cmd_NEXT_PROFILE = "NEXT_PROFILE"
-cmd_GOTO_PROFILE = "GOTO_PROFILE"
-cmd_SKIP_PROFILE = "SKIP_PROFILE"
+kw_LOOP = "LOOP"
+kw_DP_SLEEP = "DP_SLEEP"
+kw_PREV_PROFILE = "PREV_PROFILE"
+kw_NEXT_PROFILE = "NEXT_PROFILE"
+kw_GOTO_PROFILE = "GOTO_PROFILE"
+kw_SKIP_PROFILE = "SKIP_PROFILE"
 
-cmd_KEYDOWN = "KEYDOWN"
-cmd_KEYUP = "KEYUP"
-cmd_INJECT_MOD = "INJECT_MOD"
+kw_KEYDOWN = "KEYDOWN"
+kw_KEYUP = "KEYUP"
+kw_INJECT_MOD = "INJECT_MOD"
 
-cmd_SWCOLOR = "SWCOLOR"
-cmd_SWCC = "SWC_SET"
-cmd_SWCF = "SWC_FILL"
-cmd_SWCR = "SWC_RESET"
+kw_SWCOLOR = "SWCOLOR"
+kw_SWCC = "SWC_SET"
+kw_SWCF = "SWC_FILL"
+kw_SWCR = "SWC_RESET"
 
-cmd_OLED_PRINT = "OLED_PRINT"
-cmd_OLED_UPDATE = "OLED_UPDATE"
-cmd_OLED_CURSOR = "OLED_CURSOR"
-cmd_OLED_CLEAR = "OLED_CLEAR"
-cmd_OLED_RESTORE = "OLED_RESTORE"
+kw_OLED_PRINT = "OLED_PRINT"
+kw_OLED_UPDATE = "OLED_UPDATE"
+kw_OLED_CURSOR = "OLED_CURSOR"
+kw_OLED_CLEAR = "OLED_CLEAR"
+kw_OLED_RESTORE = "OLED_RESTORE"
 
-cmd_OLED_LINE = "OLED_LINE"
-cmd_OLED_RECT = "OLED_RECT"
-cmd_OLED_CIRCLE = "OLED_CIRCLE"
+kw_OLED_LINE = "OLED_LINE"
+kw_OLED_RECT = "OLED_RECT"
+kw_OLED_CIRCLE = "OLED_CIRCLE"
 
-cmd_BCLR = "BCLR"
+kw_BCLR = "BCLR"
 
-cmd_LMOUSE = "LMOUSE"
-cmd_RMOUSE = "RMOUSE"
-cmd_MMOUSE = "MMOUSE"
-cmd_MOUSE_MOVE = "MOUSE_MOVE"
-cmd_MOUSE_WHEEL = "MOUSE_WHEEL"
+kw_LMOUSE = "LMOUSE"
+kw_RMOUSE = "RMOUSE"
+kw_MMOUSE = "MMOUSE"
+kw_MOUSE_MOVE = "MOUSE_MOVE"
+kw_MOUSE_WHEEL = "MOUSE_WHEEL"
 
-cmd_VAR_DECLARE = "VAR"
-cmd_VAR_PREFIX = "$"
-cmd_DEFINE = "DEFINE"
+kw_VAR_DECLARE = "VAR"
+kw_VAR_PREFIX = "$"
+kw_DEFINE = "DEFINE"
 
-cmd_IF = "IF"
-cmd_THEN = 'THEN'
-cmd_ELSE_IF = "ELSE IF"
-cmd_END_IF = "END_IF"
-cmd_ELSE = "ELSE"
+kw_IF = "IF"
+kw_THEN = 'THEN'
+kw_ELSE_IF = "ELSE IF"
+kw_END_IF = "END_IF"
+kw_ELSE = "ELSE"
 
-cmd_WHILE = "WHILE"
-cmd_END_WHILE = "END_WHILE"
+kw_WHILE = "WHILE"
+kw_END_WHILE = "END_WHILE"
 
-cmd_FUNCTION = "FUNCTION"
-cmd_END_FUNCTION = "END_FUNCTION"
-cmd_FUN = "FUN"
-cmd_END_FUN = "END_FUN"
+kw_FUNCTION = "FUNCTION"
+kw_END_FUNCTION = "END_FUNCTION"
+kw_FUN = "FUN"
+kw_END_FUN = "END_FUN"
 
-cmd_RETURN = "RETURN"
-cmd_HALT = "HALT"
+kw_RETURN = "RETURN"
+kw_HALT = "HALT"
 
-cmd_ESCAPE = "ESCAPE"
-cmd_ESC = "ESC"
-cmd_ENTER = "ENTER"
-cmd_UP = "UP"
-cmd_DOWN = "DOWN"
-cmd_LEFT = "LEFT"
-cmd_RIGHT = "RIGHT"
-cmd_UPARROW = "UPARROW"
-cmd_DOWNARROW = "DOWNARROW"
-cmd_LEFTARROW = "LEFTARROW"
-cmd_RIGHTARROW = "RIGHTARROW"
-cmd_BACKSPACE = "BACKSPACE"
-cmd_TAB = "TAB"
-cmd_CAPSLOCK = "CAPSLOCK"
-cmd_PRINTSCREEN = "PRINTSCREEN"
-cmd_SCROLLLOCK = "SCROLLLOCK"
-cmd_PAUSE = "PAUSE"
-cmd_BREAK = "BREAK"
-cmd_INSERT = "INSERT"
-cmd_HOME = "HOME"
-cmd_PAGEUP = "PAGEUP"
-cmd_PAGEDOWN = "PAGEDOWN"
-cmd_DELETE = "DELETE"
-cmd_END = "END"
-cmd_SPACE = "SPACE"
+kw_ESCAPE = "ESCAPE"
+kw_ESC = "ESC"
+kw_ENTER = "ENTER"
+kw_UP = "UP"
+kw_DOWN = "DOWN"
+kw_LEFT = "LEFT"
+kw_RIGHT = "RIGHT"
+kw_UPARROW = "UPARROW"
+kw_DOWNARROW = "DOWNARROW"
+kw_LEFTARROW = "LEFTARROW"
+kw_RIGHTARROW = "RIGHTARROW"
+kw_BACKSPACE = "BACKSPACE"
+kw_TAB = "TAB"
+kw_CAPSLOCK = "CAPSLOCK"
+kw_PRINTSCREEN = "PRINTSCREEN"
+kw_SCROLLLOCK = "SCROLLLOCK"
+kw_PAUSE = "PAUSE"
+kw_BREAK = "BREAK"
+kw_INSERT = "INSERT"
+kw_HOME = "HOME"
+kw_PAGEUP = "PAGEUP"
+kw_PAGEDOWN = "PAGEDOWN"
+kw_DELETE = "DELETE"
+kw_END = "END"
+kw_SPACE = "SPACE"
 
-cmd_SHIFT = "SHIFT"
-cmd_RSHIFT = "RSHIFT"
+kw_SHIFT = "SHIFT"
+kw_RSHIFT = "RSHIFT"
 
-cmd_ALT = "ALT"
-cmd_RALT = "RALT"
-cmd_OPTION = "OPTION"
-cmd_ROPTION = "ROPTION"
+kw_ALT = "ALT"
+kw_RALT = "RALT"
+kw_OPTION = "OPTION"
+kw_ROPTION = "ROPTION"
 
-cmd_GUI = "GUI"
-cmd_WINDOWS = "WINDOWS"
-cmd_COMMAND = "COMMAND"
-cmd_RWINDOWS = "RWINDOWS"
-cmd_RCOMMAND = "RCOMMAND"
+kw_GUI = "GUI"
+kw_WINDOWS = "WINDOWS"
+kw_COMMAND = "COMMAND"
+kw_RWINDOWS = "RWINDOWS"
+kw_RCOMMAND = "RCOMMAND"
 
-cmd_CONTROL = "CONTROL"
-cmd_CTRL = "CTRL"
-cmd_RCONTROL = "RCONTROL"
-cmd_RCTRL = "RCTRL"
+kw_CONTROL = "CONTROL"
+kw_CTRL = "CTRL"
+kw_RCONTROL = "RCONTROL"
+kw_RCTRL = "RCTRL"
 
-cmd_NUMLOCK = "NUMLOCK" # Keyboard Num Lock and Clear
-cmd_KPSLASH = "KP_SLASH" # Keypad /
-cmd_KPASTERISK = "KP_ASTERISK" # Keypad *
-cmd_KPMINUS = "KP_MINUS" # Keypad -
-cmd_KPPLUS = "KP_PLUS" # Keypad +
-cmd_KPENTER = "KP_ENTER" # Keypad ENTER
-cmd_KP1 = "KP_1" # Keypad 1 and End
-cmd_KP2 = "KP_2" # Keypad 2 and Down Arrow
-cmd_KP3 = "KP_3" # Keypad 3 and PageDn
-cmd_KP4 = "KP_4" # Keypad 4 and Left Arrow
-cmd_KP5 = "KP_5" # Keypad 5
-cmd_KP6 = "KP_6" # Keypad 6 and Right Arrow
-cmd_KP7 = "KP_7" # Keypad 7 and Home
-cmd_KP8 = "KP_8" # Keypad 8 and Up Arrow
-cmd_KP9 = "KP_9" # Keypad 9 and Page Up
-cmd_KP0 = "KP_0" # Keypad 0 and Insert
-cmd_KPDOT = "KP_DOT" # Keypad . and Delete
-cmd_KPEQUAL = "KP_EQUAL" # Keypad EQUAL
+kw_NUMLOCK = "NUMLOCK" # Keyboard Num Lock and Clear
+kw_KPSLASH = "KP_SLASH" # Keypad /
+kw_KPASTERISK = "KP_ASTERISK" # Keypad *
+kw_KPMINUS = "KP_MINUS" # Keypad -
+kw_KPPLUS = "KP_PLUS" # Keypad +
+kw_KPENTER = "KP_ENTER" # Keypad ENTER
+kw_KP1 = "KP_1" # Keypad 1 and End
+kw_KP2 = "KP_2" # Keypad 2 and Down Arrow
+kw_KP3 = "KP_3" # Keypad 3 and PageDn
+kw_KP4 = "KP_4" # Keypad 4 and Left Arrow
+kw_KP5 = "KP_5" # Keypad 5
+kw_KP6 = "KP_6" # Keypad 6 and Right Arrow
+kw_KP7 = "KP_7" # Keypad 7 and Home
+kw_KP8 = "KP_8" # Keypad 8 and Up Arrow
+kw_KP9 = "KP_9" # Keypad 9 and Page Up
+kw_KP0 = "KP_0" # Keypad 0 and Insert
+kw_KPDOT = "KP_DOT" # Keypad . and Delete
+kw_KPEQUAL = "KP_EQUAL" # Keypad EQUAL
 
-cmd_MK_VOLUP = "MK_VOLUP"
-cmd_MK_VOLDOWN = "MK_VOLDOWN"
-cmd_MK_VOLMUTE = "MK_MUTE"
-cmd_MK_PREV = "MK_PREV"
-cmd_MK_NEXT = "MK_NEXT"
-cmd_MK_PLAYPAUSE = "MK_PP"
-cmd_MK_STOP = "MK_STOP"
+kw_MK_VOLUP = "MK_VOLUP"
+kw_MK_VOLDOWN = "MK_VOLDOWN"
+kw_MK_VOLMUTE = "MK_MUTE"
+kw_MK_PREV = "MK_PREV"
+kw_MK_NEXT = "MK_NEXT"
+kw_MK_PLAYPAUSE = "MK_PP"
+kw_MK_STOP = "MK_STOP"
 
-cmd_KATAKANAHIRAGANA = "KATAKANAHIRAGANA"
-cmd_HENKAN = "HENKAN"
-cmd_MUHENKAN = "MUHENKAN"
-cmd_KATAKANA = "KATAKANA"
-cmd_HIRAGANA = "HIRAGANA"
-cmd_ZENKAKUHANKAKU = "ZENKAKUHANKAKU"
+kw_KATAKANAHIRAGANA = "KATAKANAHIRAGANA"
+kw_HENKAN = "HENKAN"
+kw_MUHENKAN = "MUHENKAN"
+kw_KATAKANA = "KATAKANA"
+kw_HIRAGANA = "HIRAGANA"
+kw_ZENKAKUHANKAKU = "ZENKAKUHANKAKU"
 
-cmd_MENU = "MENU"
-cmd_APP = "APP"
-cmd_POWER = "POWER"
+kw_MENU = "MENU"
+kw_APP = "APP"
+kw_POWER = "POWER"
 
-cmd_LOOP_BREAK = "LBREAK"
-cmd_CONTINUE = "CONTINUE"
+kw_LOOP_BREAK = "LBREAK"
+kw_CONTINUE = "CONTINUE"
 
-cmd_REM_BLOCK = "REM_BLOCK"
-cmd_END_REM = "END_REM"
+kw_REM_BLOCK = "REM_BLOCK"
+kw_END_REM = "END_REM"
 
-cmd_STRINGLN_BLOCK = "STRINGLN_BLOCK"
-cmd_END_STRINGLN = "END_STRINGLN"
+kw_STRINGLN_BLOCK = "STRINGLN_BLOCK"
+kw_END_STRINGLN = "END_STRINGLN"
 
-cmd_STRING_BLOCK = "STRING_BLOCK"
-cmd_END_STRING = "END_STRING"
+kw_STRING_BLOCK = "STRING_BLOCK"
+kw_END_STRING = "END_STRING"
 
 KEY_LEFT_CTRL =  0x01
 KEY_LEFT_SHIFT = 0x02
@@ -258,60 +258,60 @@ KEY_TYPE_MOUSE_BUTTON = 11
 # name: (code, type)
 ds3_keyname_dict = {
 
-cmd_LMOUSE : (1, KEY_TYPE_MOUSE_BUTTON),
-cmd_RMOUSE : (2, KEY_TYPE_MOUSE_BUTTON),
-cmd_MMOUSE : (4, KEY_TYPE_MOUSE_BUTTON),
-cmd_UP : (KEY_UP_ARROW, KEY_TYPE_SPECIAL),
-cmd_DOWN : (KEY_DOWN_ARROW, KEY_TYPE_SPECIAL),
-cmd_LEFT : (KEY_LEFT_ARROW, KEY_TYPE_SPECIAL),
-cmd_RIGHT : (KEY_RIGHT_ARROW, KEY_TYPE_SPECIAL),
-cmd_UPARROW : (KEY_UP_ARROW, KEY_TYPE_SPECIAL),
-cmd_DOWNARROW : (KEY_DOWN_ARROW, KEY_TYPE_SPECIAL),
-cmd_LEFTARROW : (KEY_LEFT_ARROW, KEY_TYPE_SPECIAL),
-cmd_RIGHTARROW : (KEY_RIGHT_ARROW, KEY_TYPE_SPECIAL),
-cmd_ESCAPE : (KEY_ESC, KEY_TYPE_SPECIAL),
-cmd_ESC : (KEY_ESC, KEY_TYPE_SPECIAL),
-cmd_ENTER : (KEY_RETURN, KEY_TYPE_SPECIAL),
-cmd_BACKSPACE : (KEY_BACKSPACE, KEY_TYPE_SPECIAL),
-cmd_TAB : (KEY_TAB, KEY_TYPE_SPECIAL),
-cmd_CAPSLOCK : (KEY_CAPS_LOCK, KEY_TYPE_SPECIAL),
-cmd_PRINTSCREEN : (KEY_PRINT_SCREEN, KEY_TYPE_SPECIAL),
-cmd_SCROLLLOCK : (KEY_SCROLL_LOCK, KEY_TYPE_SPECIAL),
-cmd_PAUSE : (KEY_PAUSE, KEY_TYPE_SPECIAL),
-cmd_BREAK : (KEY_PAUSE, KEY_TYPE_SPECIAL),
-cmd_INSERT : (KEY_INSERT, KEY_TYPE_SPECIAL),
-cmd_HOME : (KEY_HOME, KEY_TYPE_SPECIAL),
-cmd_PAGEUP : (KEY_PAGE_UP, KEY_TYPE_SPECIAL),
-cmd_PAGEDOWN : (KEY_PAGE_DOWN, KEY_TYPE_SPECIAL),
-cmd_DELETE : (KEY_DELETE, KEY_TYPE_SPECIAL),
-cmd_END : (KEY_END, KEY_TYPE_SPECIAL),
-cmd_NUMLOCK : (KEY_NUMLOCK, KEY_TYPE_SPECIAL),
-cmd_KPSLASH : (KEY_KPSLASH, KEY_TYPE_SPECIAL),
-cmd_KPASTERISK : (KEY_KPASTERISK, KEY_TYPE_SPECIAL),
-cmd_KPMINUS : (KEY_KPMINUS, KEY_TYPE_SPECIAL),
-cmd_KPPLUS : (KEY_KPPLUS, KEY_TYPE_SPECIAL),
-cmd_KPENTER : (KEY_KPENTER, KEY_TYPE_SPECIAL),
-cmd_KP1 : (KEY_KP1, KEY_TYPE_SPECIAL),
-cmd_KP2 : (KEY_KP2, KEY_TYPE_SPECIAL),
-cmd_KP3 : (KEY_KP3, KEY_TYPE_SPECIAL),
-cmd_KP4 : (KEY_KP4, KEY_TYPE_SPECIAL),
-cmd_KP5 : (KEY_KP5, KEY_TYPE_SPECIAL),
-cmd_KP6 : (KEY_KP6, KEY_TYPE_SPECIAL),
-cmd_KP7 : (KEY_KP7, KEY_TYPE_SPECIAL),
-cmd_KP8 : (KEY_KP8, KEY_TYPE_SPECIAL),
-cmd_KP9 : (KEY_KP9, KEY_TYPE_SPECIAL),
-cmd_KP0 : (KEY_KP0, KEY_TYPE_SPECIAL),
-cmd_KPDOT : (KEY_KPDOT, KEY_TYPE_SPECIAL),
-cmd_KPEQUAL : (KEY_KPEQUAL, KEY_TYPE_SPECIAL),
-cmd_POWER : (KEY_POWER, KEY_TYPE_SPECIAL),
-cmd_MENU : (KEY_MENU, KEY_TYPE_SPECIAL),
-cmd_APP : (KEY_MENU, KEY_TYPE_SPECIAL),
-cmd_KATAKANAHIRAGANA : (KEY_KATAKANAHIRAGANA, KEY_TYPE_SPECIAL),
-cmd_HENKAN : (KEY_HENKAN, KEY_TYPE_SPECIAL),
-cmd_MUHENKAN : (KEY_MUHENKAN, KEY_TYPE_SPECIAL),
-cmd_KATAKANA : (KEY_KATAKANA, KEY_TYPE_SPECIAL),
-cmd_HIRAGANA : (KEY_HIRAGANA, KEY_TYPE_SPECIAL),
-cmd_ZENKAKUHANKAKU : (KEY_ZENKAKUHANKAKU, KEY_TYPE_SPECIAL),
+kw_LMOUSE : (1, KEY_TYPE_MOUSE_BUTTON),
+kw_RMOUSE : (2, KEY_TYPE_MOUSE_BUTTON),
+kw_MMOUSE : (4, KEY_TYPE_MOUSE_BUTTON),
+kw_UP : (KEY_UP_ARROW, KEY_TYPE_SPECIAL),
+kw_DOWN : (KEY_DOWN_ARROW, KEY_TYPE_SPECIAL),
+kw_LEFT : (KEY_LEFT_ARROW, KEY_TYPE_SPECIAL),
+kw_RIGHT : (KEY_RIGHT_ARROW, KEY_TYPE_SPECIAL),
+kw_UPARROW : (KEY_UP_ARROW, KEY_TYPE_SPECIAL),
+kw_DOWNARROW : (KEY_DOWN_ARROW, KEY_TYPE_SPECIAL),
+kw_LEFTARROW : (KEY_LEFT_ARROW, KEY_TYPE_SPECIAL),
+kw_RIGHTARROW : (KEY_RIGHT_ARROW, KEY_TYPE_SPECIAL),
+kw_ESCAPE : (KEY_ESC, KEY_TYPE_SPECIAL),
+kw_ESC : (KEY_ESC, KEY_TYPE_SPECIAL),
+kw_ENTER : (KEY_RETURN, KEY_TYPE_SPECIAL),
+kw_BACKSPACE : (KEY_BACKSPACE, KEY_TYPE_SPECIAL),
+kw_TAB : (KEY_TAB, KEY_TYPE_SPECIAL),
+kw_CAPSLOCK : (KEY_CAPS_LOCK, KEY_TYPE_SPECIAL),
+kw_PRINTSCREEN : (KEY_PRINT_SCREEN, KEY_TYPE_SPECIAL),
+kw_SCROLLLOCK : (KEY_SCROLL_LOCK, KEY_TYPE_SPECIAL),
+kw_PAUSE : (KEY_PAUSE, KEY_TYPE_SPECIAL),
+kw_BREAK : (KEY_PAUSE, KEY_TYPE_SPECIAL),
+kw_INSERT : (KEY_INSERT, KEY_TYPE_SPECIAL),
+kw_HOME : (KEY_HOME, KEY_TYPE_SPECIAL),
+kw_PAGEUP : (KEY_PAGE_UP, KEY_TYPE_SPECIAL),
+kw_PAGEDOWN : (KEY_PAGE_DOWN, KEY_TYPE_SPECIAL),
+kw_DELETE : (KEY_DELETE, KEY_TYPE_SPECIAL),
+kw_END : (KEY_END, KEY_TYPE_SPECIAL),
+kw_NUMLOCK : (KEY_NUMLOCK, KEY_TYPE_SPECIAL),
+kw_KPSLASH : (KEY_KPSLASH, KEY_TYPE_SPECIAL),
+kw_KPASTERISK : (KEY_KPASTERISK, KEY_TYPE_SPECIAL),
+kw_KPMINUS : (KEY_KPMINUS, KEY_TYPE_SPECIAL),
+kw_KPPLUS : (KEY_KPPLUS, KEY_TYPE_SPECIAL),
+kw_KPENTER : (KEY_KPENTER, KEY_TYPE_SPECIAL),
+kw_KP1 : (KEY_KP1, KEY_TYPE_SPECIAL),
+kw_KP2 : (KEY_KP2, KEY_TYPE_SPECIAL),
+kw_KP3 : (KEY_KP3, KEY_TYPE_SPECIAL),
+kw_KP4 : (KEY_KP4, KEY_TYPE_SPECIAL),
+kw_KP5 : (KEY_KP5, KEY_TYPE_SPECIAL),
+kw_KP6 : (KEY_KP6, KEY_TYPE_SPECIAL),
+kw_KP7 : (KEY_KP7, KEY_TYPE_SPECIAL),
+kw_KP8 : (KEY_KP8, KEY_TYPE_SPECIAL),
+kw_KP9 : (KEY_KP9, KEY_TYPE_SPECIAL),
+kw_KP0 : (KEY_KP0, KEY_TYPE_SPECIAL),
+kw_KPDOT : (KEY_KPDOT, KEY_TYPE_SPECIAL),
+kw_KPEQUAL : (KEY_KPEQUAL, KEY_TYPE_SPECIAL),
+kw_POWER : (KEY_POWER, KEY_TYPE_SPECIAL),
+kw_MENU : (KEY_MENU, KEY_TYPE_SPECIAL),
+kw_APP : (KEY_MENU, KEY_TYPE_SPECIAL),
+kw_KATAKANAHIRAGANA : (KEY_KATAKANAHIRAGANA, KEY_TYPE_SPECIAL),
+kw_HENKAN : (KEY_HENKAN, KEY_TYPE_SPECIAL),
+kw_MUHENKAN : (KEY_MUHENKAN, KEY_TYPE_SPECIAL),
+kw_KATAKANA : (KEY_KATAKANA, KEY_TYPE_SPECIAL),
+kw_HIRAGANA : (KEY_HIRAGANA, KEY_TYPE_SPECIAL),
+kw_ZENKAKUHANKAKU : (KEY_ZENKAKUHANKAKU, KEY_TYPE_SPECIAL),
 "F1" : (0x3A, KEY_TYPE_SPECIAL),
 "F2" : (0x3B, KEY_TYPE_SPECIAL),
 "F3" : (0x3C, KEY_TYPE_SPECIAL),
@@ -336,29 +336,29 @@ cmd_ZENKAKUHANKAKU : (KEY_ZENKAKUHANKAKU, KEY_TYPE_SPECIAL),
 "F22" : (0x71, KEY_TYPE_SPECIAL),
 "F23" : (0x72, KEY_TYPE_SPECIAL),
 "F24" : (0x73, KEY_TYPE_SPECIAL),
-cmd_SPACE : (0x20, KEY_TYPE_CHAR),
-cmd_SHIFT : (KEY_LEFT_SHIFT, KEY_TYPE_MODIFIER),
-cmd_RSHIFT : (KEY_RIGHT_SHIFT, KEY_TYPE_MODIFIER),
-cmd_ALT : (KEY_LEFT_ALT, KEY_TYPE_MODIFIER),
-cmd_OPTION : (KEY_LEFT_ALT, KEY_TYPE_MODIFIER),
-cmd_RALT : (KEY_RIGHT_ALT, KEY_TYPE_MODIFIER),
-cmd_ROPTION : (KEY_RIGHT_ALT, KEY_TYPE_MODIFIER),
-cmd_GUI : (KEY_LEFT_GUI, KEY_TYPE_MODIFIER),
-cmd_WINDOWS : (KEY_LEFT_GUI, KEY_TYPE_MODIFIER),
-cmd_RWINDOWS : (KEY_RIGHT_GUI, KEY_TYPE_MODIFIER),
-cmd_COMMAND : (KEY_LEFT_GUI, KEY_TYPE_MODIFIER),
-cmd_RCOMMAND : (KEY_RIGHT_GUI, KEY_TYPE_MODIFIER),
-cmd_CTRL : (KEY_LEFT_CTRL, KEY_TYPE_MODIFIER),
-cmd_CONTROL : (KEY_LEFT_CTRL, KEY_TYPE_MODIFIER),
-cmd_RCTRL : (KEY_RIGHT_CTRL, KEY_TYPE_MODIFIER),
-cmd_RCONTROL : (KEY_RIGHT_CTRL, KEY_TYPE_MODIFIER),
-cmd_MK_VOLUP : (KEY_MK_VOLUP, KEY_TYPE_MEDIA),
-cmd_MK_VOLDOWN : (KEY_MK_VOLDOWN, KEY_TYPE_MEDIA),
-cmd_MK_VOLMUTE : (KEY_MK_VOLMUTE, KEY_TYPE_MEDIA),
-cmd_MK_PREV : (KEY_MK_PREV, KEY_TYPE_MEDIA),
-cmd_MK_NEXT : (KEY_MK_NEXT, KEY_TYPE_MEDIA),
-cmd_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
-cmd_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
+kw_SPACE : (0x20, KEY_TYPE_CHAR),
+kw_SHIFT : (KEY_LEFT_SHIFT, KEY_TYPE_MODIFIER),
+kw_RSHIFT : (KEY_RIGHT_SHIFT, KEY_TYPE_MODIFIER),
+kw_ALT : (KEY_LEFT_ALT, KEY_TYPE_MODIFIER),
+kw_OPTION : (KEY_LEFT_ALT, KEY_TYPE_MODIFIER),
+kw_RALT : (KEY_RIGHT_ALT, KEY_TYPE_MODIFIER),
+kw_ROPTION : (KEY_RIGHT_ALT, KEY_TYPE_MODIFIER),
+kw_GUI : (KEY_LEFT_GUI, KEY_TYPE_MODIFIER),
+kw_WINDOWS : (KEY_LEFT_GUI, KEY_TYPE_MODIFIER),
+kw_RWINDOWS : (KEY_RIGHT_GUI, KEY_TYPE_MODIFIER),
+kw_COMMAND : (KEY_LEFT_GUI, KEY_TYPE_MODIFIER),
+kw_RCOMMAND : (KEY_RIGHT_GUI, KEY_TYPE_MODIFIER),
+kw_CTRL : (KEY_LEFT_CTRL, KEY_TYPE_MODIFIER),
+kw_CONTROL : (KEY_LEFT_CTRL, KEY_TYPE_MODIFIER),
+kw_RCTRL : (KEY_RIGHT_CTRL, KEY_TYPE_MODIFIER),
+kw_RCONTROL : (KEY_RIGHT_CTRL, KEY_TYPE_MODIFIER),
+kw_MK_VOLUP : (KEY_MK_VOLUP, KEY_TYPE_MEDIA),
+kw_MK_VOLDOWN : (KEY_MK_VOLDOWN, KEY_TYPE_MEDIA),
+kw_MK_VOLMUTE : (KEY_MK_VOLMUTE, KEY_TYPE_MEDIA),
+kw_MK_PREV : (KEY_MK_PREV, KEY_TYPE_MEDIA),
+kw_MK_NEXT : (KEY_MK_NEXT, KEY_TYPE_MEDIA),
+kw_MK_PLAYPAUSE : (KEY_MK_PLAYPAUSE, KEY_TYPE_MEDIA),
+kw_MK_STOP : (KEY_MK_STOP, KEY_TYPE_MEDIA),
 }
 
 class SymType(IntEnum):
@@ -600,47 +600,47 @@ class reserved_func_info:
     has_return_value: bool = False
 
 ds_str_func_lookup = {
-    cmd_STRING : reserved_func_info(OP_STR, 1),
-    cmd_STRINGLN : reserved_func_info(OP_STRLN, 1),
-    cmd_OLED_PRINT : reserved_func_info(OP_OLED_PRNT, 1),
-    cmd_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
+    kw_STRING : reserved_func_info(OP_STR, 1),
+    kw_STRINGLN : reserved_func_info(OP_STRLN, 1),
+    kw_OLED_PRINT : reserved_func_info(OP_OLED_PRNT, 1),
+    kw_GOTO_PROFILE : reserved_func_info(OP_GOTOP, 1),
     }
 
 ds_keypress_func_lookup = {
-    cmd_KEYDOWN : reserved_func_info(OP_KDOWN, 1),
-    cmd_KEYUP : reserved_func_info(OP_KUP, 1),
+    kw_KEYDOWN : reserved_func_info(OP_KDOWN, 1),
+    kw_KEYUP : reserved_func_info(OP_KUP, 1),
 }
 
 ds_builtin_func_lookup = {
-    cmd_HALT : reserved_func_info(OP_HALT, 0),
-    cmd_DELAY : reserved_func_info(OP_DELAY, 1),
-    cmd_MOUSE_WHEEL : reserved_func_info(OP_MSCL, 1),
-    cmd_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
-    cmd_SWCF : reserved_func_info(OP_SWCF, 3),
-    cmd_SWCC : reserved_func_info(OP_SWCC, 4),
-    cmd_SWCR : reserved_func_info(OP_SWCR, 1),
-    cmd_OLED_CURSOR : reserved_func_info(OP_OLED_CUSR, 2),
-    cmd_OLED_UPDATE : reserved_func_info(OP_OLED_UPDE, 0),
-    cmd_OLED_CLEAR : reserved_func_info(OP_OLED_CLR, 0),
-    cmd_OLED_RESTORE : reserved_func_info(OP_OLED_REST, 0),
-    cmd_OLED_LINE : reserved_func_info(OP_OLED_LINE, 4),
-    cmd_OLED_RECT : reserved_func_info(OP_OLED_RECT, 5),
-    cmd_OLED_CIRCLE : reserved_func_info(OP_OLED_CIRC, 4),
-    cmd_BCLR : reserved_func_info(OP_BCLR, 0),
-    cmd_SKIP_PROFILE : reserved_func_info(OP_SKIPP, 1),
-    cmd_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
-    cmd_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_return_value=True),
-    cmd_POKE8 : reserved_func_info(OP_POKE8, 2),
-    cmd_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
-    cmd_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
-    cmd_PUTS : reserved_func_info(OP_PUTS, 1),
+    kw_HALT : reserved_func_info(OP_HALT, 0),
+    kw_DELAY : reserved_func_info(OP_DELAY, 1),
+    kw_MOUSE_WHEEL : reserved_func_info(OP_MSCL, 1),
+    kw_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
+    kw_SWCF : reserved_func_info(OP_SWCF, 3),
+    kw_SWCC : reserved_func_info(OP_SWCC, 4),
+    kw_SWCR : reserved_func_info(OP_SWCR, 1),
+    kw_OLED_CURSOR : reserved_func_info(OP_OLED_CUSR, 2),
+    kw_OLED_UPDATE : reserved_func_info(OP_OLED_UPDE, 0),
+    kw_OLED_CLEAR : reserved_func_info(OP_OLED_CLR, 0),
+    kw_OLED_RESTORE : reserved_func_info(OP_OLED_REST, 0),
+    kw_OLED_LINE : reserved_func_info(OP_OLED_LINE, 4),
+    kw_OLED_RECT : reserved_func_info(OP_OLED_RECT, 5),
+    kw_OLED_CIRCLE : reserved_func_info(OP_OLED_CIRC, 4),
+    kw_BCLR : reserved_func_info(OP_BCLR, 0),
+    kw_SKIP_PROFILE : reserved_func_info(OP_SKIPP, 1),
+    kw_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
+    kw_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_return_value=True),
+    kw_POKE8 : reserved_func_info(OP_POKE8, 2),
+    kw_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
+    kw_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
+    kw_PUTS : reserved_func_info(OP_PUTS, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
 
 ds_reserved_funcs = ds_func_to_parse_as_str | ds_builtin_func_lookup 
 
-ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION, cmd_END_FUN}
+ds2py_ignored_cmds = {kw_END_IF, kw_END_WHILE, kw_END_FUNCTION, kw_END_FUN}
 
 def get_pretty_ds_line_list(dslist):
     lines = []
@@ -748,10 +748,10 @@ notequal_str = "!="
 op_placeholder = str(uuid.uuid4())
 
 def replace_operators(this_line):
-    if this_line.lstrip().startswith(cmd_DEFINE):
+    if this_line.lstrip().startswith(kw_DEFINE):
         return this_line
     temp = this_line.replace(notequal_str, op_placeholder)
-    temp = temp.replace(cmd_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ").replace("!", " not ")
+    temp = temp.replace(kw_VAR_PREFIX, "").replace("||", " or ").replace("&&", " and ").replace("!", " not ")
     temp = temp.replace(op_placeholder, notequal_str)
     return temp
 
@@ -877,12 +877,12 @@ def get_orig_ds_line_from_orig_ds_lnum_sf1(ctx_dict, lnumsf1):
         print("get_orig_ds_line_from_orig_ds_lnum_sf1:", e)
     return ""
 
-ds_cmd_set = {v for k, v in globals().items() if k.startswith('cmd_')}
+ds_kw_set = {v for k, v in globals().items() if k.startswith('kw_')}
 
 def is_ds_keyword(name):
     if keyword.iskeyword(name):
         return True
-    if name in ds_cmd_set:
+    if name in ds_kw_set:
         return True
     if name in ds3_keyname_dict:
         return True

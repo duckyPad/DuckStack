@@ -4,16 +4,16 @@ import copy
 import re
 
 def needs_rstrip(first_word):
-    if first_word == cmd_STRING:
+    if first_word == kw_STRING:
         return False
-    if first_word == cmd_STRINGLN:
+    if first_word == kw_STRINGLN:
         return False
-    if first_word == cmd_OLED_PRINT:
+    if first_word == kw_OLED_PRINT:
         return False
     return True
 
 def replace_DEFINE_once(pgm_line, def_dict):
-    if pgm_line.startswith(cmd_STRING+" ") or pgm_line.startswith(cmd_STRINGLN+" "):
+    if pgm_line.startswith(kw_STRING+" ") or pgm_line.startswith(kw_STRINGLN+" "):
         def_dict.pop("TRUE", None)
         def_dict.pop("FALSE", None)
     else:
@@ -42,7 +42,7 @@ def replace_DEFINE(source, def_dict):
 
 def skip_whitespace(pgm_line):
     whitespace_chars = [' ', '\t']
-    search_index = len(cmd_DEFINE)
+    search_index = len(kw_DEFINE)
     try:
         while 1:
             this_char = pgm_line[search_index]
@@ -85,7 +85,7 @@ def new_define(pgm_line, dd):
 
 def check_loop(pgm_line):
     try:
-        line_split = [x for x in pgm_line.split(cmd_LOOP) if len(x) > 0]
+        line_split = [x for x in pgm_line.split(kw_LOOP) if len(x) > 0]
         if ':' not in line_split[0]:
             return PARSE_ERROR, 'missing ":"', None
         number_split = [x for x in line_split[0].split(":") if len(x) > 0]
@@ -182,13 +182,13 @@ def func_end_check(lnum, fss, fdict):
     return PARSE_OK, ''
 
 def if_check(pgm_line, lnum, iss):
-    if_expr = pgm_line.replace(cmd_IF, '', 1)
+    if_expr = pgm_line.replace(kw_IF, '', 1)
     if_expr = if_expr[:len(if_expr)]
     iss.append({lnum:{"else_if":[], "else":None, "end_if":None}})
     return PARSE_OK, ''
 
 def end_if_check(pgm_line, lnum, iss, if_skip_table, if_take_table):
-    if pgm_line != cmd_END_IF:
+    if pgm_line != kw_END_IF:
         return PARSE_ERROR, "missing END_IF at end"
     if len(iss) == 0:
         return PARSE_ERROR, "orphan END_IF"
@@ -236,12 +236,12 @@ def elseif_check(pgm_line, lnum, iss):
             return PARSE_ERROR, "ELSE IF must be before ELSE"
         ifdict[key]['else_if'].append(lnum)
     # print(ifdict)
-    elseif_expr = pgm_line.replace(cmd_ELSE_IF, '', 1)
+    elseif_expr = pgm_line.replace(kw_ELSE_IF, '', 1)
     elseif_expr = elseif_expr[:len(elseif_expr)]
     return PARSE_OK, ''
 
 def else_check(pgm_line, lnum, iss):
-    if pgm_line != cmd_ELSE and cmd_C_COMMENT not in pgm_line:
+    if pgm_line != kw_ELSE and kw_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(iss) == 0:
         return PARSE_ERROR, "orphan ELSE"
@@ -259,7 +259,7 @@ def new_while_check(lnum, wss, wdict):
     return PARSE_OK, ''
 
 def end_while_check(pgm_line, lnum, wss, wdict):
-    if pgm_line != cmd_END_WHILE and cmd_C_COMMENT not in pgm_line:
+    if pgm_line != kw_END_WHILE and kw_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "orphan END_WHILE"
@@ -269,7 +269,7 @@ def end_while_check(pgm_line, lnum, wss, wdict):
 
 def break_check(pgm_line, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
-    if len(split) != 1 and cmd_C_COMMENT not in pgm_line:
+    if len(split) != 1 and kw_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "BREAK outside WHILE"
@@ -277,7 +277,7 @@ def break_check(pgm_line, wss):
 
 def continue_check(pgm_line, wss):
     split = [x for x in pgm_line.split(' ') if len(x) > 0]
-    if len(split) != 1 and cmd_C_COMMENT not in pgm_line:
+    if len(split) != 1 and kw_C_COMMENT not in pgm_line:
         return PARSE_ERROR, "extra stuff at end"
     if len(wss) == 0:
         return PARSE_ERROR, "CONTINUE outside WHILE"
@@ -322,18 +322,18 @@ def split_string(input_string, max_length=STRING_MAX_SIZE):
         return [input_string]
     return [input_string[i:i+max_length] for i in range(0, len(input_string), max_length)]
 
-def split_str_cmd(cmd_type, line_obj):
-    str_content = line_obj.content.split(cmd_type + " ", 1)[-1]
+def split_str_cmd(kw_type, line_obj):
+    str_content = line_obj.content.split(kw_type + " ", 1)[-1]
     if len(str_content) <= STRING_MAX_SIZE:
         return [line_obj]
-    cmd_list = []
+    kw_list = []
     for item in split_string(str_content):
-        new_obj = ds_line(content=f"{cmd_STRING} {item}", orig_lnum_sf1=line_obj.orig_lnum_sf1)
-        cmd_list.append(new_obj)
-    if cmd_type == cmd_STRINGLN:
-        new_obj = ds_line(content=f"{cmd_ENTER}", orig_lnum_sf1=line_obj.orig_lnum_sf1)
-        cmd_list.append(new_obj)
-    return cmd_list
+        new_obj = ds_line(content=f"{kw_STRING} {item}", orig_lnum_sf1=line_obj.orig_lnum_sf1)
+        kw_list.append(new_obj)
+    if kw_type == kw_STRINGLN:
+        new_obj = ds_line(content=f"{kw_ENTER}", orig_lnum_sf1=line_obj.orig_lnum_sf1)
+        kw_list.append(new_obj)
+    return kw_list
 
 MAX_COMBO = 10
 
@@ -358,7 +358,7 @@ def parse_combo(line_obj):
 def check_var_declare(pgm_line, var_dict, fss):
     try:
         pgm_line = replace_operators(pgm_line)
-        var_sides = pgm_line.split(cmd_VAR_DECLARE, 1)[-1].split('=')
+        var_sides = pgm_line.split(kw_VAR_DECLARE, 1)[-1].split('=')
         this_var_name = var_sides[0].strip()
         rightside = var_sides[1].strip()
     except Exception as e:
@@ -425,91 +425,91 @@ def single_pass(program_listing, define_dict):
         presult = PARSE_ERROR
         pcomment = f"single_pass: Unknown error"
 
-        if first_word != cmd_DEFINE:
+        if first_word != kw_DEFINE:
             this_line = replace_DEFINE(this_line, define_dict)
 
-        if first_word == cmd_END_REM:
+        if first_word == kw_END_REM:
             presult, pcomment = rem_block_end_check(line_number_starting_from_1, rem_block_search_stack, rem_block_table)
         elif is_within_rem_block(line_number_starting_from_1, rem_block_table):
             presult = PARSE_OK
             pcomment = ''
-        elif first_word == cmd_END_STRINGLN:
+        elif first_word == kw_END_STRINGLN:
             presult, pcomment = stringln_block_end_check(line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
         elif is_within_strlen_block(line_number_starting_from_1, strlen_block_table):
             presult = PARSE_OK
             pcomment = ''
-        elif first_word == cmd_END_STRING:
+        elif first_word == kw_END_STRING:
             presult, pcomment = string_block_end_check(line_number_starting_from_1, str_block_search_stack, str_block_table)
         elif is_within_str_block(line_number_starting_from_1, str_block_table):
             presult = PARSE_OK
             pcomment = ''
-        elif first_word == cmd_DEFINE:
+        elif first_word == kw_DEFINE:
             presult, pcomment = new_define(this_line, define_dict)
-        elif first_word == cmd_VAR_DECLARE:
+        elif first_word == kw_VAR_DECLARE:
             presult, pcomment = check_var_declare(this_line, user_declared_var_dict, func_search_stack)
-        elif first_word == cmd_FUNCTION or first_word == cmd_FUN:
+        elif first_word == kw_FUNCTION or first_word == kw_FUN:
             presult, pcomment = new_func_check(this_line, line_number_starting_from_1, func_search_stack, func_table)
-        elif first_word == cmd_END_FUNCTION or first_word == cmd_END_FUN:
+        elif first_word == kw_END_FUNCTION or first_word == kw_END_FUN:
             this_indent_level -= 1
             presult, pcomment = func_end_check(line_number_starting_from_1, func_search_stack, func_table)
-        elif first_word == cmd_IF:
+        elif first_word == kw_IF:
             presult, pcomment = if_check(this_line, line_number_starting_from_1, if_search_stack)
-        elif this_line.startswith(cmd_ELSE_IF):
+        elif this_line.startswith(kw_ELSE_IF):
             this_indent_level -= 1
             presult, pcomment = elseif_check(this_line, line_number_starting_from_1, if_search_stack)
-        elif first_word == cmd_ELSE:
+        elif first_word == kw_ELSE:
             this_indent_level -= 1
             presult, pcomment = else_check(this_line, line_number_starting_from_1, if_search_stack)
-        elif first_word == cmd_END_IF:
+        elif first_word == kw_END_IF:
             this_indent_level -= 1
             presult, pcomment = end_if_check(this_line, line_number_starting_from_1, if_search_stack, if_skip_table, if_take_table)
-        elif first_word == cmd_WHILE:
+        elif first_word == kw_WHILE:
             presult, pcomment = new_while_check(line_number_starting_from_1, while_search_stack, while_table)
-        elif first_word == cmd_END_WHILE:
+        elif first_word == kw_END_WHILE:
             this_indent_level -= 1
             presult, pcomment = end_while_check(this_line, line_number_starting_from_1, while_search_stack, while_table)
-        elif first_word == cmd_LOOP_BREAK:
+        elif first_word == kw_LOOP_BREAK:
             presult, pcomment = break_check(this_line, while_search_stack)
-        elif first_word == cmd_CONTINUE:
+        elif first_word == kw_CONTINUE:
             presult, pcomment = continue_check(this_line, while_search_stack)
-        elif first_word == cmd_REM_BLOCK:
+        elif first_word == kw_REM_BLOCK:
             presult, pcomment = new_rem_block_check(line_number_starting_from_1, rem_block_search_stack, rem_block_table)
-        elif first_word == cmd_STRINGLN_BLOCK:
+        elif first_word == kw_STRINGLN_BLOCK:
             presult, pcomment = new_stringln_block_check(line_number_starting_from_1, strlen_block_search_stack, strlen_block_table)
-        elif first_word == cmd_STRING_BLOCK:
+        elif first_word == kw_STRING_BLOCK:
             presult, pcomment = new_string_block_check(line_number_starting_from_1, str_block_search_stack, str_block_table)
-        elif first_word == cmd_RETURN:
+        elif first_word == kw_RETURN:
             if len(func_search_stack) == 0:
                 presult = PARSE_ERROR
                 pcomment = f"RETURN outside function"
             else:
                 presult = PARSE_OK
                 pcomment = ''
-        elif first_word == cmd_SWCC:
+        elif first_word == kw_SWCC:
             presult, pcomment = PARSE_OK, ''
-        elif first_word == cmd_SWCF:
+        elif first_word == kw_SWCF:
             presult, pcomment = PARSE_OK, ''
-        elif first_word == cmd_SWCR:
+        elif first_word == kw_SWCR:
             presult, pcomment = PARSE_OK, ''
-        elif first_word == cmd_OLED_UPDATE:
+        elif first_word == kw_OLED_UPDATE:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_OLED_CLEAR:
+        elif first_word == kw_OLED_CLEAR:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_OLED_RESTORE:
+        elif first_word == kw_OLED_RESTORE:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_BCLR:
+        elif first_word == kw_BCLR:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_NEXT_PROFILE:
+        elif first_word == kw_NEXT_PROFILE:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_PREV_PROFILE:
+        elif first_word == kw_PREV_PROFILE:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_DP_SLEEP:
+        elif first_word == kw_DP_SLEEP:
             presult, pcomment = ensure_zero_arg(this_line)
-        elif first_word == cmd_KEYDOWN or first_word == cmd_KEYUP:
+        elif first_word == kw_KEYDOWN or first_word == kw_KEYUP:
             presult, pcomment = ensure_arg_count(this_line, 1)
-        elif this_line.startswith(cmd_SWCOLOR):
+        elif this_line.startswith(kw_SWCOLOR):
             presult, pcomment = PARSE_OK, ''
-        elif this_line.startswith(cmd_LOOP):
+        elif this_line.startswith(kw_LOOP):
             presult, pcomment, value = check_loop(this_line)
             if value is not None:
                 return_dict['loop_state_save_needed'] = True
@@ -596,15 +596,15 @@ def single_pass(program_listing, define_dict):
 
 def get_default_def_dict():
     default_dict = {
-        cmd_RANDOM_LOWERCASE_LETTER : f"{cmd_RANDCHR}(0x101)",
-        cmd_RANDOM_UPPERCASE_LETTER : f"{cmd_RANDCHR}(0x102)",
-        cmd_RANDOM_LETTER : f"{cmd_RANDCHR}(0x103)",
-        cmd_RANDOM_NUMBER : f"{cmd_RANDCHR}(0x104)",
-        cmd_RANDOM_SPECIAL : f"{cmd_RANDCHR}(0x108)",
-        cmd_RANDOM_CHAR : f"{cmd_RANDCHR}(0x10f)",
-        cmd_DEFAULTDELAY : "_DEFAULTDELAY =",
-        cmd_DEFAULTCHARDELAY : "_DEFAULTCHARDELAY =",
-        cmd_CHARJITTER : "_CHARJITTER =",
+        kw_RANDOM_LOWERCASE_LETTER : f"{kw_RANDCHR}(0x101)",
+        kw_RANDOM_UPPERCASE_LETTER : f"{kw_RANDCHR}(0x102)",
+        kw_RANDOM_LETTER : f"{kw_RANDCHR}(0x103)",
+        kw_RANDOM_NUMBER : f"{kw_RANDCHR}(0x104)",
+        kw_RANDOM_SPECIAL : f"{kw_RANDCHR}(0x108)",
+        kw_RANDOM_CHAR : f"{kw_RANDCHR}(0x10f)",
+        kw_DEFAULTDELAY : "_DEFAULTDELAY =",
+        kw_DEFAULTCHARDELAY : "_DEFAULTCHARDELAY =",
+        kw_CHARJITTER : "_CHARJITTER =",
     }
     return default_dict
 
@@ -631,10 +631,10 @@ def run_all(program_listing):
 
         first_word = line_obj.content.split(" ")[0]
 
-        if first_word in [cmd_STRINGLN_BLOCK, cmd_END_STRINGLN, cmd_STRING_BLOCK, cmd_END_STRING]:
+        if first_word in [kw_STRINGLN_BLOCK, kw_END_STRINGLN, kw_STRING_BLOCK, kw_END_STRING]:
             continue
 
-        if first_word in [cmd_STRINGLN, cmd_STRING]:
+        if first_word in [kw_STRINGLN, kw_STRING]:
             for item in split_str_cmd(first_word, line_obj):
                 new_program_listing.append(item)
         else:
@@ -649,21 +649,21 @@ def run_all(program_listing):
         line_obj.content = line_obj.content.lstrip(" \t")
         first_word = line_obj.content.split(" ")[0]
         # remove single-line comments 
-        if first_word == cmd_REM or first_word.startswith(cmd_C_COMMENT):
+        if first_word == kw_REM or first_word.startswith(kw_C_COMMENT):
             continue
         # remove INJECT_MOD
-        if first_word == cmd_INJECT_MOD:
-            line_obj.content = line_obj.content.replace(cmd_INJECT_MOD, "", 1)
+        if first_word == kw_INJECT_MOD:
+            line_obj.content = line_obj.content.replace(kw_INJECT_MOD, "", 1)
         if first_word not in ds_func_to_parse_as_str:
-            cpos = line_obj.content.find(cmd_C_COMMENT)
+            cpos = line_obj.content.find(kw_C_COMMENT)
             if cpos != -1:
                 line_obj.content = line_obj.content[:cpos].rstrip(" \t")
             line_obj.content = replace_operators(line_obj.content)
-        if first_word == cmd_PREV_PROFILE:
-            line_obj.content = f"{cmd_SKIP_PROFILE} -1"
-        if first_word == cmd_NEXT_PROFILE:
-            line_obj.content = f"{cmd_SKIP_PROFILE} 1"
-        if line_obj.content.strip() == cmd_GOTO_PROFILE:
+        if first_word == kw_PREV_PROFILE:
+            line_obj.content = f"{kw_SKIP_PROFILE} -1"
+        if first_word == kw_NEXT_PROFILE:
+            line_obj.content = f"{kw_SKIP_PROFILE} 1"
+        if line_obj.content.strip() == kw_GOTO_PROFILE:
             rdict['is_success'] = False
             rdict['comments'] = "Missing profile name"
             rdict['error_line_number_starting_from_1'] = line_obj.orig_lnum_sf1
@@ -706,19 +706,19 @@ def run_all(program_listing):
             continue
         if needs_rstrip(first_word):
             line_obj.content = this_line.rstrip(" \t")
-        if first_word != cmd_DEFINE:
+        if first_word != kw_DEFINE:
                 line_obj.content = replace_DEFINE(this_line, all_def_dict)
         else:
             continue
         this_line = line_obj.content.lstrip(' \t')
 
-        if first_word == cmd_REPEAT:
+        if first_word == kw_REPEAT:
             if len(second_pass_program_listing) == 0:
                 rdict['is_success'] = False
                 rdict['comments'] = "Nothing before REPEAT"
                 return rdict
             try:
-                repeat_count = int(this_line[len(cmd_REPEAT):].strip())
+                repeat_count = int(this_line[len(kw_REPEAT):].strip())
                 if repeat_count > REPEAT_MAX_SIZE:
                     raise ValueError
             except Exception as e:
@@ -728,18 +728,18 @@ def run_all(program_listing):
             last_line = second_pass_program_listing[-1]
             for x in range(repeat_count):
                 second_pass_program_listing.append(last_line)
-        elif this_line.startswith(cmd_LOOP):
+        elif this_line.startswith(kw_LOOP):
             presult, pcomment, value = check_loop(this_line)
             if needs_end_if:
-                second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
-            loop_str = f'{cmd_IF} _KEYPRESS_COUNT % _LOOP_SIZE == {value}'
+                second_pass_program_listing.append(ds_line(kw_END_IF, line_number_starting_from_1))
+            loop_str = f'{kw_IF} _KEYPRESS_COUNT % _LOOP_SIZE == {value}'
             second_pass_program_listing.append(ds_line(loop_str, line_number_starting_from_1))
             needs_end_if = True
         else:
             second_pass_program_listing.append(line_obj)
         
     if needs_end_if:
-        second_pass_program_listing.append(ds_line(cmd_END_IF, line_number_starting_from_1))
+        second_pass_program_listing.append(ds_line(kw_END_IF, line_number_starting_from_1))
 
     # -----------------
 

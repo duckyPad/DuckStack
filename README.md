@@ -461,4 +461,8 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 * PUTS() function
 * How new GOTO_PROFILE works
 * `FUN` and `END_FUN`
+* print format specifiers
+* `_STR_PRINT_FORMAT` and `_STR_PRINT_PADDING` removed
+
+
 
