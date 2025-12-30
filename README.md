@@ -349,7 +349,6 @@ Outside function calls, FP points to **base of stack.**
 
 ||...|
 |:--:|:--:|
-||`32-bit data`|
 ||...|
 |`FP ->`|Base (`F7FF`)|
 
@@ -459,3 +458,5 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 * `THEN` no longer required
 * AugAssign operator `+=, -=, etc`
 * RANDINT() function
+* PUTS() function
+* How new GOTO_PROFILE works
