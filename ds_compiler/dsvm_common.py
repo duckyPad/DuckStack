@@ -10,7 +10,7 @@ cmd_REM = "REM"
 cmd_C_COMMENT = "//"
 
 cmd_PEEK8 = "PEEK8"
-cmd_POKE8 = "POKE8"
+cmd_POKE8 = "POKE8" # POKE8(addr, val)
 cmd_RANDCHR = "RANDCHR"
 cmd_RANDINT = "RANDINT"
 cnd_PUTS = "PUTS"

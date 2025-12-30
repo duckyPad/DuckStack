@@ -160,14 +160,13 @@ Addressing is **16-bit**, executable 64KB max.
 |`CALL`|3|`9`/`0x9` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`RET`|3|`10`/`0xa` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
-|`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>`ADDR <= 0xFAFF`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
-|`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>`ADDR <= 0xFAFF`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
+|`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>`ADDR <= End of Scratch Memory`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
+|`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `ADDR`, then `VAL`.<br>`ADDR <= End of Scratch Memory`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
 |`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
 |`PUSH1`|1|`15`/`0xf` |Push `1` to TOS|None|
 |`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
 |`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
 |`RANDINT`|1|`18`/`0x12` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
-|`PUTS`|1|`19`/`0x13` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>If `n=0`, print until zero-termination.<br>Else print max `n` chars.|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators
@@ -250,6 +249,7 @@ Binary as in **involving two operands**.
 |`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
 |`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
 |`RANDCHR`|`86`/`0x57`| **Random Character**<br>See notes below.|
+|`PUTS`|1|`87`/`0x58` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>If `n=0`, print until zero-termination.<br>Else print max `n` chars.|None|
 
 #### RANDCHR Instruction
 
