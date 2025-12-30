@@ -163,9 +163,11 @@ Addressing is **16-bit**, executable 64KB max.
 |`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>`ADDR <= 0xFAFF`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
 |`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `VAL`, then `ADDR`.<br>`ADDR <= 0xFAFF`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
 |`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
-|`DROP`|1|`15`/`0xf` |Discard **ONE** item off TOS|None|
-|`DUP`|1|`16`/`0x10` |**Duplicate the item** on TOS|None|
-|`RANDINT`|1|`17`/`0x11` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
+|`PUSH1`|1|`15`/`0xf` |Push `1` to TOS|None|
+|`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
+|`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
+|`RANDINT`|1|`18`/`0x12` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
+|`PUTS`|1|`19`/`0x13` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>If `n=0`, print until zero-termination.<br>Else print max `n` chars.|None|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators

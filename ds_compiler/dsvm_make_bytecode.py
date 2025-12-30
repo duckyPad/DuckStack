@@ -583,6 +583,10 @@ def optimize_pass(instruction_list, arg_and_var_dict):
             optimized_list.append(dsvm_instruction(opcode=OP_PUSH0, label=current_instr.label, comment=current_instr.comment))
             i += 1
             continue
+        if current_instr.opcode == OP_PUSHC16 and current_instr.payload == 1:
+            optimized_list.append(dsvm_instruction(opcode=OP_PUSH1, label=current_instr.label, comment=current_instr.comment))
+            i += 1
+            continue
         if current_instr.opcode == OP_ALLOC and current_instr.payload in arg_and_var_dict and len(arg_and_var_dict[current_instr.payload]['locals']) == 0:
             i += 1
             continue

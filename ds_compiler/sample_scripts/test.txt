@@ -1,2 +1,3 @@
-VAR foo = 255
-STRING Count in hex: $foo%02x
+VAR foo = 0
+foo += 1
+STRING i have $foo%08x apples
