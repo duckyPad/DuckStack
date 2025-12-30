@@ -67,22 +67,12 @@ arith_lookup = {
 global_context_dict = {}
 
 def make_instruction_pushc32(value, comment: str = ""):
+    node_value_32b = int(value) & 0xFFFFFFFF
     node_value_high = (int(value) & 0xFFFF0000) >> 16
     node_value_low  = int(value) & 0xFFFF
-
-    inst_list: list[dsvm_instruction] = []
-
-    # low 16
-    inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment))
-
-    # if high 16 is non-zero, build (high << 16) | low
     if node_value_high:
-        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_high, comment=comment))
-        inst_list.append(dsvm_instruction(opcode=OP_PUSHC16, payload=16, comment=comment))
-        inst_list.append(dsvm_instruction(opcode=OP_LSHIFT, comment=comment))
-        inst_list.append(dsvm_instruction(opcode=OP_BITOR, comment=comment))
-
-    return inst_list
+        return dsvm_instruction(opcode=OP_PUSHC32, payload=node_value_32b, comment=comment)
+    return dsvm_instruction(opcode=OP_PUSHC16, payload=node_value_low, comment=comment)
 
 def print_assembly_list(asmlist):
     if print_asm is False:
@@ -225,7 +215,7 @@ def visit_node(node, ctx_dict):
         elif isinstance(node.value, str) and caller_func_name in ds_keypress_func_lookup:
             emit(OP_PUSHC16, payload=get_key_combined_value(node.value))
         elif isinstance(node.value, int):
-            instruction_list.extend(make_instruction_pushc32(node.value, og_ds_line))
+            instruction_list.append(make_instruction_pushc32(node.value, og_ds_line))
         else:
             raise ValueError(f"Unsupported Constant: {node.value}")
 
@@ -547,7 +537,10 @@ def compile_to_bin(rdict):
         this_payload = this_inst.payload
         if this_payload is None:
             continue
-        output_bin_array += pack_to_two_bytes(this_payload)
+        if this_inst.opcode == OP_PUSHC32:
+            output_bin_array += pack_to_four_bytes(this_payload)
+        else:
+            output_bin_array += pack_to_two_bytes(this_payload)
     for key in user_strings_dict:
         output_bin_array += key
     if len(output_bin_array) > MAX_BIN_SIZE:

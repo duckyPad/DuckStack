@@ -55,7 +55,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [16] DROP
 1, // [17] DUP
 1, // [18] RANDINT
-1, // [19] PUTS
+5, // [19] PUSHC32
 255, // [20]
 255, // [21]
 255, // [22]
@@ -123,7 +123,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [84] GOTOP
 1, // [85] SLEEP
 1, // [86] RANDCHR
-255, // [87]
+1, // [87] PUTS
 255, // [88]
 255, // [89]
 255, // [90]
@@ -157,7 +157,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_DROP 16
 #define OP_DUP 17
 #define OP_RANDINT 18
-#define OP_PUTS 19
+#define OP_PUSHC32 19
 #define OP_EQ 32
 #define OP_NOTEQ 33
 #define OP_LT 34
@@ -203,6 +203,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_GOTOP 84
 #define OP_SLEEP 85
 #define OP_RANDCHR 86
+#define OP_PUTS 87
 #define OP_VMVER 255
 
 // ---------------------------
@@ -448,11 +449,6 @@ void unaryop(FUNC_PTR_UNARY una_func)
   stack_print(&data_stack, "AFTER UNAOP");
 }
 
-uint16_t make_uint16(uint8_t b0, uint8_t b1)
-{
-  return b0 | (b1 << 8);
-}
-
 uint8_t get_gv_index(uint16_t addr)
 {
   uint8_t gv_index = (addr - PGV_START_ADDRESS) / PGV_BYTE_WIDTH;
@@ -464,6 +460,13 @@ uint8_t get_gv_index(uint16_t addr)
 uint8_t is_pgv(uint16_t addr)
 {
   return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
+}
+
+uint16_t make_uint16(const uint8_t* base_addr)
+{
+  uint16_t result;
+  memcpy(&result, base_addr, sizeof(result)); 
+  return result;
 }
 
 uint32_t make_uint32(const uint8_t* base_addr)
@@ -495,13 +498,9 @@ uint32_t memread_u32(uint16_t addr)
   if (addr == _RANDOM_MAX)
     return rand_max;
   if (addr == _RANDOM_INT && unsigned_math)
-  {
     return random_uint32_between(rand_min, rand_max);
-  }
   if (addr == _RANDOM_INT && !unsigned_math)
-  {
     return (uint32_t)random_int32_between((int32_t)rand_min, (int32_t)rand_max);
-  }
   if (addr == _TIME_MS)
     return DUMMY_DATA_REPLACE_ME;
   if (addr == _READKEY)
@@ -679,11 +678,10 @@ char format_spec_buf[FORMAT_SPEC_BUF_SIZE];
 char* make_str(uint16_t str_start_addr)
 {
   char* curr_char = (char*)(bin_buf + str_start_addr);
-  uint8_t this_char, lsb, msb;
   memset(read_buffer, 0, READ_BUF_SIZE);
   while (1)
   {
-    this_char = *curr_char;
+    uint8_t this_char = *curr_char;
     if (this_char == 0)
       break;
 
@@ -692,9 +690,8 @@ char* make_str(uint16_t str_start_addr)
       uint8_t boundary_type = this_char;
       
       curr_char++; // now at addr LSB
-      lsb = *curr_char;
+      uint8_t* lsb = (uint8_t*)curr_char;
       curr_char++; // now at addr MSB
-      msb = *curr_char;
       curr_char++; // now at format specifier (if exist), or boundary byte
       
       memset(format_spec_buf, 0, FORMAT_SPEC_BUF_SIZE);
@@ -705,7 +702,7 @@ char* make_str(uint16_t str_start_addr)
       
       curr_char++;
 
-      uint16_t addr_val = make_uint16(lsb, msb);
+      uint16_t addr_val = make_uint16(lsb);
       uint32_t var_value = 0;
 
       // Fetch the value based on the boundary type
@@ -798,11 +795,13 @@ void execute_instruction(exe_context* exe)
   uint16_t curr_pc = exe->this_pc;
   uint8_t opcode = read_byte(curr_pc);
   uint8_t instruction_size_bytes = inst_size_lookup(opcode);
-  uint16_t payload = 0;
+  uint32_t payload = 0;
   exe->next_pc += instruction_size_bytes;
   
   if(instruction_size_bytes == 3)
-    payload = make_uint16(read_byte(curr_pc+1), read_byte(curr_pc+2));
+    payload = make_uint16(bin_buf + curr_pc + 1);
+  else if(instruction_size_bytes == 5)
+    payload = make_uint32(bin_buf + curr_pc + 1);
   
   if(PRINT_DEBUG)
   {
@@ -815,10 +814,10 @@ void execute_instruction(exe_context* exe)
   {
     return;
   }
-  else if(opcode == OP_PUSHC16)
+  else if(opcode == OP_PUSHC16 || opcode == OP_PUSHC32)
   {
     stack_push(&data_stack, payload);
-    stack_print(&data_stack, "AFTER PUSHC16");
+    stack_print(&data_stack, "AFTER PUSHC");
   }
   else if(opcode == OP_PUSHI)
   {
@@ -1186,9 +1185,19 @@ void execute_instruction(exe_context* exe)
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
     uint8_t char_type = this_value & 0xff;
-    uint8_t stream_type = (this_value >> 8) & 0xff;
+    uint8_t channels = (this_value >> 8) & 0xff;
     char randc = get_random_char(char_type);
-    printf("OP_RANDCHR %x: %c\n", stream_type, randc);
+    printf("OP_RANDCHR %x: %c\n", channels, randc);
+  }
+  else if(opcode == OP_PUTS)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    uint16_t str_addr = this_value & 0xffff;
+    uint16_t nchar = (this_value >> 16) & 0xfff;
+    uint8_t channels = this_value >> 30;
+    // printf("PUTS: Addr 0x%08x nchar: %d, channels: %d\n", str_addr, nchar, channels);
+    printf(">>>>> PUTS: %s\n", bin_buf + str_addr);
   }
   else
   {

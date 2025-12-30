@@ -130,10 +130,10 @@ Addressing is **16-bit**, executable 64KB max.
 
 ## Instruction Set
 
-**Variable-length** between **1 to 3 bytes**.
+**Variable-length** between **1 to 5 bytes**.
 
 * First byte (Byte 0): **Opcode**.
-* Byte 1 & 2: **Optional payload**.
+* Byte 1 - 4: **Optional payload**.
 * ⚠️Integer arithmetics are **signed** BY DEFAULT
 	* Set reserved variable `_UNSIGNED_MATH = 1` to switch to **unsigned mode**
 * All multi-byte operations are **Little-endian**
@@ -149,7 +149,7 @@ Addressing is **16-bit**, executable 64KB max.
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSHC16`|3|`1`/`0x1` |Push an **positive 16-bit (0-65535)** constant on stack<br>For negative numbers, push absolute value then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
+|`PUSHC16`|3|`1`/`0x1` |Push a **positive 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
@@ -167,6 +167,7 @@ Addressing is **16-bit**, executable 64KB max.
 |`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
 |`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
 |`RANDINT`|1|`18`/`0x12` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
+|`PUSHC32`|5|`19`/`0x13` |Push a **positive 32-bit** constant on stack<br>For negative numbers, push abs then use `USUB`.|4 Bytes|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators
