@@ -249,7 +249,7 @@ Binary as in **involving two operands**.
 |`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>If `n` is **positive**, go to **next** profile<br>If `n` is **negative**, go to **prev** profile|
 |`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
 |`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
-|`RANDCHR`|`86`/`0x57`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 4: Type via Keyboard<br>Bit 5: Write to Screen Buffer|
+|`RANDCHR`|`86`/`0x57`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 16: Type via Keyboard<br>Bit 17: Write to Screen Buffer|
 |`PUTS`|`87`/`0x58` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>Print max `n` chars (or until `\0`).<br>If `n=0`, print until zero-termination.|None|
 |`PWMCTL`|`88`/`0x59`| **PWM Control**<br>Pop **ONE** item off TOS<br>Bit 0-13: Freq<br>Bit 14: Sustain?<br>Bit 15: Blocking?<br>Bit 16-27: Duration?<br>Bit 24-31: Duty Cycle?|
 

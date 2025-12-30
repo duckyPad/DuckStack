@@ -2,6 +2,30 @@
     * 1 item, channel, n, addr
 * STRING Answer is $foo%ld 
 
+-----------------------------
+// --- Setup ---
+VAR count = 0
+VAR target = 1000
+VAR startTime = 0
+VAR endTime = 0
+VAR temp = 0
+
+// --- Start Timer ---
+startTime = _TIME_MS
+
+// --- Loop 1000 Times ---
+WHILE count < target
+    temp = _RANDOM_INT
+    count = count + 1
+END_WHILE
+
+endTime = _TIME_MS
+
+VAR totalTime = endTime - startTime
+
+STRINGLN Took $totalTime ms
+-------------------
+
 POKE8(0xFA00, 0x4c)
 POKE8(0xFA01, 0x4f)
 POKE8(0xFA02, 0x4c)
