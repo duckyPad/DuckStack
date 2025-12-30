@@ -13,9 +13,9 @@ Public beta is expected **Jan 2026**.
 ## Features
 
 * 32-Bit Data Path, 16-bit Addressing.
-* Flexible Executable & Stack Region
+* Shared Executable & Stack Region
 * Variable-length Instructions
-* Function Arguments, Locals, & Recursions.
+* Functions with Arguments, Locals, & Recursions.
 * HID-specific Instructions
 
 ## Table of Contents
@@ -51,8 +51,7 @@ STRING The answer is: $foo!
 
 `python3 ./dsvm_make_bytecode.py test.txt test.dsb`
 
-* Output file can have any extension.
-	* I like to use `.dsb` for duckyScript Binary
+* For output, I like to use `.dsb` for duckyScript Binary
 
 Output:
 
@@ -209,7 +208,7 @@ Binary as in **involving two operands**.
 
 ### Unary Operators
 
-* All **single-byte** instruction
+* All **single-byte** instructions
 * Pop **ONE** items off TOS
 * Perform operation
 * Push result back on TOS
@@ -222,7 +221,7 @@ Binary as in **involving two operands**.
 
 ### duckyScript Commands
 
-* All **single-byte** instruction
+* All **single-byte** instructions
 
 |Name|Opcode<br>Byte 0|Comment|
 |:-------:|:----------:|:---------:|
@@ -252,18 +251,13 @@ Binary as in **involving two operands**.
 
 #### RANDCHR Instruction
 
-* Pops **ONE** item (4 bytes)
-	* LSB: `char_type`
-	* Second Byte: `stream_type`.
-	* BOTH are **bitmasks**.
-* `char_type`
+* Pop **ONE** item.
 	* Bit 0: Letter Lowercase (a-z)
 	* Bit 1: Letter Uppercase (A-Z)
 	* Bit 2: Digits (0-9)
 	* Bit 3: Symbols (\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\})
-* `stream_type`
-	* Bit 0: Type via Keyboard
-	* Bit 1: Print on OLED (Don't forget `OLED_UPDATE`)
+	* Bit 4: Type via Keyboard
+	* Bit 5: Print on OLED (Don't forget `OLED_UPDATE`)
 
 ## String Encoding
 
@@ -286,7 +280,6 @@ STRINGLN Hello World!
 OLED_PRINT Hi there!
 ```
 ```
-0    VMVER     2     0x2
 3    PUSHC16   16    0x10          ;STRING Hello World!
 6    STR                           ;STRING Hello World!
 7    PUSHC16   16    0x10          ;STRINGLN Hello World!
@@ -303,45 +296,39 @@ OLED_PRINT Hi there!
 * To print a variable, use `$` prefix:
 
 ```
-VAR count = 255
-STRING I have $count apples!
+VAR foo = 255
+STRING I have $foo apples!
 ```
 
 * C `printf()` style **format specifiers** can be added **RIGHT AFTER** the variable name.
 	* Only `d`, `u`, `x`, and `X` are supported.
 
 ```
-VAR count = 255
-STRING $count in hex is $count%x!
+VAR foo = 255
+STRING I have $foo%x apples!
 ```
 
-When user **prints an variable**, its info is embedded into the string between **two separator bytes**.
-
+When printing a variable, its info is embedded into the string between **two separator bytes**.
 
 * `0x1f` for **Global Variables**
 	* Contains: **Little-endian** memory address
+	* `[0x1f][ADDR_LSB][ADDR_MSB][Format Specifiers][0x1f]`
 * `0x1e` for **Local Variables and Arguments inside functions**
 	* Contains: **FP-Relative Offset**
+	* `[0x1e][OFFSET_LSB][OFFSET_MSB][Format Specifiers][0x1e]`
 
 ```
-[Separator][ADDR_LSB][ADDR_MSB][Format Specifiers][Separator]
-```
-
-```
-VAR foo = 5
-STRING The number is: $foo!
+VAR foo = 255
+STRING Count in hex: $foo%02x
 ```
 ```
-0    VMVER     2     0x2
-3    PUSHC16   5     0x5           ;VAR foo = 5
-6    POPI      63488 0xf800        ;VAR foo = 5
-9    PUSHC16   14    0xe           ;STRING The number is: $foo!
-12   STR                           ;STRING The number is: $foo!
-13   HALT
-14   DATA: b'The number is: \x1f\x00\xf8\x1f!\x00'
+3    PUSHC16   255   0xff          ;VAR foo = 255
+6    POPI      63488 0xf800        ;VAR foo = 255
+9    PUSHC16   14    0xe           ;STRING Count in hex: $foo%02x
+12   STR                           ;STRING Count in hex: $foo%02x
+13   HALT                          
+14   DATA: b'Count in hex: \x1f\x00\xf8%02x\x1f\x00'
 ```
-
-When VM encounters the separator byte, it reads the value from **memory address** or **FP-relative** and inserts it into the string.
 
 ## Run-time Exceptions
 

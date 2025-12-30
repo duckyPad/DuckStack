@@ -1,8 +1,2 @@
-VAR glo = -65535
-
-FUNCTION test(arg1)
-	VAR loc1 = 98
-	STRING $loc1%04d $arg1%x $glo%u
-END_FUNCTION
-
-test(254)
+VAR foo = 255
+STRING Count in hex: $foo%02x
