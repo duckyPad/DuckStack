@@ -13,7 +13,7 @@ cmd_PEEK8 = "PEEK8"
 cmd_POKE8 = "POKE8" # POKE8(addr, val)
 cmd_RANDCHR = "RANDCHR"
 cmd_RANDINT = "RANDINT"
-cnd_PUTS = "PUTS"
+cmd_PUTS = "PUTS"
 
 cmd_RANDOM_LOWERCASE_LETTER = "RANDOM_LOWERCASE_LETTER"
 cmd_RANDOM_UPPERCASE_LETTER = "RANDOM_UPPERCASE_LETTER"
@@ -412,7 +412,6 @@ OP_PUSH1 = Opcode("PUSH1", 15, 1)
 OP_DROP = Opcode("DROP", 16, 1)
 OP_DUP = Opcode("DUP", 17, 1)
 OP_RANDINT = Opcode("RANDINT", 18, 1)
-OP_PUTS = Opcode("PUTS", 19, 1)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators
@@ -465,6 +464,7 @@ OP_SKIPP = Opcode("SKIPP", 83, 1)
 OP_GOTOP = Opcode("GOTOP", 84, 1)
 OP_SLEEP = Opcode("SLEEP", 85, 1)
 OP_RANDCHR = Opcode("RANDCHR", 86, 1)
+OP_PUTS = Opcode("PUTS", 87, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -632,6 +632,7 @@ ds_builtin_func_lookup = {
     cmd_POKE8 : reserved_func_info(OP_POKE8, 2),
     cmd_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
     cmd_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
+    cmd_PUTS : reserved_func_info(OP_PUTS, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
