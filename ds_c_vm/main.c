@@ -549,10 +549,6 @@ uint32_t memread_u32(uint16_t addr)
     return DUMMY_DATA_REPLACE_ME;
   if (addr == _RTC_YDAY)
     return DUMMY_DATA_REPLACE_ME;
-  if (addr == _STR_PRINT_FORMAT)
-    return str_print_format;
-  if (addr == _STR_PRINT_PADDING)
-    return str_print_padding;
   if (addr == _UNUSED)
     return 0;
   if (addr == _UNSIGNED_MATH)
@@ -591,8 +587,6 @@ void memwrite_u32(uint16_t addr, uint32_t value)
     disable_autorepeat = value;
   else if (addr == _RTC_UTC_OFFSET)
     utc_offset_minutes = value;
-  else if (addr == _STR_PRINT_FORMAT)
-    str_print_format = value;
   else if (addr == _STR_PRINT_PADDING)
     str_print_padding = value;
   else if (addr == _UNSIGNED_MATH)
