@@ -460,3 +460,5 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 * RANDINT() function
 * PUTS() function
 * How new GOTO_PROFILE works
+* `FUN` and `END_FUN`
+

@@ -80,6 +80,10 @@ def run_all(program_listing):
             new_obj = copy.deepcopy(line_obj)
             new_obj.content = f"def {this_line[len(cmd_FUNCTION):].strip()}:"
             new_listing.append(new_obj)
+        elif first_word == cmd_FUN:
+            new_obj = copy.deepcopy(line_obj)
+            new_obj.content = f"def {this_line[len(cmd_FUN):].strip()}:"
+            new_listing.append(new_obj)
         else:
             new_listing.append(line_obj)
 

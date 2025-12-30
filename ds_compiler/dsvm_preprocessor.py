@@ -119,7 +119,7 @@ def new_string_block_check(lnum, sbss, sbdict):
 
 def new_func_check(pgm_line, lnum, fss, fdict):
     if len(fss) != 0:
-        return PARSE_ERROR, "unmatched END_FUNCTION"
+        return PARSE_ERROR, "unmatched END_FUN"
     if pgm_line.endswith(")") is False:
         return PARSE_ERROR, "missing )"
     try:
@@ -447,9 +447,9 @@ def single_pass(program_listing, define_dict):
             presult, pcomment = new_define(this_line, define_dict)
         elif first_word == cmd_VAR_DECLARE:
             presult, pcomment = check_var_declare(this_line, user_declared_var_dict, func_search_stack)
-        elif first_word == cmd_FUNCTION:
+        elif first_word == cmd_FUNCTION or first_word == cmd_FUN:
             presult, pcomment = new_func_check(this_line, line_number_starting_from_1, func_search_stack, func_table)
-        elif first_word == cmd_END_FUNCTION:
+        elif first_word == cmd_END_FUNCTION or first_word == cmd_END_FUN:
             this_indent_level -= 1
             presult, pcomment = func_end_check(line_number_starting_from_1, func_search_stack, func_table)
         elif first_word == cmd_IF:

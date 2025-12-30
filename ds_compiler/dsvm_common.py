@@ -78,6 +78,8 @@ cmd_END_WHILE = "END_WHILE"
 
 cmd_FUNCTION = "FUNCTION"
 cmd_END_FUNCTION = "END_FUNCTION"
+cmd_FUN = "FUN"
+cmd_END_FUN = "END_FUN"
 
 cmd_RETURN = "RETURN"
 cmd_HALT = "HALT"
@@ -640,7 +642,7 @@ ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
 
 ds_reserved_funcs = ds_func_to_parse_as_str | ds_builtin_func_lookup 
 
-ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION}
+ds2py_ignored_cmds = {cmd_END_IF, cmd_END_WHILE, cmd_END_FUNCTION, cmd_END_FUN}
 
 def get_pretty_ds_line_list(dslist):
     lines = []

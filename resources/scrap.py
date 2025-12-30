@@ -2,6 +2,12 @@
     * 1 item, channel, n, addr
 * STRING Answer is $foo%ld 
 
+POKE8(0xFA00, 0x4c)
+POKE8(0xFA01, 0x4f)
+POKE8(0xFA02, 0x4c)
+PUTS(0x800FFA00)
+
+
 VAR i = 0
 _UNSIGNED_MATH = 1
 _STR_PRINT_FORMAT = 0
