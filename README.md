@@ -246,7 +246,7 @@ Binary as in **involving two operands**.
 |`OLED_RECT`|`80`/`0x50`|**OLED Draw Rectangle**<br>Pop **FIVE** items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|
 |`OLED_CIRC`|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
 |`BCLR`|`82`/`0x52`|**Clear switch event queue**|
-|`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>Increment/Decrement `n`<br>profiles from the current one|
+|`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>If `n` is **positive**, go to **next** profile<br>If `n` is **negative**, go to **prev** profile|
 |`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If it is a **valid integer `n`** **AND maps to existing profile**<br>Go to `n`th profile.<br>Otherwise jump to the profile with the string name|
 |`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
 |`RANDCHR`|`86`/`0x57`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 4: Type via Keyboard<br>Bit 5: Write to Screen Buffer|

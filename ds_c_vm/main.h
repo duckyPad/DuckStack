@@ -57,8 +57,8 @@
 #define EXE_DSB_FILE_TOO_LARGE (EXE_ERROR_CODE_START + 8)
 #define EXE_UNIMPLEMENTED (EXE_ERROR_CODE_START + 9)
 #define EXE_UNALIGNED_ACCESS (EXE_ERROR_CODE_START + 10)
-#define EXE_STR_ERROR (EXE_ERROR_CODE_START + 11)
-
+#define EXE_PROFILE_NOT_FOUND (EXE_ERROR_CODE_START + 11)
+#define EXE_STR_ERROR (EXE_ERROR_CODE_START + 12)
 
 #define _DEFAULTDELAY (INTERAL_VAR_START_ADDRESS + 0 * INTERAL_VAR_BYTE_WIDTH)
 #define _DEFAULTCHARDELAY (INTERAL_VAR_START_ADDRESS + 1 * INTERAL_VAR_BYTE_WIDTH)
@@ -110,11 +110,11 @@ typedef struct
 #define DEFAULT_CMD_DELAY_MS 20
 #define DEFAULT_CHAR_DELAY_MS 20
 
-#define EPILOGUE_SAVE_LOOP_STATE 0x1
-#define EPILOGUE_SAVE_COLOR_STATE 0x2
-#define EPILOGUE_NEED_OLED_RESTORE 0x4
-#define EPILOGUE_DONT_AUTO_REPEAT 0x8
-#define EPILOGUE_SAVE_GV 0x10
+#define EPI_SAVE_LOOP_STATE 0x1
+#define EPI_SAVE_COLOR_STATE 0x2
+#define EPI_RESTORE_OLED 0x4
+#define EPI_NO_AUTOREPEAT 0x8
+#define EPI_SAVE_PGV 0x10
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -123,17 +123,8 @@ extern uint8_t allow_abort;
 extern uint8_t kb_led_status;
 extern uint32_t pgv_buf[PGV_COUNT];
 
-extern uint8_t str_print_format;
-extern uint8_t str_print_padding;
-
-#define STR_PRINT_FORMAT_DEC_UNSIGNED    0
-#define STR_PRINT_FORMAT_DEC_SIGNED      1
-#define STR_PRINT_FORMAT_HEX_LOWER_CASE  2
-#define STR_PRINT_FORMAT_HEX_UPPER_CASE  3
-
 #define MAKESTR_VAR_BOUNDARY_IMM (0x1f)
 #define MAKESTR_VAR_BOUNDARY_REL (0x1e)
-
 
 /*
   Stack grows from larger address to smaller address
@@ -152,17 +143,11 @@ typedef uint32_t (*FUNC_PTR_BINOP)(uint32_t, uint32_t);
 typedef uint32_t (*FUNC_PTR_UNARY)(uint32_t);
 
 void stack_print(my_stack* ms, char* comment);
+
 uint32_t arc4random(void);
 uint32_t arc4random_uniform(uint32_t range);
 uint32_t random_uint32_between(uint32_t lower, uint32_t upper);
 int32_t random_int32_between(int32_t lower, int32_t upper);
-
-
-#define EPI_SAVE_LOOP_STATE 0x1
-#define EPI_SAVE_COLOR_STATE 0x2
-#define EPI_RESTORE_OLED 0x4
-#define EPI_NO_AUTOREPEAT 0x8
-#define EPI_SAVE_PGV 0x10
 
 #define DS_SET_BITS(variable, mask)   ((variable) |= (mask))
 #define DS_CLEAR_BITS(variable, mask) ((variable) &= ~(mask))

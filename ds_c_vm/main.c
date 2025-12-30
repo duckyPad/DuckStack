@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-uint8_t str_print_format;
-uint8_t str_print_padding;
 uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4)));
 uint32_t defaultdelay;
 uint32_t defaultchardelay;
@@ -1228,8 +1226,6 @@ void run_dsb(exe_context* ctx, char* dsb_path)
   epilogue_actions = 0;
   allow_abort = 0;
   disable_autorepeat = 0;
-  str_print_format = STR_PRINT_FORMAT_DEC_SIGNED;
-  str_print_padding = 0;
 
   int panic_code = setjmp(jmpbuf);
   if(panic_code != 0)
