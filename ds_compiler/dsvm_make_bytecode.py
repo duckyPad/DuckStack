@@ -179,9 +179,9 @@ def visit_name_node(node, ctx_dict, inst_list):
         inst_list.append(dsvm_instruction(opcode=opcode, payload=node_name, comment=og_ds_line, parent_func=current_function, var_type=sym_type))
 
 def get_key_combined_value(keyname):
-    if keyname in ds3_keyname_dict:
-        key_code = ds3_keyname_dict[keyname][0]
-        key_type = ds3_keyname_dict[keyname][1]
+    if keyname in ds_hid_keyname_dict:
+        key_code = ds_hid_keyname_dict[keyname][0]
+        key_type = ds_hid_keyname_dict[keyname][1]
     elif len(keyname) == 1:
         key_code = ord(keyname[0])
         key_type = KEY_TYPE_CHAR

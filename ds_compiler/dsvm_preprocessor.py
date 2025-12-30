@@ -341,7 +341,7 @@ def parse_combo(line_obj):
     combo_keys = [x for x in line_obj.content.split(' ') if len(x) > 0]
     if len(combo_keys) > MAX_COMBO:
         return PARSE_ERROR, f'No more than {MAX_COMBO} combos', None
-    for item in [x.lower() for x in combo_keys if x not in ds3_keyname_dict.keys()]:
+    for item in [x.lower() for x in combo_keys if x not in ds_hid_keyname_dict.keys()]:
         if item not in valid_combo_chars:
             return PARSE_ERROR, 'Invalid combo character', None
     new_lines = []
@@ -747,7 +747,7 @@ def run_all(program_listing):
     for line_obj in second_pass_program_listing:
         first_word = line_obj.content.split(" ")[0]
         # Expand key combos
-        if first_word in ds3_keyname_dict.keys():
+        if first_word in ds_hid_keyname_dict.keys():
             parse_result, comments, new_lines = parse_combo(line_obj)
             if parse_result == PARSE_ERROR:
                 rdict['is_success'] = False

@@ -14,6 +14,7 @@ kw_POKE8 = "POKE8" # POKE8(addr, val)
 kw_RANDCHR = "RANDCHR"
 kw_RANDINT = "RANDINT"
 kw_PUTS = "PUTS"
+kw_BUZZ = "BUZZ"
 
 kw_RANDOM_LOWERCASE_LETTER = "RANDOM_LOWERCASE_LETTER"
 kw_RANDOM_UPPERCASE_LETTER = "RANDOM_UPPERCASE_LETTER"
@@ -256,7 +257,7 @@ KEY_TYPE_MEDIA = 4
 KEY_TYPE_MOUSE_BUTTON = 11
 
 # name: (code, type)
-ds3_keyname_dict = {
+ds_hid_keyname_dict = {
 
 kw_LMOUSE : (1, KEY_TYPE_MOUSE_BUTTON),
 kw_RMOUSE : (2, KEY_TYPE_MOUSE_BUTTON),
@@ -468,6 +469,7 @@ OP_GOTOP = Opcode("GOTOP", 84, 1)
 OP_SLEEP = Opcode("SLEEP", 85, 1)
 OP_RANDCHR = Opcode("RANDCHR", 86, 1)
 OP_PUTS = Opcode("PUTS", 87, 1)
+OP_PWMCTRL = Opcode("PWMCTRL", 88, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -634,6 +636,7 @@ ds_builtin_func_lookup = {
     kw_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
     kw_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
     kw_PUTS : reserved_func_info(OP_PUTS, 1),
+    kw_BUZZ : reserved_func_info(OP_PWMCTRL, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
@@ -884,7 +887,7 @@ def is_ds_keyword(name):
         return True
     if name in ds_kw_set:
         return True
-    if name in ds3_keyname_dict:
+    if name in ds_hid_keyname_dict:
         return True
     return False
 
