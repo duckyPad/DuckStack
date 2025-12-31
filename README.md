@@ -230,7 +230,7 @@ Binary as in **involving two operands**.
 |`DELAY`|`64`/`0x40`| **Delay**<br>Pop **ONE** item<br>Delay amount in **milliseconds**|
 |`KDOWN`|`65`/`0x41`| **Press Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
 |`KUP`|`66`/`0x42`|**Release Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
-|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>Scroll number of lines<br>Positive UP<br>Negative DOWN|
+|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|hline\|vline\|`<br>Treat `hline` `vline` as int8_t<br>Scroll `vline` vertically<br>`(Positive: UP, Negative: DOWN)`<br>Scroll `hline` horizontally<br>`(Positive: RIGHT, Negative: LEFT)`|
 |`MMOV`|`68`/`0x44`|**Mouse Move**<br>Pop **TWO** items: `x` then `y`<br>`x`: Positive RIGHT, Negative LEFT.<br>`y`: Positive UP, Negative DOWN.|
 |`SWCF`|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
 |`SWCC`|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
@@ -442,7 +442,7 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
-* difference between signed and unsigned mode?
+New mouse scroll
 
 * Hardware RNG
 	* Test in both bluetooth and wired more
@@ -452,6 +452,7 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## Mentioned
 
+* difference between signed and unsigned mode?
 * `FUN` and `END_FUN`
 * print format specifiers
 * new duckyscript random commands
