@@ -442,18 +442,21 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
-* built-in functions
-	* POKE8() and PEEK8()
-	* RANDCHR(chr_info)
 * Mild optimisations, smaller code size.
-* `THEN` no longer required
+* How new GOTO_PROFILE works
+
+* `_STR_PRINT_FORMAT` and `_STR_PRINT_PADDING` removed
+
+## Mentioned
+
+* `FUN` and `END_FUN`
+* print format specifiers
+* new duckyscript random commands
 * AugAssign operator `+=, -=, etc`
 * RANDINT() function
 * PUTS() function
-* How new GOTO_PROFILE works
-* `FUN` and `END_FUN`
-* print format specifiers
-* `_STR_PRINT_FORMAT` and `_STR_PRINT_PADDING` removed
+* `THEN` no longer required
 
-
-
+* built-in functions
+	* POKE8() and PEEK8()
+	* RANDCHR(chr_info)
