@@ -230,8 +230,8 @@ Binary as in **involving two operands**.
 |`DELAY`|`64`/`0x40`| **Delay**<br>Pop **ONE** item<br>Delay amount in **milliseconds**|
 |`KDOWN`|`65`/`0x41`| **Press Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
 |`KUP`|`66`/`0x42`|**Release Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
-|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>Scroll number of lines|
-|`MMOV`|`68`/`0x44`|**Mouse Move**<br>Pop **TWO** items: `x` then `y`|
+|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>Scroll number of lines<br>Positive UP<br>Negative DOWN|
+|`MMOV`|`68`/`0x44`|**Mouse Move**<br>Pop **TWO** items: `x` then `y`<br>`x`: Positive RIGHT, Negative LEFT.<br>`y`: Positive UP, Negative DOWN.|
 |`SWCF`|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
 |`SWCC`|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
 |`SWCR`|`71`/`0x47`| **Switch Color Reset**<br>Pop **ONE** item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
@@ -442,12 +442,13 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
+* difference between signed and unsigned mode?
+
 * Hardware RNG
 	* Test in both bluetooth and wired more
 * Mild optimisations, smaller code size.
 * How new GOTO_PROFILE works
 
-* `_STR_PRINT_FORMAT` and `_STR_PRINT_PADDING` removed
 
 ## Mentioned
 
@@ -462,3 +463,5 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 * built-in functions
 	* POKE8() and PEEK8()
 	* RANDCHR(chr_info)
+
+* `_STR_PRINT_FORMAT` and `_STR_PRINT_PADDING` removed
