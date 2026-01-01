@@ -442,8 +442,7 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
-New mouse scroll
-
+* MOUSE_VSCROLL, MOUSE_HSCROLL, MOUSE_VHSCROLL
 * Hardware RNG
 	* Test in both bluetooth and wired more
 * Mild optimisations, smaller code size.
