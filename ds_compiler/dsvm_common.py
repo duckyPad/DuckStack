@@ -63,6 +63,8 @@ kw_RMOUSE = "RMOUSE"
 kw_MMOUSE = "MMOUSE"
 kw_MOUSE_MOVE = "MOUSE_MOVE"
 kw_MOUSE_WHEEL = "MOUSE_WHEEL"
+kw_MOUSE_SCROLL = "MOUSE_SCROLL"
+kw_MOUSE_HSCROLL = "MOUSE_HSCROLL"
 
 kw_VAR_DECLARE = "VAR"
 kw_VAR_PREFIX = "$"
@@ -616,7 +618,8 @@ ds_keypress_func_lookup = {
 ds_builtin_func_lookup = {
     kw_HALT : reserved_func_info(OP_HALT, 0),
     kw_DELAY : reserved_func_info(OP_DELAY, 1),
-    kw_MOUSE_WHEEL : reserved_func_info(OP_MSCL, 1),
+    kw_MOUSE_SCROLL : reserved_func_info(OP_MSCL, 1),
+    kw_MOUSE_HSCROLL : reserved_func_info(OP_MSCL, 1),
     kw_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
     kw_SWCF : reserved_func_info(OP_SWCF, 3),
     kw_SWCC : reserved_func_info(OP_SWCC, 4),

@@ -230,7 +230,7 @@ Binary as in **involving two operands**.
 |`DELAY`|`64`/`0x40`| **Delay**<br>Pop **ONE** item<br>Delay amount in **milliseconds**|
 |`KDOWN`|`65`/`0x41`| **Press Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
 |`KUP`|`66`/`0x42`|**Release Key**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|KeyType\|KeyCode\|`|
-|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **ONE** item<br>`\|MSB\|B2\|B1\|LSB`<br>`\|Unused\|Unused\|hline\|vline\|`<br>Treat `hline` `vline` as int8_t<br>Scroll `vline` vertically<br>`(Positive: UP, Negative: DOWN)`<br>Scroll `hline` horizontally<br>`(Positive: RIGHT, Negative: LEFT)`|
+|`MSCL`|`67`/`0x43`| **Mouse Scroll**<br>Pop **TWO** items<br>First `vline`, then `hline`<br>Scroll `vline` vertically<br>`(Positive: UP, Negative: DOWN)`<br>Scroll `hline` horizontally<br>`(Positive: RIGHT, Negative: LEFT)`|
 |`MMOV`|`68`/`0x44`|**Mouse Move**<br>Pop **TWO** items: `x` then `y`<br>`x`: Positive RIGHT, Negative LEFT.<br>`y`: Positive UP, Negative DOWN.|
 |`SWCF`|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
 |`SWCC`|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
@@ -247,11 +247,11 @@ Binary as in **involving two operands**.
 |`OLED_CIRC`|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
 |`BCLR`|`82`/`0x52`|**Clear switch event queue**|
 |`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>If `n` is **positive**, go to **next** profile<br>If `n` is **negative**, go to **prev** profile|
-|`GOTOP`|`84`/`0x55`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If resolves into an **integer `n`**<br>Go to `n`th profile.<br>Otherwise jump to profile name|
-|`SLEEP`|`85`/`0x56`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
-|`RANDCHR`|`86`/`0x57`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 16: Type via Keyboard<br>Bit 17: Write to Screen Buffer|
-|`PUTS`|`87`/`0x58` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>Print max `n` chars (or until `\0`).<br>If `n=0`, print until zero-termination.|None|
-|`PWMCTL`|`88`/`0x59`| **PWM Control**<br>Pop **ONE** item off TOS<br>Bit 0-13: Freq<br>Bit 14: Sustain?<br>Bit 15: Blocking?<br>Bit 16-27: Duration?<br>Bit 24-31: Duty Cycle?|
+|`GOTOP`|`84`/`0x54`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If resolves into an **integer `n`**<br>Go to `n`th profile.<br>Otherwise jump to profile name|
+|`SLEEP`|`85`/`0x55`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
+|`RANDCHR`|`86`/`0x56`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 16: Type via Keyboard<br>Bit 17: Write to Screen Buffer|
+|`PUTS`|`87`/`0x57` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>Print max `n` chars (or until `\0`).<br>If `n=0`, print until zero-termination.|None|
+|`PWMCTL`|`88`/`0x58`| **PWM Control**<br>Pop **ONE** item off TOS<br>Bit 0-13: Freq<br>Bit 14: Sustain?<br>Bit 15: Blocking?<br>Bit 16-27: Duration?<br>Bit 24-31: Duty Cycle?|
 
 ## String Encoding
 
