@@ -57,26 +57,26 @@ Output:
 
 ```
 --------- Assembly Listing, Resolved: ---------
-0    VMVER     2     0x2
-3    PUSHC16   5     0x5           ;VAR value = 5 * 8 + 2
-6    PUSHC16   8     0x8           ;VAR value = 5 * 8 + 2
-9    MULT
-10   PUSHC16   2     0x2           ;VAR value = 5 * 8 + 2
-13   ADD
-14   POPI      63488 0xf800        ;VAR value = 5 * 8 + 2
-17   PUSHC16   22    0x16          ;STRING The answer is: $value!
-20   STR                           ;STRING The answer is: $value!
-21   HALT
-22   DATA: b'The answer is: \x1f\x00\xf8\x1f!\x00'
+0    VMVER     2      0x2
+3    PUSHC8    5      0x5     ;VAR foo = 5 * 8 + 2
+5    PUSHC8    8      0x8     ;VAR foo = 5 * 8 + 2
+7    MULT
+8    PUSHC8    2      0x2     ;VAR foo = 5 * 8 + 2
+10   ADD
+11   POPI      63488  0xf800  ;VAR foo = 5 * 8 + 2
+14   PUSHC16   19     0x13    ;STRING The answer is: $foo!
+17   STR                      ;STRING The answer is: $foo!
+18   HALT
+19   DATA: b'The answer is: \x1f\x00\xf8\x1f!\x00'
 ----------------------------
 Wrote 43 bytes to 'test.dsb'
 ```
 
 ### Execute
 
-An VM written in C is provided.
+A minimal C-based VM is provided.
 
-It is similar to what's used in real duckyPads, but uses dummy values for reserved variables and placeholders for hardware commands.
+It's based on real duckyPad firmware but uses placeholders for hardware commands.
 
 ----
 
@@ -149,17 +149,11 @@ Addressing is **16-bit**, executable 64KB max.
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
-|`PUSH1`|1|`15`/`0xf` |Push `1` to TOS|None|
-|`PUSHC8`|2|`20`/`0x14` |Push an **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
 |`PUSHC16`|3|`1`/`0x1` |Push an **unsigned 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
-|`PUSHC32`|5|`19`/`0x13` |Push an **unsigned 32-bit** constant on stack<br>For negative numbers, push abs then use `USUB`.|4 Bytes<br>`CONST_LSB`<br>`CONST_B1`<br>`CONST_B2`<br>`CONST_MSB`|
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`POPR`|3|`5`/`0x5`|Pop one item off TOS<br>Write as **4 Bytes** at **offset from FP**|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
-|`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
-|`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
 |`BRZ`|3|`6`/`0x6` |Pop one item off TOS<br>If value is zero, jump to `ADDR` |2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`JMP`|3|`7`/`0x7` |Unconditional Jump|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`ALLOC`|3|`8`/`0x8` |Push `n` blank entries to stack<br>Used to allocate local variables<br>on function entry|2 Bytes:<br>`n_LSB`<br>`n_MSB`|
@@ -168,7 +162,13 @@ Addressing is **16-bit**, executable 64KB max.
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
 |`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>`ADDR <= End of Scratch Memory`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
 |`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `ADDR`, then `VAL`.<br>`ADDR <= End of Scratch Memory`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
+|`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
+|`PUSH1`|1|`15`/`0xf` |Push `1` to TOS|None|
+|`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
+|`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
 |`RANDINT`|1|`18`/`0x12` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
+|`PUSHC32`|5|`19`/`0x13` |Push an **unsigned 32-bit** constant on stack<br>For negative numbers, push abs then use `USUB`.|4 Bytes<br>`CONST_LSB`<br>`CONST_B1`<br>`CONST_B2`<br>`CONST_MSB`|
+|`PUSHC8`|2|`20`/`0x14` |Push an **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators

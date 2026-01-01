@@ -54,7 +54,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [17] DUP
 1, // [18] RANDINT
 5, // [19] PUSHC32
-255, // [20]
+2, // [20] PUSHC8
 255, // [21]
 255, // [22]
 255, // [23]
@@ -156,6 +156,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_DUP 17
 #define OP_RANDINT 18
 #define OP_PUSHC32 19
+#define OP_PUSHC8 20
 #define OP_EQ 32
 #define OP_NOTEQ 33
 #define OP_LT 34
@@ -789,7 +790,9 @@ void execute_instruction(exe_context* exe)
   uint32_t payload = 0;
   exe->next_pc += instruction_size_bytes;
   
-  if(instruction_size_bytes == 3)
+  if(instruction_size_bytes == 2)
+    payload = bin_buf[curr_pc + 1];
+  else if(instruction_size_bytes == 3)
     payload = make_uint16(bin_buf + curr_pc + 1);
   else if(instruction_size_bytes == 5)
     payload = make_uint32(bin_buf + curr_pc + 1);
@@ -805,7 +808,7 @@ void execute_instruction(exe_context* exe)
   {
     return;
   }
-  else if(opcode == OP_PUSHC16 || opcode == OP_PUSHC32)
+  else if(opcode == OP_PUSHC16 || opcode == OP_PUSHC32 || opcode == OP_PUSHC8)
   {
     stack_push(&data_stack, payload);
     stack_print(&data_stack, "AFTER PUSHC");
@@ -1041,9 +1044,10 @@ void execute_instruction(exe_context* exe)
   }
   else if(opcode == OP_MSCL)
   {
-    uint32_t this_value;
-    stack_pop(&data_stack, &this_value);
-    printf("OP_MSCL: %d\n", this_value);
+    uint32_t hlines, vlines;
+    stack_pop(&data_stack, &hlines);
+    stack_pop(&data_stack, &vlines);
+    printf("OP_MSCL: %d %d\n", hlines, vlines);
   }
   else if(opcode == OP_MMOV)
   {
