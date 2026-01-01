@@ -123,7 +123,7 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 1, // [86] RANDCHR
 1, // [87] PUTS
 1, // [88] PWMCTRL
-255, // [89]
+1, // [89] HIDRTX
 255, // [90]
 255, // [91]
 255, // [92]
@@ -204,8 +204,8 @@ uint8_t opcode_len_lookup[OP_LEN_LOOKUP_SIZE] = {
 #define OP_RANDCHR 86
 #define OP_PUTS 87
 #define OP_PWMCTRL 88
+#define OP_HIDRTX 89
 #define OP_VMVER 255
-
 // ---------------------------
 
 my_stack data_stack;
@@ -1199,6 +1199,12 @@ void execute_instruction(exe_context* exe)
     uint32_t this_value;
     stack_pop(&data_stack, &this_value);
     printf("OP_PWMCTRL: %08x\n", this_value);
+  }
+  else if(opcode == OP_HIDRTX)
+  {
+    uint32_t this_value;
+    stack_pop(&data_stack, &this_value);
+    printf("OP_HIDRTX: %08x\n", this_value);
   }
   else
   {

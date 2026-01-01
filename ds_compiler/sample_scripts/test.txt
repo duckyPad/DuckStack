@@ -1,1 +1,1 @@
-BMOUSE
+HIDRTX(0xfa00)
