@@ -1,3 +1,9 @@
+
+hid_send_bluetooth
+
+RAWHID(addr)
+send 8/9 bytes of HID starting from ADDR
+
 * PUTS() function and instruction
     * 1 item, channel, n, addr
 * STRING Answer is $foo%ld 
