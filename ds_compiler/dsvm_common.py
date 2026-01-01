@@ -645,7 +645,7 @@ ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
 
 ds_reserved_funcs = ds_func_to_parse_as_str | ds_builtin_func_lookup 
 
-ds2py_ignored_cmds = {kw_END_IF, kw_END_WHILE, kw_END_FUNCTION, kw_END_FUN}
+ds2py_ignored_cmds = {kw_END_IF, kw_END_WHILE, kw_END_FUN}
 
 def get_pretty_ds_line_list(dslist):
     lines = []
