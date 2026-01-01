@@ -61,9 +61,12 @@ kw_BCLR = "BCLR"
 kw_LMOUSE = "LMOUSE"
 kw_RMOUSE = "RMOUSE"
 kw_MMOUSE = "MMOUSE"
+kw_BMOUSE = "BMOUSE"
+kw_FMOUSE = "FMOUSE"
+
 kw_MOUSE_MOVE = "MOUSE_MOVE"
 kw_MOUSE_WHEEL = "MOUSE_WHEEL"
-kw_MOUSE_HVSCROLL = "MOUSE_HVSCROLL"
+kw_MOUSE_SCROLL = "MOUSE_SCROLL"
 
 kw_VAR_DECLARE = "VAR"
 kw_VAR_PREFIX = "$"
@@ -263,6 +266,8 @@ ds_hid_keyname_dict = {
 kw_LMOUSE : (1, KEY_TYPE_MOUSE_BUTTON),
 kw_RMOUSE : (2, KEY_TYPE_MOUSE_BUTTON),
 kw_MMOUSE : (4, KEY_TYPE_MOUSE_BUTTON),
+kw_BMOUSE : (8, KEY_TYPE_MOUSE_BUTTON),
+kw_FMOUSE : (16, KEY_TYPE_MOUSE_BUTTON),
 kw_UP : (KEY_UP_ARROW, KEY_TYPE_SPECIAL),
 kw_DOWN : (KEY_DOWN_ARROW, KEY_TYPE_SPECIAL),
 kw_LEFT : (KEY_LEFT_ARROW, KEY_TYPE_SPECIAL),
@@ -618,7 +623,7 @@ ds_keypress_func_lookup = {
 ds_builtin_func_lookup = {
     kw_HALT : reserved_func_info(OP_HALT, 0),
     kw_DELAY : reserved_func_info(OP_DELAY, 1),
-    kw_MOUSE_HVSCROLL : reserved_func_info(OP_MSCL, 2),
+    kw_MOUSE_SCROLL : reserved_func_info(OP_MSCL, 2),
     kw_MOUSE_MOVE : reserved_func_info(OP_MMOV, 2),
     kw_SWCF : reserved_func_info(OP_SWCF, 3),
     kw_SWCC : reserved_func_info(OP_SWCC, 4),

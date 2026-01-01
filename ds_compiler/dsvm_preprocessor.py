@@ -606,7 +606,7 @@ def get_default_def_dict():
         kw_DEFAULTDELAY : "_DEFAULTDELAY =",
         kw_DEFAULTCHARDELAY : "_DEFAULTCHARDELAY =",
         kw_CHARJITTER : "_CHARJITTER =",
-        kw_MOUSE_WHEEL : f"{kw_MOUSE_HVSCROLL} 0",
+        kw_MOUSE_WHEEL : f"{kw_MOUSE_SCROLL} 0",
         f"{kw_FUNCTION} " : f"{kw_FUN} ",
         kw_END_FUNCTION : kw_END_FUN,
     }
