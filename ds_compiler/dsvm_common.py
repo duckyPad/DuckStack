@@ -417,6 +417,7 @@ OP_DROP = Opcode("DROP", 16, 1)
 OP_DUP = Opcode("DUP", 17, 1)
 OP_RANDINT = Opcode("RANDINT", 18, 1)
 OP_PUSHC32 = Opcode("PUSHC32", 19, 5)
+OP_PUSHC8 = Opcode("PUSHC8", 20, 2)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Binary Operators
@@ -759,6 +760,26 @@ def replace_operators(this_line):
     temp = temp.replace(op_placeholder, notequal_str)
     return temp
 
+def pack_to_one_byte(value: int) -> bytes:
+    if not isinstance(value, int):
+        raise TypeError(f"Input must be an integer, but received {type(value)}")
+    if value >= 0:
+        max_uint8 = 255
+        if value > max_uint8:
+            raise ValueError(
+                f"Value {value} is too large for uint8_t. Max allowed is {max_uint8}."
+            )
+        format_string = 'B'
+    else:
+        min_int8 = -128
+        max_int8 = 127
+        if not (min_int8 <= value <= max_int8):
+            raise ValueError(
+                f"Value {value} is outside the int8_t range. Range is {min_int8} to {max_int8}."
+            )
+        format_string = 'b'
+    return struct.pack(format_string, value)
+
 def pack_to_two_bytes(value: int) -> bytes:
     if not isinstance(value, int):
         raise TypeError(f"Input must be an integer, but received {type(value)}")
@@ -796,8 +817,6 @@ def pack_to_two_bytes(value: int) -> bytes:
     # The struct.pack function handles the conversion to two's complement 
     # for negative numbers automatically based on the format code 'h'.
     return struct.pack(format_string, value)
-
-import struct
 
 def pack_to_four_bytes(value: int) -> bytes:
     if not isinstance(value, int):

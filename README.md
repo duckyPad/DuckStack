@@ -149,7 +149,7 @@ Addressing is **16-bit**, executable 64KB max.
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSHC16`|3|`1`/`0x1` |Push a **positive 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
+|`PUSHC16`|3|`1`/`0x1` |Push an **unsigned 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
@@ -167,7 +167,8 @@ Addressing is **16-bit**, executable 64KB max.
 |`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
 |`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
 |`RANDINT`|1|`18`/`0x12` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
-|`PUSHC32`|5|`19`/`0x13` |Push a **positive 32-bit** constant on stack<br>For negative numbers, push abs then use `USUB`.|4 Bytes|
+|`PUSHC32`|5|`19`/`0x13` |Push an **unsigned 32-bit** constant on stack<br>For negative numbers, push abs then use `USUB`.|4 Bytes<br>`CONST_LSB`<br>`CONST_B1`<br>`CONST_B2`<br>`CONST_MSB`|
+|`PUSHC8`|2|`20`/`0x14` |Push an **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Binary Operators
@@ -442,7 +443,8 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
-* MOUSE_VSCROLL, MOUSE_HSCROLL, MOUSE_VHSCROLL
+* MOUSE_HVSCROLL
+* PUSH8
 * Hardware RNG
 	* Test in both bluetooth and wired more
 * Mild optimisations, smaller code size.
