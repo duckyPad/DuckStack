@@ -8,15 +8,13 @@ def make_str_func(first_word, this_line):
     str_content = this_line[len(first_word)+1:]
     return f"{first_word}({repr(str_content)})"
 
-def make_arg_func(first_word, this_line, left_pad=0, right_pad=0, replace_first_word=None):
-    raw_args = this_line[len(first_word)+1:].strip()
-    args = raw_args.split(" ") if raw_args else []
-    left_side = ["0"] * left_pad
-    right_side = ["0"] * right_pad
-    final_args_list = left_side + args + right_side
-    if replace_first_word is not None:
-        return f"{replace_first_word}({', '.join(final_args_list)})"
-    return f"{first_word}({', '.join(final_args_list)})"
+def make_arg_func(first_word, this_line):
+    args = this_line[len(first_word)+1:].strip().split(" ")
+    final_str = first_word + "("
+    for item in args:
+        final_str += f"{item}, "
+    final_str = final_str.rstrip(", ") + ")"
+    return final_str
 
 def line_has_unconsumed_stack_value(line_obj):
     try:
@@ -85,14 +83,6 @@ def run_all(program_listing):
         elif first_word == kw_FUN:
             new_obj = copy.deepcopy(line_obj)
             new_obj.content = f"def {this_line[len(kw_FUN):].strip()}:"
-            new_listing.append(new_obj)
-        elif first_word == kw_MOUSE_VSCROLL:
-            new_obj = copy.deepcopy(line_obj)
-            new_obj.content = make_arg_func(first_word, this_line, right_pad=1, replace_first_word=kw_MOUSE_VHSCROLL)
-            new_listing.append(new_obj)
-        elif first_word == kw_MOUSE_HSCROLL:
-            new_obj = copy.deepcopy(line_obj)
-            new_obj.content = make_arg_func(first_word, this_line, left_pad=1, replace_first_word=kw_MOUSE_VHSCROLL)
             new_listing.append(new_obj)
         else:
             new_listing.append(line_obj)
