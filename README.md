@@ -253,7 +253,7 @@ Binary as in **involving two operands**.
 |`RANDCHR`|`86`/`0x56`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 16: Type via Keyboard<br>Bit 17: Write to Screen Buffer|
 |`PUTS`|`87`/`0x57` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>Print max `n` chars (or until `\0`).<br>If `n=0`, print until zero-termination.|None|
 |`PWMCTL`|`88`/`0x58`| **PWM Control**<br>Pop **ONE** item off TOS<br>Bit 0-13: Freq<br>Bit 14: Sustain?<br>Bit 15: Blocking?<br>Bit 16-27: Duration?<br>Bit 24-31: Duty Cycle?|
-|`HIDRTX`|`89`/`0x59`| Pop **ONE** item off TOS as `ADDR`<br>Read **9 bytes**<br>Construct & send raw HID message<br>[See also `HIDRTX()` in duckyScript doc](https://github.com/dekuNukem/duckyPad-Pro/blob/master/doc/duckyscript_info.md)|
+|`HIDTX`|`89`/`0x59`| Pop **ONE** item off TOS as `ADDR`<br>Read **9 bytes**<br>Construct & send raw HID message<br>[See also `HIDTX()` in duckyScript doc](https://github.com/dekuNukem/duckyPad-Pro/blob/master/doc/duckyscript_info.md)|
 
 ## String Encoding
 
@@ -444,13 +444,13 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
-* MOUSE_HVSCROLL
+* MOUSE_SCROLL
 * PUSH8
 * Hardware RNG
 	* Test in both bluetooth and wired more
 * Mild optimisations, smaller code size.
 * How new GOTO_PROFILE works
-HIDRTX
+HIDTX
 mouse side buttons
 bluetooth 6KRO
 
