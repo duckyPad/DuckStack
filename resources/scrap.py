@@ -1,4 +1,26 @@
 
+VAR addr = 0xFA00
+
+// --- STEP 1: PRESS THE 'a' KEY ---
+POKE8(addr, 1)      // Byte 0: Usage ID (1 = Keyboard)
+POKE8(addr + 1, 0)  // Byte 1: Modifiers (None)
+POKE8(addr + 2, 0)  // Byte 2: Reserved
+POKE8(addr + 3, 4)  // Byte 3: HID Scan Code for 'a'
+POKE8(addr + 4, 0)  // Byte 4: Key 2 (None)
+POKE8(addr + 5, 0)  // Byte 5: Key 3 (None)
+POKE8(addr + 6, 0)  // Byte 6: Key 4 (None)
+POKE8(addr + 7, 0)  // Byte 7: Key 5 (None)
+POKE8(addr + 8, 0)  // Byte 8: Key 6 (None)
+
+HIDTX(addr)         // Send the "Press" command
+DELAY 20            // Wait 20ms
+
+// --- STEP 2: RELEASE THE KEY ---
+// To release, we set the scan code (Byte 3) to 0
+POKE8(addr + 3, 0)  
+HIDTX(addr)         // Send the "Release" command
+----------------
+
 hid_send_bluetooth
 
 RAWHID(addr)

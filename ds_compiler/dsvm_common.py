@@ -15,7 +15,7 @@ kw_RANDCHR = "RANDCHR"
 kw_RANDINT = "RANDINT"
 kw_PUTS = "PUTS"
 kw_BUZZ = "BUZZ"
-kw_HIDRTX = "HIDRTX"
+kw_HIDTX = "HIDTX"
 
 
 kw_RANDOM_LOWERCASE_LETTER = "RANDOM_LOWERCASE_LETTER"
@@ -479,7 +479,7 @@ OP_SLEEP = Opcode("SLEEP", 85, 1)
 OP_RANDCHR = Opcode("RANDCHR", 86, 1)
 OP_PUTS = Opcode("PUTS", 87, 1)
 OP_PWMCTRL = Opcode("PWMCTRL", 88, 1)
-OP_HIDRTX = Opcode("HIDRTX", 89, 1)
+OP_HIDTX = Opcode("HIDTX", 89, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)
@@ -647,7 +647,7 @@ ds_builtin_func_lookup = {
     kw_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
     kw_PUTS : reserved_func_info(OP_PUTS, 1),
     kw_BUZZ : reserved_func_info(OP_PWMCTRL, 1),
-    kw_HIDRTX : reserved_func_info(OP_HIDRTX, 1),
+    kw_HIDTX : reserved_func_info(OP_HIDTX, 1),
 }
 
 ds_func_to_parse_as_str = ds_str_func_lookup | ds_keypress_func_lookup
