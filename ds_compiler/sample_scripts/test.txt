@@ -8,19 +8,9 @@ FUN test_key(id)
     VAR discard = _BLOCKING_READKEY
 END_FUN
 
-test_key(1)
-MK_VOLUP
-test_key(2)
-MK_VOLDOWN
-test_key(3)
-MK_MUTE
-test_key(4)
-MK_PREV
-test_key(5)
-MK_NEXT
-test_key(6)
-MK_PP
-test_key(7)
-MK_STOP
-test_key(8)
-MK_EJECT
+FUN baaaa()
+    RETURN
+END_FUN
+
+VAR foo = 4
+STRING this is$foo
