@@ -4,11 +4,11 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 [duckyPad](https://dekunukem.github.io/duckyPad-Pro/doc/landing.html) uses it for HID macro scripting.
 
-## ⚠️⚠️ UNDER ACTIVE DEVELOPMENT ⚠️⚠️
+## ⚠️⚠️ UNDER BETA TEST ⚠️⚠️
 
-This VM is **under developement** and specs may change at any time!
+This VM is currently **under beta test** and not ready for public use yet!
 
-Public beta is expected **Jan 2026**.
+[More info here](https://github.com/dekuNukem/duckyPad-Pro/blob/dsvm2/doc/beta_test.md)
 
 ## Features
 
@@ -43,53 +43,19 @@ Public beta is expected **Jan 2026**.
 * Download / clone this repo
 * Prepare a duckyScript source file `test.txt`
 	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.html)
-```
-VAR foo = 5 * 8 + 2
-STRING The answer is: $foo!
-```
 * In `ds_compiler` directory, run:
 
 `python3 ./dsvm_make_bytecode.py test.txt test.dsb`
 
-* For output, I like to use `.dsb` for duckyScript Binary
-
-Output:
-
-```
---------- Assembly Listing, Resolved: ---------
-0    VMVER     2      0x2
-3    PUSHC8    5      0x5     ;VAR foo = 5 * 8 + 2
-5    PUSHC8    8      0x8     ;VAR foo = 5 * 8 + 2
-7    MULT
-8    PUSHC8    2      0x2     ;VAR foo = 5 * 8 + 2
-10   ADD
-11   POPI      63488  0xf800  ;VAR foo = 5 * 8 + 2
-14   PUSHC16   19     0x13    ;STRING The answer is: $foo!
-17   STR                      ;STRING The answer is: $foo!
-18   HALT
-19   DATA: b'The answer is: \x1f\x00\xf8\x1f!\x00'
-----------------------------
-Wrote 43 bytes to 'test.dsb'
-```
-
 ### Execute
 
-A minimal C-based VM is provided.
-
-It's based on real duckyPad firmware but uses placeholders for hardware commands.
+A minimal C-based VM is provided. Based on real duckyPad firmware, but uses placeholders for hardware commands.
 
 ----
 
 In `ds_c_vm` folder, run `python3 ./compile.py` to compile the source. (Or write your own Makefile)
 
 Run the VM: `./main test.dsb`
-
-Output:
-
-```
->>>>> STRING: The answer is: 42!
-Execution Complete
-```
 
 Set `PRINT_DEBUG` to 1 in `main.h` for execution and stack trace.
 
@@ -444,18 +410,18 @@ Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issue
 
 ## To mention in doc
 
-* MOUSE_SCROLL
-* PUSH8
 * Hardware RNG
 	* Test in both bluetooth and wired more
-* Mild optimisations, smaller code size.
 * How new GOTO_PROFILE works
-HIDTX
-mouse side buttons
-bluetooth 6KRO
 
 ## Mentioned
 
+HIDTX
+mouse side buttons
+bluetooth 6KRO
+* Mild optimisations, smaller code size.
+* MOUSE_SCROLL
+* PUSH8
 * difference between signed and unsigned mode?
 * `FUN` and `END_FUN`
 * print format specifiers
