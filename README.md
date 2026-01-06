@@ -218,8 +218,9 @@ Binary as in **involving two operands**.
 |`SLEEP`|`85`/`0x55`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
 |`RANDCHR`|`86`/`0x56`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 16: Type via Keyboard<br>Bit 17: Write to Screen Buffer|
 |`PUTS`|`87`/`0x57` |**Print String**<br>Pop **ONE** item off TOS<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 30: Keyboard<br>Bit 31: OLED<br>Print string starting from `ADDR`<br>Print max `n` chars (or until `\0`).<br>If `n=0`, print until zero-termination.|None|
-|`PWMCTL`|`88`/`0x58`| **PWM Control**<br>Pop **ONE** item off TOS<br>Bit 0-13: Freq<br>Bit 14: Sustain?<br>Bit 15: Blocking?<br>Bit 16-27: Duration?<br>Bit 24-31: Duty Cycle?|
-|`HIDTX`|`89`/`0x59`| Pop **ONE** item off TOS as `ADDR`<br>Read **9 bytes**<br>Construct & send raw HID message<br>[See also `HIDTX()` in duckyScript doc](https://github.com/dekuNukem/duckyPad-Pro/blob/master/doc/duckyscript_info.md)|
+|`PWMCTL`|`88`/`0x58`| **PWM Control**<br>Pop **ONE** item off TOS<br>TBD|
+|`HIDTX`|`89`/`0x59`| Pop **ONE** item off TOS as `ADDR`<br>Read **9 bytes** from `ADDR`<br>Construct & send raw HID message<br>[See `HIDTX()` in duckyScript doc](https://github.com/dekuNukem/duckyPad-Pro/blob/dsvm2/doc/duckyscript_info.md#hidtxaddr)|
+
 
 ## String Encoding
 
@@ -253,43 +254,28 @@ OLED_PRINT Hi there!
 29   DATA: b'Hi there!\x00'
 ```
 
-### Printing Variables
-
-* To print a variable, use `$` prefix:
-
-```
-VAR foo = 255
-STRING I have $foo apples!
-```
-
-* C `printf()` style **format specifiers** can be added **RIGHT AFTER** the variable name.
-	* Only `d`, `u`, `x`, and `X` are supported.
-
-```
-VAR foo = 255
-STRING I have $foo%x apples!
-```
+## Printing Variables
 
 When printing a variable, its info is embedded into the string between **two separator bytes**.
 
 * `0x1f` for **Global Variables**
 	* Contains: **Little-endian** memory address
 	* `[0x1f][ADDR_LSB][ADDR_MSB][Format Specifiers][0x1f]`
-* `0x1e` for **Local Variables and Arguments inside functions**
+* `0x1e` for **Local variables & arguments inside functions**
 	* Contains: **FP-Relative Offset**
 	* `[0x1e][OFFSET_LSB][OFFSET_MSB][Format Specifiers][0x1e]`
 
 ```
 VAR foo = 255
-STRING Count in hex: $foo%02x
+STRING Count is: $foo%02x
 ```
 ```
 3    PUSHC16   255   0xff          ;VAR foo = 255
 6    POPI      63488 0xf800        ;VAR foo = 255
-9    PUSHC16   14    0xe           ;STRING Count in hex: $foo%02x
-12   STR                           ;STRING Count in hex: $foo%02x
+9    PUSHC16   14    0xe           ;STRING Count is: $foo%02x
+12   STR                           ;STRING Count is: $foo%02x
 13   HALT                          
-14   DATA: b'Count in hex: \x1f\x00\xf8%02x\x1f\x00'
+14   DATA: b'Count is: \x1f\x00\xf8%02x\x1f\x00'
 ```
 
 ## Run-time Exceptions
