@@ -614,7 +614,7 @@ def replace_dummy_with_drop_from_context_dict(ctx_dict):
     for key in ctx_dict['func_assembly_dict']:
         replace_dummy_with_drop(ctx_dict['func_assembly_dict'][key])
 
-def make_dsb_with_exception(program_listing, should_print=False, remove_unused_func=True):
+def make_dsb_with_exception(program_listing, should_print=False, remove_unused_func=True, header_dict=None):
     global global_context_dict
     global print_asm
     print_asm = should_print
@@ -680,11 +680,11 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
     )
     return comp_result
 
-def make_dsb_no_exception(program_listing, should_print=False, remove_unused_func=True):
+def make_dsb_no_exception(program_listing, should_print=False, remove_unused_func=True, header_dict=None):
     global print_asm
     print_asm = should_print
     try:
-        return make_dsb_with_exception(program_listing, should_print)
+        return make_dsb_with_exception(program_listing, should_print, remove_unused_func, header_dict)
     except Exception as e:
         print("MDNE:", traceback.format_exc())
         comp_result = compile_result(
@@ -720,7 +720,9 @@ if __name__ == "__main__":
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
 
-    comp_result = make_dsb_no_exception(program_listing, should_print=True)
+    gheader = {'global_header': ['FUN test(a, b)', '    VAR test = 10', '    RETURN a+b*test', 'END_FUN']}
+
+    comp_result = make_dsb_no_exception(program_listing, should_print=True, header_dict=gheader)
     if comp_result.is_success is False:
         error_msg = (f"Error on Line {comp_result.error_line_number_starting_from_1}: {comp_result.error_comment}\n\t{comp_result.error_line_str}")
         print(error_msg)

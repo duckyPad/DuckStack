@@ -384,7 +384,7 @@ def check_var_declare(pgm_line, var_dict, fss):
     return PARSE_OK, ''
 
 # this makes sure the code is suitable for converting into python
-def single_pass(program_listing, define_dict):
+def single_pass(program_listing, define_dict, header_dict=None):
     loop_numbers = set()
     func_table = {}
     if_take_table = {}
@@ -612,10 +612,10 @@ def get_default_def_dict():
     }
     return default_dict
 
-def run_all(program_listing):
+def run_all(program_listing, header_dict=None):
     all_def_dict = get_default_def_dict()
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
-    rdict = single_pass(program_listing, all_def_dict)
+    rdict = single_pass(program_listing, all_def_dict, header_dict)
     if rdict['is_success'] is False:
         return rdict
     
@@ -678,7 +678,7 @@ def run_all(program_listing):
 
     program_listing = new_program_listing
 
-    rdict = single_pass(program_listing, all_def_dict)
+    rdict = single_pass(program_listing, all_def_dict, header_dict)
     if rdict['is_success'] is False:
         return rdict
 
@@ -766,7 +766,7 @@ def run_all(program_listing):
 
     second_pass_program_listing = new_program_listing
     # -----------------
-    return single_pass(second_pass_program_listing, all_def_dict)
+    return single_pass(second_pass_program_listing, all_def_dict, header_dict)
 
 if __name__ == "__main__":
     # Require at least input and output arguments

@@ -1,16 +1,4 @@
-FUN test_key(id)
-    OLED_CLEAR
-    OLED_CURSOR 0 40
-    OLED_PRINT Press any key
-    OLED_CURSOR 0 55
-    OLED_PRINT for key $id
-    OLED_UPDATE
-    VAR discard = _BLOCKING_READKEY
-END_FUN
+IMPORT GLOBAL_HEADER
 
-FUN baaaa()
-    RETURN
-END_FUN
 
-VAR foo = 4
-STRING this is$foo
+test(1, 4)
