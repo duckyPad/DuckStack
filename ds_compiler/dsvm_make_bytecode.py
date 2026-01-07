@@ -728,7 +728,7 @@ if __name__ == "__main__":
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
 
-    import_str_dict = {'IMPORT_GH': ['FUN test(a, b)', '    VAR test d= 10', '    RETURN a+b*test', 'END_FUN']}
+    import_str_dict = {'IMPORT_UH': ['REM_BLOCK', '    Should not have HARD CODED memory address', '    Must be compatible with all duckyScript and duckyPad versions', '    ', '    DPDSSTDLIB', '    ', '    TODO:', '    bitread, set, clear, toggle?', '    math abs, min, max?', '    memcpy?', 'END_REM', '']}
 
     comp_result = make_dsb_no_exception(program_listing, should_print=True, import_name_to_strlist_dict=import_str_dict)
     if comp_result.is_success is False:

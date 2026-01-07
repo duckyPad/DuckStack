@@ -1,13 +1,1 @@
-FUN WAITKEY(key_id)
-    WHILE 1
-        VAR pressed = _BLOCKING_READKEY
-        IF pressed == key_id
-            RETURN 1
-        END_IF
-    END_WHILE
-END_FUN
-
-IMPORT_GH
-
-ENTER 
-test(34, 8)
+IMPORT_UH
