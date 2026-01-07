@@ -7,7 +7,7 @@ FUN WAITKEY(key_id)
     END_WHILE
 END_FUN
 
-
+IMPORT_GH
 
 ENTER 
-WAITKEY(34)
+test(34, 8)
