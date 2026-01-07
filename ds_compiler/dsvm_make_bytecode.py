@@ -620,7 +620,7 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
     print_asm = should_print
 
     orig_listing = copy.deepcopy(program_listing)
-    rdict = dsvm_preprocessor.run_all(program_listing)
+    rdict = dsvm_preprocessor.run_all(program_listing, header_dict=header_dict)
 
     if rdict['is_success'] is False:
         comp_result = compile_result(
@@ -720,7 +720,7 @@ if __name__ == "__main__":
         line = line.rstrip("\r\n")
         program_listing.append(ds_line(line, index + 1))
 
-    gheader = {'global_header': ['FUN test(a, b)', '    VAR test = 10', '    RETURN a+b*test', 'END_FUN']}
+    gheader = {'IMPORT GLOBAL_HEADER': ['FUN test(a, b)', '    VAR test = 10', '    RETURN a+b*test', 'END_FUN']}
 
     comp_result = make_dsb_no_exception(program_listing, should_print=True, header_dict=gheader)
     if comp_result.is_success is False:

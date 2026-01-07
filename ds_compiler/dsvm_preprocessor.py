@@ -612,6 +612,10 @@ def get_default_def_dict():
     }
     return default_dict
 
+"""
+TURN HEADER DICT INTO LIST OF DS LINE OBJ FIRST THEN PARSE
+"""
+
 def run_all(program_listing, header_dict=None):
     all_def_dict = get_default_def_dict()
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
@@ -619,6 +623,7 @@ def run_all(program_listing, header_dict=None):
     if rdict['is_success'] is False:
         return rdict
     
+    already_replaced_header_name = set()
     new_program_listing = []
     for line_obj in program_listing:
         line_number_starting_from_1 = line_obj.orig_lnum_sf1
@@ -634,6 +639,18 @@ def run_all(program_listing, header_dict=None):
             continue
 
         first_word = line_obj.content.split(" ")[0]
+
+        replaced_a_header = False
+        if header_dict is not None:
+            for key in header_dict:
+                print(line_obj.content)
+                print(key)
+                if line_obj.content.strip().startswith(key) and key not in already_replaced_header_name:
+                    new_program_listing += header_dict[key]
+                    already_replaced_header_name.add(key)
+                    replaced_a_header = True
+        if replaced_a_header:
+            continue
 
         if first_word in [kw_STRINGLN_BLOCK, kw_END_STRINGLN, kw_STRING_BLOCK, kw_END_STRING]:
             continue
