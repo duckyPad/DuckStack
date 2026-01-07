@@ -384,7 +384,7 @@ def check_var_declare(pgm_line, var_dict, fss):
     return PARSE_OK, ''
 
 # this makes sure the code is suitable for converting into python
-def single_pass(program_listing, define_dict, header_dict=None):
+def single_pass(program_listing, define_dict, import_name_to_line_obj_dict=None):
     loop_numbers = set()
     func_table = {}
     if_take_table = {}
@@ -612,18 +612,33 @@ def get_default_def_dict():
     }
     return default_dict
 
-"""
-TURN HEADER DICT INTO LIST OF DS LINE OBJ FIRST THEN PARSE
-"""
+def make_import_name_to_lineobj_dict(import_name_to_strlist_dict):
+    lineobj_dict = {}
+    if import_name_to_strlist_dict is None:
+        return lineobj_dict
+    for key in import_name_to_strlist_dict:
+        lineobj_dict[key] = make_list_of_ds_line_obj_from_str_listing(import_name_to_strlist_dict[key], source_fn=key)
+    return lineobj_dict
 
-def run_all(program_listing, header_dict=None):
+already_imported_header_set = set()
+def get_import_lineobjs(first_word, import_name_to_line_obj_dict):
+    new_lineobj_list = []
+    if first_word in import_name_to_line_obj_dict:
+        if first_word in already_imported_header_set:
+            return True, []
+        new_lineobj_list += import_name_to_line_obj_dict[first_word]
+        already_imported_header_set.add(first_word)
+    return False, new_lineobj_list
+
+def run_all(program_listing, import_name_to_strlist_dict=None):
     all_def_dict = get_default_def_dict()
+    already_imported_header_set.clear()
+    import_name_to_line_obj_dict = make_import_name_to_lineobj_dict(import_name_to_strlist_dict)
     # ----------- expand STRING_BLOCK and STRINGLN_BLOCK, split STRING and STRINGLN ----------
-    rdict = single_pass(program_listing, all_def_dict, header_dict)
+    rdict = single_pass(program_listing, all_def_dict, import_name_to_line_obj_dict)
     if rdict['is_success'] is False:
         return rdict
     
-    already_replaced_header_name = set()
     new_program_listing = []
     for line_obj in program_listing:
         line_number_starting_from_1 = line_obj.orig_lnum_sf1
@@ -639,17 +654,12 @@ def run_all(program_listing, header_dict=None):
             continue
 
         first_word = line_obj.content.split(" ")[0]
-
-        replaced_a_header = False
-        if header_dict is not None:
-            for key in header_dict:
-                print(line_obj.content)
-                print(key)
-                if line_obj.content.strip().startswith(key) and key not in already_replaced_header_name:
-                    new_program_listing += header_dict[key]
-                    already_replaced_header_name.add(key)
-                    replaced_a_header = True
-        if replaced_a_header:
+        
+        is_already_imported, imported_lineobj_list = get_import_lineobjs(first_word, import_name_to_line_obj_dict)
+        if is_already_imported:
+            continue
+        if len(imported_lineobj_list):
+            new_program_listing += imported_lineobj_list
             continue
 
         if first_word in [kw_STRINGLN_BLOCK, kw_END_STRINGLN, kw_STRING_BLOCK, kw_END_STRING]:
@@ -695,7 +705,7 @@ def run_all(program_listing, header_dict=None):
 
     program_listing = new_program_listing
 
-    rdict = single_pass(program_listing, all_def_dict, header_dict)
+    rdict = single_pass(program_listing, all_def_dict, import_name_to_line_obj_dict)
     if rdict['is_success'] is False:
         return rdict
 
@@ -783,7 +793,7 @@ def run_all(program_listing, header_dict=None):
 
     second_pass_program_listing = new_program_listing
     # -----------------
-    return single_pass(second_pass_program_listing, all_def_dict, header_dict)
+    return single_pass(second_pass_program_listing, all_def_dict, import_name_to_line_obj_dict)
 
 if __name__ == "__main__":
     # Require at least input and output arguments
