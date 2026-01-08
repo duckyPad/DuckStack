@@ -118,7 +118,8 @@ def get_orig_ds_line_from_py_lnum(rdict, this_pylnum_sf1):
     try:
         return get_orig_ds_line_from_py_lnum_has_exception(rdict, this_pylnum_sf1)
     except Exception as e:
-        print(f"get_orig_ds_line_from_py_lnum: {e}")
+        # print(f"get_orig_ds_line_from_py_lnum: {e}")
+        pass
     return ""
 
 def search_in_symtable(name: str, table: symtable.SymbolTable):
