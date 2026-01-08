@@ -1,3 +1,11 @@
-IMPORT_UH
-DEFINE NAME abc
-STRING NAME
+FUN print_hello()
+   STRING hello world
+END_FUN
+
+FUN unused_func(a, b)
+    print_hello()
+    RETURN 5*a+b
+END_FUN
+
+VAR foo = 10
+DELAY foo
