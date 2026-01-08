@@ -1,3 +1,4 @@
+import ast
 from dsvm_common import *
 
 def optimize_pass(instruction_list, arg_and_var_dict):
@@ -58,3 +59,51 @@ def replace_dummy_with_drop_from_context_dict(ctx_dict):
     replace_dummy_with_drop(ctx_dict["root_assembly_list"])
     for key in ctx_dict['func_assembly_dict']:
         replace_dummy_with_drop(ctx_dict['func_assembly_dict'][key])
+
+def get_reachable_functions(root: ast.AST, reserved_funcs: dict) -> list[str]:
+    """
+    Returns a list of function names that are reachable from the main code body.
+    """
+    
+    # 1. Map all function definitions (name -> node) for easy lookup
+    func_defs = {
+        node.name: node 
+        for node in root.body 
+        if isinstance(node, ast.FunctionDef)
+    }
+
+    # Helper to find all function names called within a specific AST node
+    def get_calls_in_node(node):
+        calls = set()
+        for child in ast.walk(node):
+            if isinstance(child, ast.Call) and isinstance(child.func, ast.Name):
+                calls.add(child.func.id)
+        return calls
+
+    # 2. Identify "Main" code calls (top-level nodes that are NOT function defs)
+    work_queue = set()
+    for node in root.body:
+        if not isinstance(node, ast.FunctionDef):
+            work_queue.update(get_calls_in_node(node))
+
+    # 3. Traverse the graph (BFS/DFS) to find transitive calls
+    reachable = set()
+    
+    while work_queue:
+        func_name = work_queue.pop()
+
+        # Skip if already visited or if it's a reserved system function
+        if func_name in reachable or func_name in reserved_funcs:
+            continue
+
+        # If it is a user-defined function, mark it and scan its body
+        if func_name in func_defs:
+            reachable.add(func_name)
+            # Add functions called by this function to the queue
+            callees = get_calls_in_node(func_defs[func_name])
+            work_queue.update(callees)
+
+    return reachable
+
+def drop_unused_functions(ctx_dict):
+    ctx_dict['func_assembly_dict'] = {k: v for k, v in ctx_dict['func_assembly_dict'].items() if k in ctx_dict['reachable_funcs_name_set']}
