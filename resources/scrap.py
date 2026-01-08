@@ -1,4 +1,13 @@
 
+std_lib_filename_prefix = "dpds_stdlib"
+
+'''
+create dir at lib_dir_path if not exist
+in lib_dir_path, if a file starting with std_lib_filename_prefix and ending with .txt does NOT exist, write the content of default_stdlib_code to
+a file with a name that starts with std_lib_filename_prefix, then underscore, then current UNIX time stamp, and ends with .txt extension
+
+'''
+
 VAR addr = 0xFA00
 
 // --- STEP 1: PRESS THE 'a' KEY ---
