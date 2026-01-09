@@ -1,113 +1,128 @@
-// ---------------------------------------------------------
-// DuckyScript Compiler Stress Test
-// Target: Constant Folding & Dead Code Elimination
-// ---------------------------------------------------------
+REM_BLOCK
+    OPTIMIZER STRESS TEST
+    ---------------------
+    1. Constant Folding: Only folds operators unaffected by _UNSIGNED_MATH
+    2. Dead Code Elimination: Functions never called should be removed
+END_REM
 
-// SECTION 1: CONSTANT FOLDING
-// The compiler should pre-calculate these values.
-// In the final bytecode, these should be simple integer pushes, 
-// not sequences of ADD/MULT/DIV instructions.
+STRINGLN --- STARTING OPTIMIZER TEST ---
 
-VAR fold_math_simple = 10 + 20          // Expect: 30
-VAR fold_math_order  = 5 + 10 * 2       // Expect: 25 (Order of operations)
-VAR fold_math_paren  = (5 + 10) * 2     // Expect: 30
-VAR fold_negative    = 100 - 150        // Expect: -50
+// ==========================================
+// SECTION 1: SAFE CONSTANT FOLDING
+// These operators are consistent regardless of math mode.
+// Your optimizer SHOULD fold these into single constants.
+// ==========================================
 
-// Logical folding
-// 1 is True, 0 is False in DuckyScript
-VAR fold_logic_and   = (1 == 1) && (10 > 5)  // Expect: 1
-VAR fold_logic_or    = (0 == 1) || (5 < 10)  // Expect: 1
-VAR fold_logic_fail  = (50 < 10)             // Expect: 0
+// 1. Basic Arithmetic (+, -, *, **)
+// Expect: PUSHC 25
+VAR fold_math = 10 + 5 * 3
+STRINGLN [TEST 1] Math (10+5*3): $fold_math%d (Expect 25)
 
-// Printing results to verify runtime correctness
-STRINGLN Math Check: $fold_math_order (Should be 25)
-STRINGLN Logic Check: $fold_logic_and (Should be 1)
+// 2. Power (**)
+// Expect: PUSHC 256
+VAR fold_pow = 2 ** 8
+STRINGLN [TEST 2] Power (2^8): $fold_pow%d (Expect 256)
 
-// ---------------------------------------------------------
+// 3. Bitwise Logic (&, |, ^, ~)
+// Expect: PUSHC 15 (12 | 3)
+VAR fold_bits = (12 | 3) & 15
+STRINGLN [TEST 3] Bitwise: $fold_bits%d (Expect 15)
 
-// SECTION 2: DEAD BRANCH ELIMINATION
-// The optimizer should detect these conditions are always False/True.
+// 4. Logical Operators (&&, ||, !)
+// Expect: PUSHC 1 (True)
+VAR fold_logic = (1 && 0) || (5 == 5)
+STRINGLN [TEST 4] Logic: $fold_logic%d (Expect 1)
 
-// 2.1: Dead IF block
-// Since the condition is constant 0, this entire block (including the string)
-// should be removed from the AST/Bytecode.
-IF 0
-    STRINGLN [FAIL] Dead IF branch was executed!
-    DELAY 5000
-    WINDOWS r
-END_IF
+// 5. Left Shift (<<)
+// Safe because it doesn't depend on sign extension like RSHIFT
+// Expect: PUSHC 32
+VAR fold_lshift = 2 << 4
+STRINGLN [TEST 5] LShift: $fold_lshift%d (Expect 32)
 
-// 2.2: Dead ELSE path
-// Condition is constant 1. The IF body keeps, the ELSE body dies.
-IF 1
-    STRINGLN [PASS] Alive IF branch executed.
-ELSE
-    STRINGLN [FAIL] Dead ELSE branch executed!
-END_IF
+// 6. Equality (==, !=)
+// Safe because exact bitmatch is mode-agnostic
+// Expect: PUSHC 1
+VAR fold_eq = 100 != 50
+STRINGLN [TEST 6] Equality: $fold_eq%d (Expect 1)
 
-// 2.3: Dead WHILE loop
-// This loop should be entirely stripped.
-WHILE 0
-    STRINGLN [FAIL] Infinite loop start...
-    DELAY 1000
-END_WHILE
 
-// ---------------------------------------------------------
+// ==========================================
+// SECTION 2: UNSAFE FOLDING TRAPS
+// These operators depend on _UNSIGNED_MATH.
+// Your optimizer MUST NOT fold these, as the user
+// might change the mode at runtime.
+// ==========================================
 
+// 1. Division and Modulo (DIV, MOD)
+// If folded, you assume signed/unsigned behavior prematurely.
+VAR no_fold_div = -100 / 2
+VAR no_fold_mod = -5 % 2
+
+// 2. Right Shift (RSHIFT)
+// Signed mode = Arithmetic Shift (sign extends)
+// Unsigned mode = Logical Shift (zero extends)
+VAR no_fold_rshift = -16 >> 2
+
+// 3. Range Comparisons (<, >, <=, >=)
+// -1 is LESS than 1 in Signed, but GREATER in Unsigned (0xFFFFFFFF)
+VAR no_fold_cmp = -1 < 1
+
+STRINGLN [TEST 7] Unsafe Ops (Should calc at runtime):
+STRINGLN    Div (-50): $no_fold_div%d
+STRINGLN    Mod (-1):  $no_fold_mod%d
+STRINGLN    RShift:    $no_fold_rshift%d
+STRINGLN    Cmp (1):   $no_fold_cmp%d
+
+// Demonstrating why: Change mode and re-run unsafe ops
+// If you folded above, these results won't change (which would be WRONG)
+_UNSIGNED_MATH = 1
+STRINGLN --- Switched to Unsigned Mode ---
+STRINGLN [TEST 8] RShift in Unsigned (Expect Huge Number):
+VAR runtime_calc = -16 >> 2
+STRINGLN    Result: $runtime_calc%u
+
+
+// ==========================================
 // SECTION 3: DEAD FUNCTION ELIMINATION
-// Some functions are defined but never called.
+// ==========================================
 
-// 3.1: Used Function (Keep)
-FUN keep_me()
-    STRINGLN [PASS] keep_me() was called.
+// Case A: The "Ghost" Function
+// Completely unreferenced. Should be removed.
+FUN dead_ghost()
+    STRINGLN FAIL: Ghost function ran!
+    HALT
 END_FUN
 
-// 3.2: Unused Function (Eliminate)
-// This function is never called in the global scope or by other functions.
-// It should not appear in the generated bytecode.
-FUN delete_me()
-    STRINGLN [FAIL] delete_me() was called!
-    REPEAT 100
+// Case B: The "Transitive" Dead Chain
+// Only called by other dead functions.
+// If dead_parent() is removed, dead_child() should be too.
+FUN dead_child()
+    STRINGLN FAIL: Dead child ran!
+    HALT
 END_FUN
 
-// 3.3: Recursive Function (Keep)
-// Ideally, your optimizer should recognize self-recursion doesn't mean "unused".
-// It is called by 'call_recursive_wrapper', which is called by main.
-FUN factorial_recursive(n)
-    IF n <= 1
-        RETURN 1
-    END_IF
-    RETURN n * factorial_recursive(n - 1)
+FUN dead_parent()
+    dead_child()
 END_FUN
 
-// 3.4: Nested Call Wrapper (Keep)
-FUN call_recursive_wrapper()
-    VAR res = factorial_recursive(5)
-    STRINGLN Factorial 5 is $res
+// Case C: The "Live" Function
+// Called by main. Must be kept.
+FUN live_func()
+    STRINGLN [TEST 9] Live function executed.
 END_FUN
 
-// ---------------------------------------------------------
-
-// SECTION 4: UNREACHABLE CODE (After Return)
-// Code immediately following a RETURN (in the same block) is dead.
-
-FUN early_return_test()
-    STRINGLN [PASS] About to return...
-    RETURN
-    
-    // The optimizer should strip everything below this line inside this function
-    STRINGLN [FAIL] Code after RETURN executed!
-    DELAY 10000
+// Case D: The "Live" Chain
+// Called by a live function. Must be kept.
+FUN live_helper()
+    STRINGLN [TEST 10] Live helper executed.
 END_FUN
 
-// ---------------------------------------------------------
+FUN live_complex()
+    live_helper()
+END_FUN
 
-// EXECUTION ENTRY POINT
-// Trigger the functions that are supposed to survive.
+// Execution of live paths
+live_func()
+live_complex()
 
-keep_me()
-early_return_test()
-call_recursive_wrapper()
-
-// Final sanity check
-STRINGLN Stress Test Complete.
+STRINGLN --- TEST COMPLETE ---
