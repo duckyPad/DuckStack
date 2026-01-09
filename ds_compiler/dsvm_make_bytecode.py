@@ -604,7 +604,7 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
         return comp_result
     if should_print:
         save_lines_to_file(post_pp_listing, "pgmlst0_preprocessed.txt")
-        save_lines_to_file(pyout, "pgmlst1_python.py")
+        save_lines_to_file(pyout, "pgmlst1_unoptimized.py")
         optimized_filename = "pgmlst2_optimized.py"
         with open(optimized_filename, "w") as file:
             file.write(ast.unparse(my_tree))
