@@ -110,12 +110,12 @@ def optimize_ast(tree, remove_unused_func=True):
 
             # 2. Constant Folding for Binary Operators
             if isinstance(node.left, ast.Constant) and isinstance(node.right, ast.Constant):
-                if isinstance(node.left.value, (int, float)) and isinstance(node.right.value, (int, float)):
+                if isinstance(node.left.value, int) and isinstance(node.right.value, int):
                     try:
                         val = self._apply_bin_op(node.op, node.left.value, node.right.value)
                         # Check if optimization was possible (val is not None)
                         if val is not None:
-                            return ast.Constant(value=val)
+                            return ast.Constant(value=int(val))
                     except (ZeroDivisionError, OverflowError):
                         pass
             return node
@@ -131,11 +131,11 @@ def optimize_ast(tree, remove_unused_func=True):
                 op = node.ops[0]
                 
                 if isinstance(left, ast.Constant) and isinstance(right, ast.Constant):
-                     if isinstance(left.value, (int, float)) and isinstance(right.value, (int, float)):
+                     if isinstance(left.value, int) and isinstance(right.value, int):
                         try:
                             val = self._apply_cmp_op(op, left.value, right.value)
                             if val is not None:
-                                return ast.Constant(value=val) 
+                                return ast.Constant(value=int(val)) 
                         except Exception:
                             pass
             return node
@@ -144,17 +144,12 @@ def optimize_ast(tree, remove_unused_func=True):
             self.generic_visit(node)
             # Constant Folding for Logical Operators
             if all(isinstance(v, ast.Constant) for v in node.values):
-                is_and = isinstance(node.op, ast.And)
-                is_or = isinstance(node.op, ast.Or)
-                
                 raw_values = [v.value for v in node.values]
-                
                 final_val = 0
-                if is_and:
+                if isinstance(node.op, ast.And):
                     final_val = 1 if all(raw_values) else 0
-                elif is_or:
+                elif isinstance(node.op, ast.Or):
                     final_val = 1 if any(raw_values) else 0
-                    
                 return ast.Constant(value=final_val)
             return node
         
