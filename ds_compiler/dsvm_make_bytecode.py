@@ -596,7 +596,7 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
     source = dsline_to_source(pyout)
     try:
         my_tree = ast.parse(source, mode="exec")
-        reachable_funcs_name_set = dsvm_optimizer.get_reachable_functions(my_tree, ds_reserved_funcs)
+        my_tree = dsvm_optimizer.optimize_ast(my_tree, remove_unused_func)
     except SyntaxError as e:
         comp_result = compile_result(
             is_success = False,
@@ -612,7 +612,6 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
     rdict['func_assembly_dict'] = {}
     rdict['func_args_dict'] = get_func_args(symtable_root)
     rdict['var_info_set'] = set()
-    rdict['reachable_funcs_name_set'] = reachable_funcs_name_set
 
     for statement in my_tree.body:
         rdict["func_def_name"] = None
@@ -622,8 +621,6 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
     print("\n\n--------- Assembly Listing, Unoptimised, Unresolved: ---------")
     print_full_assembly_from_context_dict(rdict)
     rdict['func_arg_and_local_var_lookup'] = group_vars(rdict)
-    if remove_unused_func:
-        dsvm_optimizer.drop_unused_functions(rdict)
     dsvm_optimizer.replace_dummy_with_drop_from_context_dict(rdict)
     dsvm_optimizer.optimize_full_assembly_from_context_dict(rdict)
     rdict["root_assembly_list"].append(dsvm_instruction(OP_HALT))

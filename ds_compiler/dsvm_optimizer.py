@@ -1,4 +1,5 @@
 import ast
+import operator
 from dsvm_common import *
 
 def optimize_pass(instruction_list, arg_and_var_dict):
@@ -60,50 +61,95 @@ def replace_dummy_with_drop_from_context_dict(ctx_dict):
     for key in ctx_dict['func_assembly_dict']:
         replace_dummy_with_drop(ctx_dict['func_assembly_dict'][key])
 
-def get_reachable_functions(root: ast.AST, reserved_funcs: dict) -> list[str]:
+def optimize_ast(tree, remove_unused_func=True):
     """
-    Returns a list of function names that are reachable from the main code body.
+    Main entry point to optimize the duckyScript AST.
+    
+    Args:
+        tree (ast.AST): The AST to optimize.
+        remove_unused_func (bool): If True, performs Dead Code Elimination 
+                                    on functions. Default is True.
     """
     
-    # 1. Map all function definitions (name -> node) for easy lookup
-    func_defs = {
-        node.name: node 
-        for node in root.body 
-        if isinstance(node, ast.FunctionDef)
-    }
-
-    # Helper to find all function names called within a specific AST node
-    def get_calls_in_node(node):
-        calls = set()
-        for child in ast.walk(node):
-            if isinstance(child, ast.Call) and isinstance(child.func, ast.Name):
-                calls.add(child.func.id)
-        return calls
-
-    # 2. Identify "Main" code calls (top-level nodes that are NOT function defs)
-    work_queue = set()
-    for node in root.body:
-        if not isinstance(node, ast.FunctionDef):
-            work_queue.update(get_calls_in_node(node))
-
-    # 3. Traverse the graph (BFS/DFS) to find transitive calls
-    reachable = set()
+    # --- Step 1: Reachability Analysis (Conditional) ---
+    live_funcs = set()
     
-    while work_queue:
-        func_name = work_queue.pop()
+    if remove_unused_func:
+        # Map function names to their FunctionDef nodes
+        defined_funcs = {
+            node.name: node 
+            for node in tree.body 
+            if isinstance(node, ast.FunctionDef)
+        }
 
-        # Skip if already visited or if it's a reserved system function
-        if func_name in reachable or func_name in reserved_funcs:
-            continue
+        # Queue for BFS/DFS traversal. Start with the "Main" body.
+        # "Main" consists of all nodes in the module that AREN'T FunctionDefs.
+        worklist = [node for node in tree.body if not isinstance(node, ast.FunctionDef)]
+        
+        # Helper to find all function calls within a list of nodes
+        def get_calls_from_nodes(nodes):
+            calls = []
+            for node in nodes:
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Call):
+                        if isinstance(child.func, ast.Name):
+                            calls.append(child.func.id)
+            return calls
 
-        # If it is a user-defined function, mark it and scan its body
-        if func_name in func_defs:
-            reachable.add(func_name)
-            # Add functions called by this function to the queue
-            callees = get_calls_in_node(func_defs[func_name])
-            work_queue.update(callees)
+        # Process the worklist to find all reachable functions
+        while worklist:
+            current_node = worklist.pop()
+            called_names = get_calls_from_nodes([current_node])
+            
+            for name in called_names:
+                if name in defined_funcs and name not in live_funcs:
+                    live_funcs.add(name)
+                    worklist.append(defined_funcs[name])
 
-    return reachable
+    # --- Step 2: AST Transformation ---
 
-def drop_unused_functions(ctx_dict):
-    ctx_dict['func_assembly_dict'] = {k: v for k, v in ctx_dict['func_assembly_dict'].items() if k in ctx_dict['reachable_funcs_name_set']}
+    class DuckyOptimizer(ast.NodeTransformer):
+        def visit_FunctionDef(self, node):
+            # 1. Dead Code Elimination (Controlled by flag)
+            if remove_unused_func and node.name not in live_funcs:
+                return None
+            return self.generic_visit(node)
+
+        def visit_BinOp(self, node):
+            # Optimize children first
+            self.generic_visit(node)
+
+            # 2. Constant Folding (Runs regardless of flag)
+            if isinstance(node.left, ast.Constant) and isinstance(node.right, ast.Constant):
+                if isinstance(node.left.value, (int, float)) and isinstance(node.right.value, (int, float)):
+                    try:
+                        val = self._apply_op(node.op, node.left.value, node.right.value)
+                        return ast.Constant(value=val)
+                    except (ZeroDivisionError, OverflowError):
+                        pass
+            return node
+
+        def _apply_op(self, op, left, right):
+            ops = {
+                ast.Add: operator.add,
+                ast.Sub: operator.sub,
+                ast.Mult: operator.mul,
+                ast.Div: operator.floordiv,
+                ast.Mod: operator.mod,
+                ast.Pow: operator.pow,
+                ast.LShift: operator.lshift,
+                ast.RShift: operator.rshift,
+                ast.BitOr: operator.or_,
+                ast.BitXor: operator.xor,
+                ast.BitAnd: operator.and_,
+            }
+            op_type = type(op)
+            if op_type in ops:
+                return ops[op_type](left, right)
+            raise NotImplementedError
+
+    optimizer = DuckyOptimizer()
+    new_tree = optimizer.visit(tree)
+    ast.fix_missing_locations(new_tree)
+    
+    return new_tree
