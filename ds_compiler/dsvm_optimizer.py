@@ -60,7 +60,6 @@ def replace_dummy_with_drop_from_context_dict(ctx_dict):
     for key in ctx_dict['func_assembly_dict']:
         replace_dummy_with_drop(ctx_dict['func_assembly_dict'][key])
 
-
 def optimize_ast(tree, remove_unused_func=True):
     # --- Step 1: Reachability Analysis (Conditional) ---
     live_funcs = set()
