@@ -205,7 +205,7 @@ Binary as in **involving two operands**.
 |`STR`|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`|None||
 |`STRLN`|`73`/`0x49`|**Type Line**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`<br>**Press ENTER at end**|
 |`OLED_CUSR`|`74`/`0x4a`|**OLED Set Cursor**<br>Pop **TWO** items: `x` then `y`||
-|`OLED_PRNT`|`75`/`0x4b`|**OLED Print**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED|None|
+|`OLED_PRNT`|`75`/`0x4b`|**OLED Print**<br>Pop **TWO** items: `OPTIONS` then `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED<br>`OPTIONS` Bit 0: If set, print center-aligned.|None|
 |`OLED_UPDE`|`76`/`0x4c`|**OLED Update**|
 |`OLED_CLR`|`77`/`0x4d`|**OLED Clear**|
 |`OLED_REST`|`78`/`0x4e`| **OLED Restore**|
