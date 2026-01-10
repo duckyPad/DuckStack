@@ -1105,10 +1105,11 @@ void execute_instruction(exe_context* exe)
   }
   else if(opcode == OP_OLED_PRNT)
   {
-    uint32_t this_value;
-    stack_pop(&data_stack, &this_value);
-    char* str_buf = make_str((uint16_t)this_value);
-    printf(">>>>> OLED_PRINT: %s\n", str_buf);
+    uint32_t opts, addr;
+    stack_pop(&data_stack, &opts);
+    stack_pop(&data_stack, &addr);
+    char* str_buf = make_str((uint16_t)addr);
+    printf(">>>>> OLED_PRINT%d: %s\n", opts, str_buf);
   }
   else if(opcode == OP_OLED_UPDE)
   {
