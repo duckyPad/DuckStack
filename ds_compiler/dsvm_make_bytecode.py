@@ -154,7 +154,7 @@ def classify_name(name: str, current_function: str | None, ctx_dict) -> int:
         sym = search_in_symtable(name, this_table)
         if sym is not None:
             if sym.is_parameter() and user_declared_func_locals is not None and name in user_declared_func_locals:
-                raise ValueError(f"Variable clash: {name} cannot be both arg and local")
+                raise ValueError(f"Variable \"{name}\" cannot be both arg and local")
             if sym.is_parameter():
                 return SymType.FUNC_ARG
             if user_declared_func_locals is not None and name in user_declared_func_locals:
@@ -446,7 +446,7 @@ def compile_to_bin(rdict):
         user_declared_global_var_addr_lookup[item] = index * USER_VAR_BYTE_WIDTH + USER_VAR_START_ADDRESS
 
     if len(user_declared_global_var_addr_lookup) > MAX_UDV_COUNT:
-        raise ValueError("Too many user-declared variables")
+        raise ValueError("Too many user-declared global variables")
 
     print("\n--------- Global Variables ---------")
     print(user_declared_global_var_addr_lookup)
@@ -500,6 +500,8 @@ def compile_to_bin(rdict):
                 local_vars_count = len(func_arg_and_local_var_lookup[this_inst.payload]['locals'])
             except Exception as e:
                 pass
+            if local_vars_count > 255:
+                raise ValueError(f"Too many local variables in function \"{this_inst.payload}()\"")
             this_inst.payload = local_vars_count
         elif this_inst.opcode in [OP_PUSHI, OP_POPI]: # global variables
             this_inst.payload = resolve_global_and_reserved_var_address(this_inst.payload, user_declared_global_var_addr_lookup)

@@ -93,7 +93,9 @@ def postorder_walk(node, action, ctx_dict):
         this_func_label = f"func_{func_name}"
         this_arg_count = how_many_args(func_name, ctx_dict)
         if this_arg_count is None:
-            raise ValueError("Invalid args:", func_name)
+            raise ValueError(f"Invalid args")
+        if this_arg_count > DSVM_FUNC_ARG_MAX_SIZE:
+            raise ValueError(f"Too many args")
         ctx_dict['func_def_name'] = func_name
         action(add_nop(this_func_label), ctx_dict)
         action(add_alloc(func_name), ctx_dict)

@@ -1,5 +1,21 @@
+
+
+FUN test(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t)
+    VAR aaa = 4
+    VAR bbb = 4
+    VAR ccc = 4
+    RETURN
+END_FUN
+
+ENTER
+ENTER
+OLED_CLEAR
+OLED_CURSOR 0 0
 OLED_PRINT hello world
+OLED_CURSOR 0 30
+VAR ver = 2000
+OLED_CPRINT foobar$ver
+OLED_UPDATE
+//WAITKEY(2)
 
-OLED_CPRINT foobar!
-
-// OLED_OPTPRINT(1, "test")
+test(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)

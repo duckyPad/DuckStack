@@ -6,6 +6,8 @@ import uuid
 
 DSVM_VERSION = 2
 
+DSVM_FUNC_ARG_MAX_SIZE = 255
+
 kw_REPEAT = "REPEAT"
 kw_REM = "REM"
 kw_C_COMMENT = "//"
