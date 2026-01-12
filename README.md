@@ -168,8 +168,8 @@ Binary as in **involving two operands**.
 
 * All **single-byte** instructions
 * Pop **TWO** items off TOS
-	* First item: Right-hand-side
-	* Second item: Left-hand-side
+	* First item: Left-hand-side
+	* Second item: Right-hand-side
 * Perform operation
 * Push result back on TOS
 
@@ -213,9 +213,9 @@ Binary as in **involving two operands**.
 
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
-|`BITINV`|`55`/`0x37`|Bitwise Invert|
-|`LOGINOT`|`56`/`0x38`|Logical NOT|
-|`USUB`|`57`/`0x39`|Unary Minus|
+|`BITINV`|`60`/`0x3c`|Bitwise Invert|
+|`LOGINOT`|`61`/`0x3d`|Logical NOT|
+|`USUB`|`62`/`0x3e`|Unary Minus|
 
 ### duckyScript Commands
 

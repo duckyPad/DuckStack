@@ -510,9 +510,9 @@ OP_UMOD = Opcode("UMOD", 56, 1)
 OP_LSR = Opcode("LSR", 57, 1)
 
 # Unary Operators
-OP_BITINV = Opcode("BITINV", 55, 1)
-OP_LOGINOT = Opcode("LOGINOT", 56, 1)
-OP_USUB = Opcode("USUB", 57, 1)
+OP_BITINV = Opcode("BITINV", 60, 1)
+OP_LOGINOT = Opcode("LOGINOT", 61, 1)
+OP_USUB = Opcode("USUB", 62, 1)
 
 # duckyScript Commands
 OP_DELAY = Opcode("DELAY", 64, 1)
@@ -539,7 +539,7 @@ OP_GOTOP = Opcode("GOTOP", 84, 1)
 OP_SLEEP = Opcode("SLEEP", 85, 1)
 OP_RANDCHR = Opcode("RANDCHR", 86, 1)
 OP_PUTS = Opcode("PUTS", 87, 1)
-OP_HIDTX = Opcode("HIDTX", 89, 1)
+OP_HIDTX = Opcode("HIDTX", 88, 1)
 
 # Virtual Opcodes, to be resolved during compilation
 OP_PUSHSTR = Opcode("PUSHSTR", 128, 3, is_virtual=True)

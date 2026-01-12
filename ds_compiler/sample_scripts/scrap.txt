@@ -1,3 +1,12 @@
+VAR foo = RANDUINT(0, 33333333)
+foo = ULT(2,3)
+foo = ULTE(2,3)
+foo = UGT(2,3)
+foo = UGTE(2,3)
+foo = UDIV(2,3)
+foo = UMOD(2,3)
+foo = LSR(2,3)
+
 FUN WAIT_NOKEY()
     WHILE _SW_BITFIELD
         DELAY 0
