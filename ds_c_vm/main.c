@@ -493,29 +493,28 @@ uint8_t is_pgv(uint16_t addr)
   return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
 }
 
-uint16_t make_uint16(const uint8_t* base_addr)
+void write_bytes_safe(uint32_t addr, const void* src, size_t size)
 {
-  uint16_t result;
-  memcpy(&result, base_addr, sizeof(result)); 
-  return result;
+  if (addr + size > BIN_BUF_SIZE)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  memcpy(&bin_buf[addr], src, size);
 }
 
-uint32_t make_uint32(const uint8_t* base_addr)
+void read_bytes_safe(uint32_t addr, void* dest, size_t size)
 {
-  uint32_t result;
-  memcpy(&result, base_addr, sizeof(result)); 
-  return result;
-}
-
-void write_uint32_as_4B(uint8_t* bbuf, uint32_t value)
-{
-  memcpy(bbuf, &value, sizeof(uint32_t));
+  if (addr + size > BIN_BUF_SIZE)
+    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+  memcpy(dest, &bin_buf[addr], size);
 }
 
 uint32_t memread_u32(uint16_t addr)
 {
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
-    return make_uint32(&bin_buf[addr]);
+  {
+    uint32_t result;
+    read_bytes_safe(addr, &result, sizeof(uint32_t));
+    return result;
+  }
   if (is_pgv(addr))
     return pgv_buf[get_gv_index(addr)];
   if (addr == _DEFAULTDELAY)
@@ -584,7 +583,7 @@ uint32_t memread_u32(uint16_t addr)
 void memwrite_u32(uint16_t addr, uint32_t value)
 {
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
-    write_uint32_as_4B(&bin_buf[addr], value);
+    write_bytes_safe(addr, &value, sizeof(uint32_t));
   else if (is_pgv(addr))
   {
     pgv_buf[get_gv_index(addr)] = value;
@@ -715,7 +714,8 @@ char* make_str(uint16_t str_start_addr)
       
       curr_char++;
 
-      uint16_t addr_val = make_uint16(lsb);
+      uint16_t addr_val;
+      memcpy(&addr_val, lsb, sizeof(addr_val)); 
       uint32_t var_value = 0;
 
       // Fetch the value based on the boundary type
@@ -814,9 +814,9 @@ void execute_instruction(exe_context* exe)
   if(instruction_size_bytes == 2)
     payload = bin_buf[curr_pc + 1];
   else if(instruction_size_bytes == 3)
-    payload = make_uint16(bin_buf + curr_pc + 1);
+    read_bytes_safe(curr_pc + 1, &payload, sizeof(uint16_t));
   else if(instruction_size_bytes == 5)
-    payload = make_uint32(bin_buf + curr_pc + 1);
+    read_bytes_safe(curr_pc + 1, &payload, sizeof(uint32_t));
   
   if(PRINT_DEBUG)
   {
@@ -914,20 +914,6 @@ void execute_instruction(exe_context* exe)
   {
     exe->result = EXE_HALT;
   }
-  else if(opcode == OP_PEEK8)
-  {
-    uint32_t target_addr;
-    stack_pop(&data_stack, &target_addr);
-    uint8_t data = read_byte((uint16_t)target_addr);
-    stack_push(&data_stack, (uint32_t)data);
-  }
-  else if(opcode == OP_POKE8)
-  {
-    uint32_t target_value, target_addr;
-    stack_pop(&data_stack, &target_addr);
-    stack_pop(&data_stack, &target_value);
-    write_byte((uint16_t)target_addr, (uint8_t)target_value);
-  }
   else if(opcode == OP_PUSH0)
   {
     stack_push(&data_stack, 0);
@@ -958,6 +944,70 @@ void execute_instruction(exe_context* exe)
     stack_pop(&data_stack, &lower);
     stack_pop(&data_stack, &upper);
     stack_push(&data_stack, random_uint32_between(lower, upper));
+  }
+  // -------- Memory Access ----------
+  else if (opcode == OP_PEEK8)
+  {
+    uint32_t addr;
+    stack_pop(&data_stack, &addr);
+    int8_t val;
+    read_bytes_safe(addr, &val, 1);
+    stack_push(&data_stack, (int32_t)val);
+  }
+  else if (opcode == OP_PEEKU8)
+  {
+    uint32_t addr;
+    stack_pop(&data_stack, &addr);
+    uint8_t val;
+    read_bytes_safe(addr, &val, 1);
+    stack_push(&data_stack, (uint32_t)val);
+  }
+  else if (opcode == OP_PEEK16)
+  {
+    uint32_t addr;
+    stack_pop(&data_stack, &addr);
+    int16_t val;
+    read_bytes_safe(addr, &val, 2);
+    stack_push(&data_stack, (int32_t)val);
+  }
+  else if (opcode == OP_PEEKU16)
+  {
+    uint32_t addr;
+    stack_pop(&data_stack, &addr);
+    uint16_t val;
+    read_bytes_safe(addr, &val, 2);
+    stack_push(&data_stack, (uint32_t)val);
+  }
+  else if (opcode == OP_PEEK32)
+  {
+    uint32_t addr;
+    stack_pop(&data_stack, &addr);
+    uint32_t val;
+    read_bytes_safe(addr, &val, 4);
+    stack_push(&data_stack, val);
+  }
+  else if (opcode == OP_POKE8)
+  {
+    uint32_t addr, val;
+    stack_pop(&data_stack, &addr);
+    stack_pop(&data_stack, &val);
+    uint8_t val8 = (uint8_t)val;
+    write_bytes_safe(addr, &val8, 1);
+  }
+  else if (opcode == OP_POKE16)
+  {
+    uint32_t addr, val;
+    stack_pop(&data_stack, &addr);
+    stack_pop(&data_stack, &val);
+    uint16_t val16 = (uint16_t)val;
+    write_bytes_safe(addr, &val16, 2);
+  }
+  else if (opcode == OP_POKE32)
+  {
+    uint32_t addr, val;
+    stack_pop(&data_stack, &addr);
+    stack_pop(&data_stack, &val);
+    write_bytes_safe(addr, &val, 4);
   }
   //--------------------------------------------------------
   else if(opcode == OP_EQ)
