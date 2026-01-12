@@ -21,9 +21,6 @@ int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
 static jmp_buf jmpbuf;
 uint8_t current_key_id = 127;
-uint8_t unsigned_math;
-
-#include <stdint.h>
 
 // Platform-specific includes
 #if defined(_WIN32) || defined(_WIN64)

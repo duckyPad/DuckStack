@@ -1,4 +1,4 @@
-VAR foo = 0
+VAR foo = RANDUINT(0, 33333333)
 
 foo = ULT(2,3)
 foo = ULTE(2,3)

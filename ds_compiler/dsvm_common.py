@@ -31,6 +31,7 @@ kw_LSR = "LSR"
 
 kw_RANDCHR = "RANDCHR"
 kw_RANDINT = "RANDINT"
+kw_RANDUINT = "RANDUINT"
 kw_PUTS = "PUTS"
 kw_HIDTX = "HIDTX"
 
@@ -463,8 +464,9 @@ OP_PUSH1 = Opcode("PUSH1", 13, 1)
 OP_DROP = Opcode("DROP", 14, 1)
 OP_DUP = Opcode("DUP", 15, 1)
 OP_RANDINT = Opcode("RANDINT", 16, 1)
-OP_PUSHC32 = Opcode("PUSHC32", 17, 5)
-OP_PUSHC8 = Opcode("PUSHC8", 18, 2)
+OP_RANDUINT = Opcode("RANDUINT", 17, 1)
+OP_PUSHC32 = Opcode("PUSHC32", 18, 5)
+OP_PUSHC8 = Opcode("PUSHC8", 19, 2)
 OP_VMVER = Opcode("VMVER", 255, 3)
 
 # Memory Access
@@ -709,6 +711,7 @@ ds_builtin_func_lookup = {
     kw_DP_SLEEP : reserved_func_info(OP_SLEEP, 0),
     kw_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
     kw_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
+    kw_RANDUINT : reserved_func_info(OP_RANDUINT, 2, has_return_value=True),
     kw_PUTS : reserved_func_info(OP_PUTS, 1),
     kw_HIDTX : reserved_func_info(OP_HIDTX, 1),
     # Memory Ops
