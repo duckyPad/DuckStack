@@ -32,7 +32,6 @@ kw_LSR = "LSR"
 kw_RANDCHR = "RANDCHR"
 kw_RANDINT = "RANDINT"
 kw_PUTS = "PUTS"
-kw_BUZZ = "BUZZ"
 kw_HIDTX = "HIDTX"
 
 kw_TRUE = "TRUE"
@@ -538,7 +537,6 @@ OP_GOTOP = Opcode("GOTOP", 84, 1)
 OP_SLEEP = Opcode("SLEEP", 85, 1)
 OP_RANDCHR = Opcode("RANDCHR", 86, 1)
 OP_PUTS = Opcode("PUTS", 87, 1)
-OP_PWMCTRL = Opcode("PWMCTRL", 88, 1)
 OP_HIDTX = Opcode("HIDTX", 89, 1)
 
 # Virtual Opcodes, to be resolved during compilation
@@ -712,7 +710,6 @@ ds_builtin_func_lookup = {
     kw_RANDCHR : reserved_func_info(OP_RANDCHR, 1),
     kw_RANDINT : reserved_func_info(OP_RANDINT, 2, has_return_value=True),
     kw_PUTS : reserved_func_info(OP_PUTS, 1),
-    kw_BUZZ : reserved_func_info(OP_PWMCTRL, 1),
     kw_HIDTX : reserved_func_info(OP_HIDTX, 1),
     # Memory Ops
     kw_PEEK8 : reserved_func_info(OP_PEEK8, 1, has_return_value=True),
