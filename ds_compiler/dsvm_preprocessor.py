@@ -612,6 +612,9 @@ def get_default_def_dict():
         kw_TRUE : "1",
         kw_FALSE : "0",
         kw_OLED_PRINT : kw_OLED_LPRINT,
+        rv_IS_NUMLOCK_ON : f"(({rv_KBLED_BITFIELD} & 0x1)!=0)",
+        rv_IS_CAPSLOCK_ON : f"(({rv_KBLED_BITFIELD} & 0x2)!=0)",
+        rv_IS_SCROLLLOCK_ON : f"(({rv_KBLED_BITFIELD} & 0x4)!=0)",
     }
     return default_dict
 
