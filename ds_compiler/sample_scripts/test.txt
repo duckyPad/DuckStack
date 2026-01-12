@@ -1,21 +1,43 @@
-
-
-FUN test(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t)
-    VAR aaa = 4
-    VAR bbb = 4
-    VAR ccc = 4
-    RETURN
+FUN PEEK16(addr)
+    VAR low = PEEK8(addr)
+    VAR high = PEEK8(addr + 1)
+    VAR result = (high << 8) | low
+    // Shift all the way to the left, then back to the right.
+    // The VM chooses the correct right-shift behavior automatically.
+    RETURN (result << 16) >> 16
 END_FUN
 
-ENTER
-ENTER
-OLED_CLEAR
-OLED_CURSOR 0 0
-OLED_PRINT hello world
-OLED_CURSOR 0 30
-VAR ver = 2000
-OLED_CPRINT foobar$ver
-OLED_UPDATE
-//WAITKEY(2)
+FUN POKE16(addr, value)
+    POKE8(addr, value & 0xFF)
+    POKE8(addr + 1, (value >> 8) & 0xFF)
+END_FUN
 
-test(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+DEFINE WALL_THICKNESS_PIXELS 5
+DEFINE WALL_1_X_POS_ADDR 0xFA00
+DEFINE OLED_WIDTH 128
+
+VAR current_horizontal_scroll_speed_pixel_per_frame = 1
+
+FUN draw_wall(x_pos_addr)
+    VAR left_edge_pos = PEEK16(x_pos_addr)
+    VAR right_edge_pos = left_edge_pos + WALL_THICKNESS_PIXELS
+    IF left_edge_pos >= 0
+        pass
+    ELSE IF left_edge_pos >= -WALL_THICKNESS_PIXELS
+        left_edge_pos = 0
+    ELSE
+        RETURN
+    END_IF
+    IF right_edge_pos < OLED_WIDTH
+        pass
+    ELSE IF right_edge_pos < OLED_WIDTH + WALL_THICKNESS_PIXELS
+        right_edge_pos = OLED_WIDTH-1
+    ELSE
+        RETURN
+    END_IF
+    STRING draw_wall: $left_edge_pos, $right_edge_pos
+END_FUN
+
+VAR w1_left_edge = -2
+POKE16(WALL_1_X_POS_ADDR, w1_left_edge)
+draw_wall(WALL_1_X_POS_ADDR)

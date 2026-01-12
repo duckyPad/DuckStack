@@ -56,9 +56,9 @@ def main():
     # specific build + run logic
     if build():
         try:
-            print("-" * 30)
-            input(f"Press [Enter] to run '{EXE_NAME}' or [Ctrl+C] to exit...")
-            print("-" * 30)
+            # print("-" * 30)
+            # input(f"Press [Enter] to run '{EXE_NAME}' or [Ctrl+C] to exit...")
+            # print("-" * 30)
             subprocess.call([RUN_CMD] + sys.argv[1:])
         except KeyboardInterrupt:
             print("\n[EXIT] Exiting without running.")

@@ -1,0 +1,80 @@
+FUN WAIT_NOKEY()
+    WHILE _SW_BITFIELD
+        DELAY 0
+    END_WHILE
+END_FUN
+
+VAR wall1_x_pos = 100
+VAR current_scroll_speed_pixel_per_frame = 1
+
+// WAIT_NOKEY()
+
+WHILE 1
+    IF _SW_BITFIELD
+        HALT
+    END_IF
+    DELAY 33
+END_WHILE
+
+-----------------
+FUN update_wall_x_pos(x_pos_addr, amount)
+    VAR xpos_value = PEEK8(x_pos_addr)
+
+END_FUN
+
+-----------------
+
+FUN PEEK32(addr)
+    VAR result = PEEK8(addr)
+    result |= (PEEK8(addr + 1) << 8)
+    result |= (PEEK8(addr + 2) << 16)
+    result |= (PEEK8(addr + 3) << 24)
+    RETURN result
+END_FUN
+
+FUN POKE32(addr, value)
+    POKE8(addr, value & 0xFF)
+    POKE8(addr + 1, (value >> 8) & 0xFF)
+    POKE8(addr + 2, (value >> 16) & 0xFF)
+    POKE8(addr + 3, (value >> 24) & 0xFF)
+END_FUN
+
+FUN PEEK16(addr)
+    VAR low = PEEK8(addr)
+    VAR high = PEEK8(addr + 1)
+    RETURN (high << 8) | low
+END_FUN
+
+FUN POKE16(addr, value)
+    POKE8(addr, value & 0xFF)
+    POKE8(addr + 1, (value >> 8) & 0xFF)
+END_FUN
+
+--------
+
+
+DEFINE WALL_THICKNESS_PIXELS 5
+DEFINE WALL_1_X_POS_ADDR 0xFA00
+DEFINE OLED_WIDTH 128
+
+VAR current_horizontal_scroll_speed_pixel_per_frame = 1
+
+FUN draw_wall(x_pos_addr)
+    VAR left_edge_pos = PEEK8(x_pos_addr)
+    VAR right_edge_pos = left_edge_pos + WALL_THICKNESS_PIXELS
+    IF left_edge_pos >= 0
+        pass
+    END_IF
+END_FUN
+
+WHILE 1
+
+    DELAY 33
+END_WHILE
+
+-------
+
+WHILE 1
+    draw_wall(WALL_1_X_POS_ADDR)
+    DELAY 33
+END_WHILE

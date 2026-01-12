@@ -23,6 +23,38 @@ static jmp_buf jmpbuf;
 uint8_t current_key_id = 127;
 uint8_t unsigned_math;
 
+#include <stdint.h>
+
+// Platform-specific includes
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+#else
+    // _POSIX_C_SOURCE required for nanosleep on some compilers
+    #define _POSIX_C_SOURCE 199309L 
+    #include <time.h>
+#endif
+
+/**
+ * Cross-platform sleep function.
+ * @param ms The number of milliseconds to sleep.
+ */
+void delay_ms(uint32_t ms)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    // Windows Sleep() takes milliseconds directly
+    Sleep(ms); 
+#else
+    // POSIX (Linux/macOS) prefers nanosleep
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    
+    // nanosleep takes a pointer to the request and a pointer to remain
+    // (NULL means we don't care about the remaining time if interrupted)
+    nanosleep(&ts, NULL);
+#endif
+}
+
 // ---------------------------
 
 /*
@@ -554,7 +586,7 @@ uint32_t memread_u32(uint16_t addr)
   if (addr == _UNSIGNED_MATH)
     return unsigned_math;
   if (addr == _SW_BITFIELD)
-    return DUMMY_DATA_REPLACE_ME;
+    return DUMMY_DATA_REPLA0CE_ME;
   longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
 
@@ -1026,9 +1058,10 @@ void execute_instruction(exe_context* exe)
   }
   else if(opcode == OP_DELAY)
   {
-    uint32_t this_value;
-    stack_pop(&data_stack, &this_value);
-    printf("OP_DELAY: %dms\n", this_value);
+    uint32_t amount;
+    stack_pop(&data_stack, &amount);
+    printf("OP_DELAY: %dms\n", amount);
+    delay_ms(amount);
   }
   else if(opcode == OP_KDOWN)
   {

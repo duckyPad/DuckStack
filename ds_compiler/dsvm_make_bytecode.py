@@ -262,6 +262,9 @@ def visit_node(node, ctx_dict):
         if arg_count is None:
             raise ValueError("Invalid arg count")
         emit(OP_RET, payload=arg_count)
+    
+    elif isinstance(node, ast.Pass):
+        emit(OP_NOP)
 
     elif isinstance(node, dsvm_myast.add_nop):
         emit(OP_NOP, label=node.label)
