@@ -81,15 +81,15 @@ Addressing is **16-bit**, executable 64KB max.
 
 |Address|Purpose|Size|Comment|
 |:-:|:--:|:--:|:--:|
-|`0000`<br>`F7FF` |Shared<br>**Executable**<br>and **Stack**|63488 Bytes|See Notes Below|
-|`F800`<br>`F9FF` |User-defined<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|ZI Data|
-|`FA00`<br>`FAFF` |Scratch<br>Memory|256 Bytes|General-purpose<br>User-accessible|
-|`FB00`<br>`FCFF` |Unused|512 Bytes||
-|`FD00`<br>`FDFF` |Persistent<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries |Non-volatile Data<br>Saved on SD card|
+|`0000`<br>`EFFF` |Shared<br>**Executable**<br>and **Stack**|61440 Bytes|See Notes Below|
+|`F000`<br>`F3FF` |User-defined<br>Global<br>Variables|1024 Bytes<br>4 Bytes/Entry<br>256 Entries|ZI Data|
+|`F400`<br>`F7FF` |Scratch<br>Memory|1024 Bytes|General-purpose<br>User-accessible|
+|`F800`<br>`FBFF` |Reserved|1024 Bytes||
+|`FC00`<br>`FDFF` |Persistent<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Non-volatile Data<br>Saved on SD card|
 |`FE00`<br>`FFFF` |VM<br>Reserved<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Read/Adjust<br>VM Settings|
 
 * Binary executable is loaded at `0x0`
-* Stack grows from `0xF7FF` towards **smaller address**
+* Stack grows from `0xEFFF` towards **smaller address**
 	* Each item **4 bytes long**
 	* In actual implementation, SP can be **4-byte aligned** for better performance.
 * Smaller executable allows larger stack, vise versa.
@@ -100,14 +100,11 @@ Addressing is **16-bit**, executable 64KB max.
 
 * First byte (Byte 0): **Opcode**.
 * Byte 1 - 4: **Optional payload**.
-* ⚠️Integer arithmetics are **signed** BY DEFAULT
-	* Set reserved variable `_UNSIGNED_MATH = 1` to switch to **unsigned mode**
-* All multi-byte operations are **Little-endian**
+* ⚠️ All multi-byte payloads are **Little-endian**
 
 ### CPU Instructions
 
 * **1 stack item** = 4 **bytes**
-
 * `PUSHR` / `POPR` **Offset** is a **byte-addressed signed 16-bit integer**
 	* Positive: Towards larger address / Base of Stack
 	* Negative: Towards smaller address / Top of Stack (TOS)
@@ -115,7 +112,7 @@ Addressing is **16-bit**, executable 64KB max.
 |Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
-|`PUSHC16`|3|`1`/`0x1` |Push an **unsigned 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
+|`PUSHC16`|3|`1`/`0x1` |Push **unsigned 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
 |`PUSHI`|3|`2`/`0x2` |Read **4 Bytes** at `ADDR`<br>Push to stack as one **32-bit** number|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`PUSHR`|3|`3`/`0x3`|Read **4 Bytes** at **offset from FP**<br>Push to stack as one **32-bit** number|2 Bytes:<br>`OFFSET_LSB`<br>`OFFSET_MSB`|
 |`POPI`|3|`4`/`0x4` |Pop one item off TOS<br>Write **4 bytes** to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
@@ -126,16 +123,43 @@ Addressing is **16-bit**, executable 64KB max.
 |`CALL`|3|`9`/`0x9` |Construct 32b value `frame_info`:<br>Top 16b `current_FP`,<br>Bottom 16b `return_addr (PC+3)`.<br>Push `frame_info` to TOS<br>Set **FP** to TOS<br>Jump to `ADDR`|2 Bytes:<br>`ADDR_LSB`<br>`ADDR_MSB`|
 |`RET`|3|`10`/`0xa` |`return_value` on TOS<br>Pop `return_value` into temp location<br>Pop items until TOS is `FP`<br>Pop `frame_info`, restore **FP** and **PC**.<br>Pop off `ARG_COUNT` items<br>Push `return_value` back on TOS<br>Resumes execution at PC|2 Bytes:<br>`ARG_COUNT`<br>`Reserved`|
 |`HALT`|1|`11`/`0xb` |Stop execution|None|
-|`PEEK8`|1|`12`/`0xc` |Pop **ONE** item off TOS as `ADDR`<br>`ADDR <= End of Scratch Memory`<br>Read **ONE byte** at `ADDR`<br>Push on stack|None|
-|`POKE8`|1|`13`/`0xd` |Pop **TWO** item off TOS<br>First `ADDR`, then `VAL`.<br>`ADDR <= End of Scratch Memory`<br>Write **ONE** byte (LSB of `VAL`) to `ADDR`|None|
-|`PUSH0`|1|`14`/`0xe` |Push `0` to TOS|None|
-|`PUSH1`|1|`15`/`0xf` |Push `1` to TOS|None|
-|`DROP`|1|`16`/`0x10` |Discard **ONE** item off TOS|None|
-|`DUP`|1|`17`/`0x11` |**Duplicate the item** on TOS|None|
-|`RANDINT`|1|`18`/`0x12` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
-|`PUSHC32`|5|`19`/`0x13` |Push an **unsigned 32-bit** constant on stack<br>For negative numbers, push abs then use `USUB`.|4 Bytes<br>`CONST_LSB`<br>`CONST_B1`<br>`CONST_B2`<br>`CONST_MSB`|
-|`PUSHC8`|2|`20`/`0x14` |Push an **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
+|`PUSH0`|1|`12`/`0xc` |Push `0` to TOS|None|
+|`PUSH1`|1|`13`/`0xd` |Push `1` to TOS|None|
+|`DROP`|1|`14`/`0xe` |Discard **ONE** item off TOS|None|
+|`DUP`|1|`15`/`0xf` |**Duplicate the item** on TOS|None|
+|`RANDINT`|1|`16`/`0x10` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a random number inbetween (**inclusive**) on TOS|None|
+|`PUSHC32`|5|`17`/`0x11` |Push **32-bit** constant on stack|4 Bytes<br>`CONST_LSB`<br>`CONST_B1`<br>`CONST_B2`<br>`CONST_MSB`|
+|`PUSHC8`|2|`18`/`0x12` |Push **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
+
+### Memory Access
+
+#### PEEK Instructions
+
+* All **single-byte** instructions
+* Pop **ONE** item off TOS as `ADDR`
+	* Then...
+
+|Name|Opcode<br>Byte 0|Comment|
+|:-:|:-:|:-:|
+|`PEEK8`|`24`/`0x18`|Read **ONE byte** at `ADDR`<br>Push on stack **SIGN-extended**|
+|`PEEKU8`|`25`/`0x19`|Read **ONE byte** at `ADDR`<br>Push on stack **ZERO-extended**|
+|`PEEK16`|`26`/`0x1a`|Read **TWO bytes** at `ADDR`<br>Push on stack **SIGN-extended**|
+|`PEEKU16`|`27`/`0x1b`|Read **TWO bytes** at `ADDR`<br>Push on stack **ZERO-extended**|
+|`PEEK32`|`28`/`0x1c`|Read **FOUR bytes** at `ADDR`<br>Push on stack **AS-IS**|
+
+#### POKE Instructions
+
+* All **single-byte** instructions
+* Pop **TWO** item off TOS
+	* First `ADDR`, then `VAL`
+	* Then...
+
+|Name|Opcode<br>Byte 0|Comment|
+|:-:|:-:|:-:|
+|`POKE8`|`29`/`0x1d`|Write **low 8 bits** of `VAL` to `ADDR`|
+|`POKE16`|`30`/`0x1e`|Write **low 16 bits** of `VAL` to `ADDR`|
+|`POKE32`|`31`/`0x1f`|Write `VAL` to `ADDR` **as-is**|
 
 ### Binary Operators
 
@@ -143,37 +167,41 @@ Binary as in **involving two operands**.
 
 * All **single-byte** instructions
 * Pop **TWO** items off TOS
-* Top item is right-hand-side, lower item is left-hand-side.
+	* First item: Right-hand-side
+	* Second item: Left-hand-side
 * Perform operation
 * Push result back on TOS
 
 -----
 
-* ⚠️ = Affected by current **Arithmetic Mode**
-	* Default: Signed
-	* Unsigned mode if `_UNSIGNED_MATH = 1`
-
 |Name|Opcode<br>Byte 0|Comment|
 |:--:|:--:|:--:|
 |`EQ`|`32`/`0x20`|Equal|
 |`NOTEQ`|`33`/`0x21`|Not Equal|
-|`LT`|`34`/`0x22`|⚠️Less Than|
-|`LTE`|`35`/`0x23`|⚠️Less Than or Equal|
-|`GT`|`36`/`0x24`|⚠️Greater Than|
-|`GTE`|`37`/`0x25`|⚠️Greater Than or Equal|
+|`LT`|`34`/`0x22`|**SIGNED** Less Than|
+|`LTE`|`35`/`0x23`|**SIGNED** Less Than or Equal|
+|`GT`|`36`/`0x24`|**SIGNED** Greater Than|
+|`GTE`|`37`/`0x25`|**SIGNED** Greater Than or Equal|
 |`ADD`|`38`/`0x26`|Add|
 |`SUB`|`39`/`0x27`|Subtract|
 |`MULT`|`40`/`0x28`|Multiply|
-|`DIV`|`41`/`0x29`|⚠️Integer Division|
-|`MOD`|`42`/`0x2a`|⚠️Modulus|
+|`DIV`|`41`/`0x29`|**SIGNED** Integer Division|
+|`MOD`|`42`/`0x2a`|**SIGNED** Modulus|
 |`POW`|`43`/`0x2b`|Power of|
-|`LSHIFT`|`44`/`0x2c`|Left shift|
-|`RSHIFT`|`45`/`0x2d`|⚠️Right shift<br>Signed Mode: Arithmetic (sign-extend)<br>Unsigned Mode: Logical (0-extend)|
+|`LSL`|`44`/`0x2c`|Logical Shift Left|
+|`ASR`|`45`/`0x2d`|**Arithmetic** Shift Right<br>(Sign-extend)|
 |`BITOR`|`46`/`0x2e`|Bitwise OR|
 |`BITXOR`|`47`/`0x2f`|Bitwise XOR|
 |`BITAND`|`48`/`0x30`|Bitwise AND|
 |`LOGIAND`|`49`/`0x31`|Logical AND|
 |`LOGIOR`|`50`/`0x32`|Logical OR|
+|`ULT`|`51`/`0x33`|**UNSIGNED** Less Than|
+|`ULTE`|`52`/`0x34`|**UNSIGNED** Less Than or Equal|
+|`UGT`|`53`/`0x35`|**UNSIGNED** Greater Than|
+|`UGTE`|`54`/`0x36`|**UNSIGNED** Greater Than or Equal|
+|`UDIV`|`55`/`0x37`|**UNSIGNED** Integer Division|
+|`UMOD`|`56`/`0x38`|**UNSIGNED** Modulus|
+|`LSR`|`57`/`0x39`|**Logical** Shift Right<br>(Zero-extend)|
 
 ### Unary Operators
 
@@ -228,7 +256,7 @@ The following commands involves user-provided strings:
 
 * `STRING`
 * `STRINGLN`
-* `OLED_PRINT`
+* `OLED_PRINT` / `OLED_CPRINT`
 * `GOTO_PROFILE`
 
 Strings are **zero-terminated** and appended at the **end of the binary executable**.
@@ -295,7 +323,7 @@ Outside function calls, FP points to **base of stack.**
 ||...|
 |:--:|:--:|
 ||...|
-|`FP ->`|Base (`F7FF`)|
+|`FP ->`|Base (`EFFF`)|
 
 When calling a function: **`foo(a, b, c)`**
 
@@ -308,7 +336,7 @@ When calling a function: **`foo(a, b, c)`**
 ||`b`|
 ||`c`|
 ||...|
-|`FP ->`|Base (`F7FF`)|
+|`FP ->`|Base (`EFFF`)|
 
 Caller then executes `CALL` instruction, which:
 
@@ -326,7 +354,7 @@ Caller then executes `CALL` instruction, which:
 ||`b`|
 ||`c`|
 ||...|
-||Base (`F7FF`)|
+||Base (`EFFF`)|
 
 ### Arguments / Locals
 
@@ -350,7 +378,7 @@ To reference arguments and locals, **FP + Byte_Offset** is used.
 |`FP + 8`|`b`|
 |`FP + 12`|`c`|
 ||...|
-||Base (`F7FF`)|
+||Base (`EFFF`)|
 
 ### Stack Unwinding
 
@@ -369,7 +397,7 @@ At end of a function, `return_value` is on TOS.
 |`FP + 8`|`b`|
 |`FP + 12`|`c`|
 ||...|
-||Base (`F7FF`)|
+||Base (`EFFF`)|
 
 **Callee** executes `RET n` instruction, which:
 
@@ -388,7 +416,7 @@ At end of a function, `return_value` is on TOS.
 |:--:|:--:|
 ||`return_val`|
 ||...|
-|`FP ->`|Base (`F7FF`)|
+|`FP ->`|Base (`EFFF`)|
 
 ## Questions or Comments?
 
@@ -408,7 +436,7 @@ bluetooth 6KRO
 * Mild optimisations, smaller code size.
 * MOUSE_SCROLL
 * PUSH8
-* difference between signed and unsigned mode?
+* difference between signed and unsigned ops?
 * `FUN` and `END_FUN`
 * print format specifiers
 * new duckyscript random commands
