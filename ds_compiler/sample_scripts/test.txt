@@ -1,29 +1,3 @@
-DEFINE WALL_THICKNESS_PIXELS 5
-DEFINE WALL_1_X_POS_ADDR 0xF400
-DEFINE OLED_WIDTH 128
-
-VAR current_horizontal_scroll_speed_pixel_per_frame = 1
-
-FUN draw_wall(x_pos_addr)
-    VAR left_edge_pos = PEEK16(x_pos_addr)
-    VAR right_edge_pos = left_edge_pos + WALL_THICKNESS_PIXELS
-    IF left_edge_pos >= 0
-        pass
-    ELSE IF left_edge_pos >= -WALL_THICKNESS_PIXELS
-        left_edge_pos = 0
-    ELSE
-        RETURN
-    END_IF
-    IF right_edge_pos < OLED_WIDTH
-        pass
-    ELSE IF right_edge_pos < OLED_WIDTH + WALL_THICKNESS_PIXELS
-        right_edge_pos = OLED_WIDTH-1
-    ELSE
-        RETURN
-    END_IF
-    STRING draw_wall: $left_edge_pos, $right_edge_pos
-END_FUN
-
-VAR w1_left_edge = -10
-POKE16(WALL_1_X_POS_ADDR, w1_left_edge)
-draw_wall(WALL_1_X_POS_ADDR)
+IF 1
+PASS me
+END_IF
