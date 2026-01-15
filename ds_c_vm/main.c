@@ -315,13 +315,6 @@ uint32_t stack_peek(my_stack* ms)
   return value;
 }
 
-uint8_t read_byte(uint16_t addr)
-{
-  if(addr >= BIN_BUF_SIZE)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
-  return bin_buf[addr];
-}
-
 void stack_write_fp_rel(my_stack* ms, int16_t offset, uint32_t value)
 {
   if (offset & 0x03)
@@ -488,122 +481,78 @@ uint8_t is_pgv(uint16_t addr)
   return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
 }
 
-void write_bytes_safe(uint32_t addr, const void* src, size_t size)
+void write_bytes_safe(uint32_t vm_addr, const void* src, size_t size)
 {
-  if (addr + size > BIN_BUF_SIZE)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
-  memcpy(&bin_buf[addr], src, size);
-}
-
-void read_bytes_safe(uint32_t addr, void* dest, size_t size)
-{
-  if (addr + size > BIN_BUF_SIZE)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
-  memcpy(dest, &bin_buf[addr], size);
-}
-
-uint32_t memread_u32(uint16_t addr)
-{
-  if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
+  if (vm_addr <= SCRATCH_MEM_END_ADDRESS_INCLUSIVE)
   {
-    uint32_t result;
-    read_bytes_safe(addr, &result, sizeof(uint32_t));
-    return result;
+    if (vm_addr + size > BIN_BUF_SIZE)
+      longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+    memcpy(&bin_buf[vm_addr], src, size);
+    return;
   }
-  // if (is_pgv(addr))
-  //   return pgv_buf[get_gv_index(addr)];
-  if (addr == _DEFAULTDELAY)
-	  return defaultdelay;
-  if (addr == _DEFAULTCHARDELAY)
-    return defaultchardelay;
-  if (addr == _CHARJITTER)
-    return charjitter;
-  if (addr == _RANDOM_MIN)
-    return rand_min;
-  if (addr == _RANDOM_MAX)
-    return rand_max;
-  if (addr == _RANDOM_INT)
-    return (uint32_t)random_int32_between((int32_t)rand_min, (int32_t)rand_max);
-  if (addr == _TIME_MS)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _READKEY)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _LOOP_SIZE)
-    return loop_size;
-  if (addr == _KEYPRESS_COUNT)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _EPILOGUE_ACTIONS)
-    return epilogue_actions;
-  if (addr == _TIME_S)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _ALLOW_ABORT)
-    return allow_abort;
-  if (addr == _BLOCKING_READKEY)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _KBLED_BITFIELD)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _DONT_REPEAT)
-    return disable_autorepeat;
-  if (addr == _THIS_KEYID)
-    return current_key_id;
-  if (addr == _DP_MODEL)
-    return 2;
-  if (addr == _RTC_IS_VALID)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_UTC_OFFSET)
-    return utc_offset_minutes;
-  if (addr == _RTC_YEAR)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_MONTH)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_DAY)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_HOUR)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_MINUTE)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_SECOND)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_WDAY)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _RTC_YDAY)
-    return DUMMY_DATA_REPLACE_ME;
-  if (addr == _UNUSED)
-    return 0;
-  if (addr == _SW_BITFIELD)
-    return DUMMY_DATA_REPLACE_ME;
+
+  if (vm_addr >= PGV_START_ADDRESS && vm_addr <= PGV_END_ADDRESS_INCLUSIVE)
+  {
+    uint32_t offset = vm_addr - PGV_START_ADDRESS;
+    if (offset + size > PGV_BUF_SIZE)
+      longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+    memcpy(&pgv_buf[offset], src, size);
+    return;
+  }
+
+  if (vm_addr >= INTERAL_VAR_START_ADDRESS && vm_addr <= MEM_END_ADDR)
+  {
+    uint32_t offset = vm_addr - INTERAL_VAR_START_ADDRESS;
+    if (offset + size > MEMIO_BUF_SIZE)
+      longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+    memcpy(&memIO_buf[offset], src, size);
+    return;
+  }
+
   longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
 }
 
-void memwrite_u32(uint16_t addr, uint32_t value)
+void read_bytes_safe(uint32_t vm_addr, void* dest, size_t size)
 {
-  if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
-    write_bytes_safe(addr, &value, sizeof(uint32_t));
-  // else if (is_pgv(addr))
-  // {
-  //   pgv_buf[get_gv_index(addr)] = value;
-  //   DS_SET_BITS(epilogue_actions, EPI_SAVE_PGV);
-  // }
-  else if (addr == _DEFAULTDELAY)
-	  defaultdelay = value;
-  else if (addr == _DEFAULTCHARDELAY)
-    defaultchardelay = value;
-  else if (addr == _CHARJITTER)
-    charjitter = value;
-  else if (addr == _RANDOM_MIN)
-    rand_min = value;
-  else if (addr == _RANDOM_MAX)
-    rand_max = value;
-  else if (addr == _KEYPRESS_COUNT)
-    DUMMY_DATA_REPLACE_ME;
-  else if (addr == _EPILOGUE_ACTIONS)
-    epilogue_actions = value;
-  else if (addr == _ALLOW_ABORT)
-    allow_abort = value;
-  else if (addr == _DONT_REPEAT)
-    disable_autorepeat = value;
-  else if (addr == _RTC_UTC_OFFSET)
-    utc_offset_minutes = value;
+  if (vm_addr <= SCRATCH_MEM_END_ADDRESS_INCLUSIVE)
+  {
+    if (vm_addr + size > BIN_BUF_SIZE)
+      longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+    memcpy(dest, &bin_buf[vm_addr], size);
+    return;
+  }
+
+  if (vm_addr >= PGV_START_ADDRESS && vm_addr <= PGV_END_ADDRESS_INCLUSIVE)
+  {
+    uint32_t offset = vm_addr - PGV_START_ADDRESS;
+    if (offset + size > PGV_BUF_SIZE)
+      longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+    memcpy(dest, &pgv_buf[offset], size);
+    return;
+  }
+
+  if (vm_addr >= INTERAL_VAR_START_ADDRESS && vm_addr <= MEM_END_ADDR)
+  {
+    uint32_t offset = vm_addr - INTERAL_VAR_START_ADDRESS;
+    if (offset + size > MEMIO_BUF_SIZE)
+      longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+    memcpy(dest, &memIO_buf[offset], size);
+    return;
+  }
+
+  longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
+}
+
+uint32_t memread_u32(uint16_t vm_addr)
+{
+  uint32_t value;
+  read_bytes_safe(vm_addr, &value, sizeof(value));
+  return value;
+}
+
+void memwrite_u32(uint16_t vm_addr, uint32_t value)
+{
+  write_bytes_safe(vm_addr, &value, sizeof(value));
 }
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
@@ -612,6 +561,7 @@ uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
   if(dsb_file == NULL)
     return EXE_DSB_FOPEN_FAIL;
   memset(bin_buf, 0, BIN_BUF_SIZE);
+  memset(memIO_buf, 0, MEMIO_BUF_SIZE);
   *dsb_size = fread(bin_buf, 1, BIN_BUF_SIZE, dsb_file);
   fclose(dsb_file);
   if(*dsb_size == 0)
