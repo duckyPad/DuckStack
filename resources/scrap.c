@@ -1,3 +1,34 @@
+uint32_t* dsvm_get_physical_addr(uint16_t vm_addr)
+{
+  // 1. Executable, Stack, Global Vars, and Scratch Memory
+  // Range: 0x0000 to 0xF7FF
+  // Buffer: bin_buf (Map 1:1)
+  if (vm_addr <= SCRATCH_MEM_END_ADDRESS_INCLUSIVE)
+    return (uint32_t *)&bin_buf[vm_addr];
+  
+  // 2. Reserved Region
+  // Range: 0xF800 to 0xFBFF
+  // Action: Invalid Access
+  if (vm_addr < PGV_START_ADDRESS)
+    return NULL;
+
+  // 3. Persistent Global Variables
+  // Range: 0xFC00 to 0xFDFF (approx, depends on PGV_COUNT)
+  // Buffer: pgv_buf (Offset relative to PGV_START_ADDRESS)
+  if (vm_addr <= PGV_END_ADDRESS_INCLUSIVE)
+    return (uint32_t *)&pgv_buf[vm_addr - PGV_START_ADDRESS];
+
+  // 4. VM Reserved Variables (MemIO)
+  // Range: 0xFE00 to 0xFFFF
+  // Buffer: memIO_buf (Offset relative to INTERAL_VAR_START_ADDRESS)
+  if (vm_addr >= INTERAL_VAR_START_ADDRESS)
+    return (uint32_t *)&memIO_buf[vm_addr - INTERAL_VAR_START_ADDRESS];
+
+  // Fallback for any gaps (e.g. between PGV end and IO start if PGV count changes)
+  return NULL;
+}
+
+
 char* make_str(uint16_t str_start_addr)
 {
   uint16_t curr_addr = str_start_addr;

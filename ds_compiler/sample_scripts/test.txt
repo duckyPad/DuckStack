@@ -1,100 +1,159 @@
-// =========================================================
-// duckyScript Memory Region Stress Test
-// Regions: Persistent Global (0xFC00) & VM Reserved (0xFE00)
-// =========================================================
+// ==========================================
+// DuckStack Memory Stress Test
+// ==========================================
+// TARGET: DuckStack VM 32-bit Little-Endian
+// ==========================================
 
-STRINGLN_BLOCK
-    STARTING MEMORY TEST...
-    -----------------------------------
-    NOTE: All multi-byte values are Little-Endian.
-    FAIL if 'Actual' does not match 'Expected'.
-    -----------------------------------
-END_STRINGLN
+DELAY 1000
+STRINGLN =================================
+STRINGLN STARTING MEMORY STRESS TEST
+STRINGLN =================================
 
-// =========================================================
-// SECTION 1: Persistent Global Variables (Start: 0xFC00 / 64512)
-// Safe for arbitrary data storage.
-// =========================================================
+// ------------------------------------------
+// HELPER FUNCTION: Assertion
+// ------------------------------------------
+// Prints PASS if actual == expected, else FAIL
+// ------------------------------------------
+FUN assert_test(test_id, actual, expected)
+    IF actual == expected
+        STRINGLN [PASS] Test $test_id: Got $actual (Match)
+    ELSE
+        STRINGLN [FAIL] Test $test_id: Exp $expected, Got $actual
+    END_IF
+END_FUN
 
-// Define Base Address for Persistent Globals
-// 0xFC00 = 64512
-VAR p_base = 64512
+// ==========================================
+// SECTION 1: 8-BIT OPERATIONS (Signed/Unsigned)
+// ==========================================
+// Testing Region: Scratch Memory (0xF400 / 62464)
+// ==========================================
 
-STRINGLN [TEST 1] 8-BIT SIGNED/UNSIGNED (0xFF) at 0xFC00
-// Write 0xFF (255)
-POKE8 p_base 255
-// Read back
-VAR val_s8 = PEEK8(p_base)
-VAR val_u8 = PEEKU8(p_base)
+STRINGLN --- 8-BIT READ/WRITE ---
 
-STRINGLN Expected Signed: -1
-STRINGLN Actual Signed:   $val_s8
-STRINGLN Expected Unsigned: 255
-STRINGLN Actual Unsigned:   $val_u8
-STRINGLN -----------------------------------
+VAR addr_scratch = 0xF400 // 62464
 
-STRINGLN [TEST 2] 16-BIT SIGNED/UNSIGNED (0xFFFF) at 0xFC00
-// Write 0xFFFF (65535)
-POKE16 p_base 65535
-// Read back
-VAR val_s16 = PEEK16(p_base)
-VAR val_u16 = PEEKU16(p_base)
+// TEST 1: Write 0xFF (255). 
+// Expect: -1 if PEEK8 (Signed), 255 if PEEKU8 (Unsigned)
+POKE8(addr_scratch, 255)
 
-STRINGLN Expected Signed: -1
-STRINGLN Actual Signed:   $val_s16
-STRINGLN Expected Unsigned: 65535
-STRINGLN Actual Unsigned:   $val_u16
-STRINGLN -----------------------------------
+VAR res_s8 = PEEK8(addr_scratch)
+VAR res_u8 = PEEKU8(addr_scratch)
 
-STRINGLN [TEST 3] 32-BIT INTEGER (0xFFFFFFFF) at 0xFC00
-// Write 0xFFFFFFFF (-1)
-POKE32 p_base -1
-// Read back (Only Signed PEEK32 exists usually, as 32-bit is native width)
-VAR val_32 = PEEK32(p_base)
+assert_test(1, res_s8, -1)
+assert_test(2, res_u8, 255)
 
-STRINGLN Expected: -1
-STRINGLN Actual:   $val_32
-STRINGLN -----------------------------------
+// ==========================================
+// SECTION 2: 16-BIT OPERATIONS
+// ==========================================
 
-STRINGLN [TEST 4] LITTLE-ENDIAN BYTE ORDERING
-// Write 0xDEADBEEF (Decimal: -559038737) to 0xFC00
-// LSB is EF, MSB is DE
-POKE32 p_base -559038737
+STRINGLN --- 16-BIT READ/WRITE ---
 
-// Read byte-by-byte to verify Little-Endian storage
-// 0xFC00 should match LSB (0xEF / 239)
-VAR b0 = PEEKU8(p_base)
-// 0xFC01 should match (0xBE / 190)
-VAR p_base_1 = p_base + 1
-VAR b1 = PEEKU8(p_base_1)
-// 0xFC02 should match (0xAD / 173)
-VAR p_base_2 = p_base + 2
-VAR b2 = PEEKU8(p_base_2)
-// 0xFC03 should match MSB (0xDE / 222)
-VAR p_base_3 = p_base + 3
-VAR b3 = PEEKU8(p_base_3)
+// TEST 3: Write 0xFFFF (65535). 
+// Expect: -1 if PEEK16 (Signed), 65535 if PEEKU16 (Unsigned)
+POKE16(addr_scratch, 65535)
 
-STRINGLN Expected: EF BE AD DE
-STRINGLN Actual:   $b0%02X $b1%02X $b2%02X $b3%02X
-STRINGLN -----------------------------------
+VAR res_s16 = PEEK16(addr_scratch)
+VAR res_u16 = PEEKU16(addr_scratch)
 
-// =========================================================
-// SECTION 2: VM Reserved Variables (Start: 0xFE00 / 65024)
-// WARNING: This region maps to VM settings.
-// We will test an offset likely unused by critical settings 
-// to avoid crashing the VM (0xFEF0).
-// =========================================================
+assert_test(3, res_s16, -1)
+assert_test(4, res_u16, 65535)
 
-// 0xFEF0 = 65264
-VAR r_base = 65264
+// ==========================================
+// SECTION 3: 32-BIT & ENDIANNESS
+// ==========================================
 
-STRINGLN [TEST 5] VM RESERVED REGION WRITE (0xFEF0)
-// Write a magic number 12345
-POKE32 r_base 12345
-VAR r_val = PEEK32(r_base)
+STRINGLN --- 32-BIT & ENDIANNESS ---
 
-STRINGLN Expected: 12345
-STRINGLN Actual:   $r_val
+// TEST 5: Write Magic Number 0xDEADBEEF (Decimal: 3735928559)
+// Since vars are signed, this is -559038737
+VAR magic_val = -559038737 
+POKE32(addr_scratch, magic_val)
 
-STRINGLN -----------------------------------
-STRINGLN TESTS COMPLETED.
+VAR read_back = PEEK32(addr_scratch)
+assert_test(5, read_back, magic_val)
+
+// TEST 6: Check Little Endian Byte Order
+// 0xDEADBEEF in Memory (Little Endian): [EF] [BE] [AD] [DE]
+// addr+0 should be 0xEF (239 unsigned, -17 signed)
+// addr+3 should be 0xDE (222 unsigned, -34 signed)
+
+VAR byte_0 = PEEKU8(addr_scratch)
+VAR byte_3 = PEEKU8(addr_scratch + 3)
+
+// 0xEF = 239
+assert_test(6, byte_0, 239) 
+// 0xDE = 222
+assert_test(7, byte_3, 222) 
+
+// ==========================================
+// SECTION 4: MEMORY REGION CROSS-CHECK
+// ==========================================
+// Validating access to distinct memory regions
+// ==========================================
+
+STRINGLN --- MEMORY REGIONS ---
+
+// Region: User Globals (0xF000 / 61440)
+VAR addr_usr_global = 0xF000
+
+// Region: Persistent Globals (0xFC00 / 64512)
+// Corresponds to reserved var _GV0
+VAR addr_pers_global = 0xFC00
+
+// TEST 8: Write different values to different regions
+POKE32(addr_usr_global, 11111)
+POKE32(addr_pers_global, 22222)
+
+VAR val_usr = PEEK32(addr_usr_global)
+VAR val_pers = PEEK32(addr_pers_global)
+
+assert_test(8, val_usr, 11111)
+assert_test(9, val_pers, 22222)
+
+// ==========================================
+// SECTION 5: RESERVED VARIABLE MAPPING
+// ==========================================
+// Testing if _GV0 points to 0xFC00
+// ==========================================
+
+STRINGLN --- RESERVED VAR MAPPING ---
+
+// TEST 10: Read _GV0. It should hold 22222 from Test 8
+// Because _GV0 is mapped to 0xFC00
+VAR gv0_val = _GV0
+assert_test(10, gv0_val, 22222)
+
+// TEST 11: Modify _GV1 via Variable, Read via PEEK
+// _GV1 is at 0xFC04 (0xFC00 + 4 bytes)
+_GV1 = 33333
+VAR gv1_peek = PEEK32(0xFC04)
+assert_test(11, gv1_peek, 33333)
+
+// ==========================================
+// SECTION 6: DISALLOWED / RESERVED REGION
+// ==========================================
+// Region: 0xF800 - 0xFBFF is listed as "Reserved"
+// ==========================================
+
+STRINGLN --- RESERVED REGION TEST ---
+
+VAR addr_reserved = 0xF800
+
+// TEST 12: Attempt Write to Reserved Region
+// NOTE: Behavior depends on VM implementation. 
+// If strict, this might crash. If loose, it stores data.
+// We write, then try to read back.
+
+POKE32(addr_reserved, 99999)
+VAR res_val = PEEK32(addr_reserved)
+
+// If this prints 99999, the VM allows writing to reserved space.
+// If it prints 0 or garbage, the memory is protected/disconnected.
+STRINGLN [INFO] Write Reserved (0xF800):
+STRINGLN    > Wrote: 99999
+STRING    > Read:  
+STRINGLN $res_val
+
+STRINGLN =================================
+STRINGLN TEST COMPLETE
+STRINGLN =================================
