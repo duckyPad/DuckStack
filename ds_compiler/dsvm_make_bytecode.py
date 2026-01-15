@@ -602,7 +602,7 @@ def make_dsb_with_exception(program_listing, should_print=False, remove_unused_f
     source = dsline_to_source(pyout)
     try:
         my_tree = ast.parse(source, mode="exec")
-        # my_tree = dsvm_optimizer.optimize_ast(my_tree, remove_unused_func)
+        my_tree = dsvm_optimizer.optimize_ast(my_tree, remove_unused_func)
     except SyntaxError as e:
         comp_result = compile_result(
             is_success = False,
