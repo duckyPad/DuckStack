@@ -78,17 +78,16 @@ Addressing is **16-bit**, executable 64KB max.
 
 * Flat memory map
 * Byte-addressed
-* ✅ = `PEEK` and `POKE`-able
 
-|Address|Purpose|Size|Comment|
-|:-:|:--:|:--:|:--:|
-|`0000`<br>`EFFF`|Shared<br>**Executable**<br>and **Stack**<br>|61440 Bytes|See Notes Below<br>✅|
-|`F000`<br>`F3FF`|User-defined<br>Global<br>Variables|1024 Bytes<br>4 Bytes/Entry<br>256 Entries|ZI Data<br>✅|
-|`F400`<br>`F7FF`|Scratch<br>Memory|1024 Bytes|General-purpose<br>✅|
-|`F800`<br>`FBFF`|Reserved|1024 Bytes||
-|`FC00`<br>`FDFF`|Persistent<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Non-volatile Data<br>Saved on SD card<br>✅|
-|`FE00`<br>`FEFF`|VM<br>Reserved<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries|Read/Adjust<br>VM Settings|
-|`FF00`<br>`FFFF`|Memory-<br>Mapped IO|256 Bytes|✅|
+|Address|Purpose|Size|Comment|`PEEK` and<br>`POKE`-able|
+|:-:|:--:|:--:|:--:|:--:|
+|`0000`<br>`EFFF`|Shared<br>**Executable**<br>and **Stack**<br>|61440 Bytes|See Notes Below|✅|
+|`F000`<br>`F3FF`|User-defined<br>Global<br>Variables|1024 Bytes<br>4 Bytes/Entry<br>256 Entries|ZI Data|✅|
+|`F400`<br>`F7FF`|Scratch<br>Memory|1024 Bytes|General-purpose|✅|
+|`F800`<br>`FBFF`|Reserved|1024 Bytes||❌|
+|`FC00`<br>`FDFF`|Persistent<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Non-volatile Data<br>Saved on SD card|✅|
+|`FE00`<br>`FEFF`|VM<br>Reserved<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries|Read/Adjust<br>VM Settings|❌|
+|`FF00`<br>`FFFF`|Memory-<br>Mapped IO|256 Bytes||✅|
 
 * Binary executable is loaded at `0x0`
 * Stack grows from `0xEFFF` towards **smaller address**
