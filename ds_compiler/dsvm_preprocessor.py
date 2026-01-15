@@ -615,7 +615,9 @@ def get_default_def_dict():
         rv_IS_NUMLOCK_ON : f"(({rv_KBLED_BITFIELD} & 0x1)!=0)",
         rv_IS_CAPSLOCK_ON : f"(({rv_KBLED_BITFIELD} & 0x2)!=0)",
         rv_IS_SCROLLLOCK_ON : f"(({rv_KBLED_BITFIELD} & 0x4)!=0)",
-        kw_PASS : "pass"
+        kw_PASS : "pass",
+        kw_STR_PRINT_FORMAT : DUMMY_VAR_NAME,
+        kw_STR_PRINT_PADDING : DUMMY_VAR_NAME,
     }
     return default_dict
 
