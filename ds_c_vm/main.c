@@ -532,6 +532,67 @@ void read_bytes_safe(uint32_t vm_addr, void* dest, size_t size)
 
 uint32_t memread_u32(uint16_t vm_addr)
 {
+
+  if (vm_addr == _DEFAULTDELAY)
+	  return defaultdelay;
+  if (vm_addr == _DEFAULTCHARDELAY)
+    return defaultchardelay;
+  if (vm_addr == _CHARJITTER)
+    return charjitter;
+  if (vm_addr == _RANDOM_MIN)
+    return rand_min;
+  if (vm_addr == _RANDOM_MAX)
+    return rand_max;
+  if (vm_addr == _RANDOM_INT)
+    return (uint32_t)random_int32_between((int32_t)rand_min, (int32_t)rand_max);
+  if (vm_addr == _TIME_MS)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _READKEY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _LOOP_SIZE)
+    return loop_size;
+  if (vm_addr == _KEYPRESS_COUNT)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _EPILOGUE_ACTIONS)
+    return epilogue_actions;
+  if (vm_addr == _TIME_S)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _ALLOW_ABORT)
+    return allow_abort;
+  if (vm_addr == _BLOCKING_READKEY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _KBLED_BITFIELD)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _DONT_REPEAT)
+    return disable_autorepeat;
+  if (vm_addr == _THIS_KEYID)
+    return current_key_id;
+  if (vm_addr == _DP_MODEL)
+    return 2;
+  if (vm_addr == _RTC_IS_VALID)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_UTC_OFFSET)
+    return utc_offset_minutes;
+  if (vm_addr == _RTC_YEAR)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_MONTH)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_DAY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_HOUR)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_MINUTE)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_SECOND)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_WDAY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _RTC_YDAY)
+    return DUMMY_DATA_REPLACE_ME;
+  if (vm_addr == _UNUSED)
+    return 0;
+  if (vm_addr == _SW_BITFIELD)
+    return DUMMY_DATA_REPLACE_ME;
   uint32_t value;
   read_bytes_safe(vm_addr, &value, sizeof(value));
   return value;
@@ -539,7 +600,58 @@ uint32_t memread_u32(uint16_t vm_addr)
 
 void memwrite_u32(uint16_t vm_addr, uint32_t value)
 {
-  write_bytes_safe(vm_addr, &value, sizeof(value));
+  if (vm_addr == _DEFAULTDELAY)
+	  defaultdelay = value;
+  else if (vm_addr == _DEFAULTCHARDELAY)
+    defaultchardelay = value;
+  else if (vm_addr == _CHARJITTER)
+    charjitter = value;
+  else if (vm_addr == _RANDOM_MIN)
+    rand_min = value;
+  else if (vm_addr == _RANDOM_MAX)
+    rand_max = value;
+  else if (vm_addr == _KEYPRESS_COUNT)
+    DUMMY_DATA_REPLACE_ME;
+  else if (vm_addr == _EPILOGUE_ACTIONS)
+    epilogue_actions = value;
+  else if (vm_addr == _ALLOW_ABORT)
+    allow_abort = value;
+  else if (vm_addr == _DONT_REPEAT)
+    disable_autorepeat = value;
+  else if (vm_addr == _RTC_UTC_OFFSET)
+    utc_offset_minutes = value;
+  else
+    write_bytes_safe(vm_addr, &value, sizeof(value));
+}
+
+uint32_t* dsvm_get_physical_addr(uint16_t vm_addr)
+{
+  // 1. Executable, Stack, Global Vars, and Scratch Memory
+  // Range: 0x0000 to 0xF7FF
+  // Buffer: bin_buf (Map 1:1)
+  if (vm_addr <= SCRATCH_MEM_END_ADDRESS_INCLUSIVE)
+    return (uint32_t *)&bin_buf[vm_addr];
+  
+  // 2. Reserved Region
+  // Range: 0xF800 to 0xFBFF
+  // Action: Invalid Access
+  if (vm_addr < PGV_START_ADDRESS)
+    return NULL;
+
+  // 3. Persistent Global Variables
+  // Range: 0xFC00 to 0xFDFF (approx, depends on PGV_COUNT)
+  // Buffer: pgv_buf (Offset relative to PGV_START_ADDRESS)
+  if (vm_addr <= PGV_END_ADDRESS_INCLUSIVE)
+    return (uint32_t *)&pgv_buf[vm_addr - PGV_START_ADDRESS];
+
+  // 4. VM Reserved Variables (MemIO)
+  // Range: 0xFE00 to 0xFFFF
+  // Buffer: memIO_buf (Offset relative to INTERAL_VAR_START_ADDRESS)
+  if (vm_addr >= INTERAL_VAR_START_ADDRESS)
+    return (uint32_t *)&memIO_buf[vm_addr - INTERAL_VAR_START_ADDRESS];
+
+  // Fallback for any gaps (e.g. between PGV end and IO start if PGV count changes)
+  return NULL;
 }
 
 uint8_t load_dsb(char* dsb_path, uint32_t* dsb_size)
