@@ -8,7 +8,7 @@
 
 uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4))); // 0x0000 to 0xf7ff
 uint8_t pgv_buf[PGV_BUF_SIZE] __attribute__((aligned(4))); // 0xfc00 to 0xfdff
-uint8_t memIO_buf[MEMIO_BUF_SIZE] __attribute__((aligned(4))); // 0xfe00 to 0xffff
+uint8_t memIO_buf[MEMIO_BUF_SIZE] __attribute__((aligned(4))); // 0xff00 to 0xffff
 
 uint32_t defaultdelay;
 uint32_t defaultchardelay;
