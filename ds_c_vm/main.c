@@ -468,19 +468,6 @@ void unaryop(FUNC_PTR_UNARY una_func)
   stack_print(&data_stack, "AFTER UNAOP");
 }
 
-uint8_t get_gv_index(uint16_t addr)
-{
-  uint8_t gv_index = (addr - PGV_START_ADDRESS) / PGV_BYTE_WIDTH;
-  if(gv_index >= PGV_COUNT)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
-  return gv_index;
-}
-
-uint8_t is_pgv(uint16_t addr)
-{
-  return addr >= PGV_START_ADDRESS && addr <= PGV_END_ADDRESS_INCLUSIVE;
-}
-
 void write_bytes_safe(uint32_t vm_addr, const void* src, size_t size)
 {
   if (vm_addr <= SCRATCH_MEM_END_ADDRESS_INCLUSIVE)
