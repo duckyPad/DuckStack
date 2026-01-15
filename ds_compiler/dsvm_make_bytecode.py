@@ -226,6 +226,8 @@ def visit_node(node, ctx_dict):
             emit(OP_PUSHC16, payload=get_key_combined_value(node.value))
         elif isinstance(node.value, int):
             instruction_list.append(make_instruction_pushc(node.value, og_ds_line))
+        elif isinstance(node.value, str) and len(node.value) == 1 and ord(node.value[0]) <= 0xff:
+            instruction_list.append(make_instruction_pushc(ord(node.value), og_ds_line))
         else:
             raise ValueError(f"Unsupported Constant: {node.value}")
 
