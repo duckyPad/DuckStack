@@ -1,15 +1,195 @@
-DEFINE ADDR_START 0xF400
-POKE8(ADDR_START+0, 0x4c)
-POKE8(ADDR_START+1, 0x4f)
-POKE8(ADDR_START+2, 0x4c)
-POKE8(ADDR_START+3, 0x4c)
-POKE8(ADDR_START+4, 0x4f)
-POKE8(ADDR_START+5, 0x4c)
-POKE8(ADDR_START+6, 0x4c)
-POKE8(ADDR_START+7, 0x4f)
-POKE8(ADDR_START+8, 0x4c)
-OLED_CLEAR
-OLED_CURSOR 50 50
-PUTS(ADDR_START | 0xc0000000)
-OLED_UPDATE
-_BLOCKING_READKEY
+// ==========================================
+// DuckStack Numerical Stress Test & Edge Cases
+// ==========================================
+// This script validates 32-bit arithmetic, overflow, 
+// and logic operators.
+// ==========================================
+
+STRINGLN_BLOCK
+Starting Math Stress Test...
+Format: ACTUAL: <result> / EXPECT: <value>
+------------------------------------------
+END_STRINGLN
+
+// ------------------------------------------
+// 1. SIGNED ARITHMETIC BASICS
+// ------------------------------------------
+STRINGLN [1. Basic Signed Arithmetic]
+
+VAR a = 100
+VAR b = -50
+VAR res = 0
+
+// Addition
+res = a + b
+STRINGLN Add(+): $res / EXPECT: 50
+
+// Subtraction (Negative Result)
+res = b - a
+STRINGLN Sub(-): $res / EXPECT: -150
+
+// Multiplication
+res = a * b
+STRINGLN Mult(*): $res / EXPECT: -5000
+
+// Signed Division (Truncation check)
+// 100 / -50 = -2
+res = a / b
+STRINGLN Div(/): $res / EXPECT: -2
+
+// Modulus
+// 10 % 3 = 1
+VAR mod_test = 10
+mod_test = mod_test % 3
+STRINGLN Mod(%): $mod_test / EXPECT: 1
+
+// Negative Modulus behavior (C-style usually follows dividend sign)
+// -10 % 3 = -1
+mod_test = -10
+mod_test = mod_test % 3
+STRINGLN NegMod: $mod_test / EXPECT: -1
+
+// ------------------------------------------
+// 2. EDGE CASES & OVERFLOW (32-BIT SIGNED)
+// ------------------------------------------
+STRINGLN [2. 32-bit Edge Cases]
+
+// Max Signed 32-bit Integer: 2,147,483,647
+VAR max_32 = 2147483647
+STRINGLN Max32: $max_32 / EXPECT: 2147483647
+
+// Overflow Test (Max + 1)
+// Should wrap around to -2,147,483,648 (Min Signed)
+res = max_32 + 1
+STRINGLN Overflow(+1): $res / EXPECT: -2147483648
+
+// Min Signed 32-bit Integer
+VAR min_32 = -2147483648
+
+// Underflow Test (Min - 1)
+// Should wrap around to 2,147,483,647 (Max Signed)
+res = min_32 - 1
+STRINGLN Underflow(-1): $res / EXPECT: 2147483647
+
+// ------------------------------------------
+// 3. BITWISE OPERATIONS
+// ------------------------------------------
+STRINGLN [3. Bitwise Ops]
+
+VAR bit_val = 255  // 0x000000FF
+VAR mask = 15      // 0x0000000F
+
+// Bitwise AND (&)
+// 11111111 & 00001111 = 00001111 (15)
+res = bit_val & mask
+STRINGLN AND(&): $res / EXPECT: 15
+
+// Bitwise OR (|)
+// 11110000 (240) | 00001111 (15) = 11111111 (255)
+VAR or_a = 240
+VAR or_b = 15
+res = or_a | or_b
+STRINGLN OR(|): $res / EXPECT: 255
+
+// Bitwise XOR (^)
+// 1010 (10) ^ 1100 (12) = 0110 (6)
+VAR xor_a = 10
+VAR xor_b = 12
+res = xor_a ^ xor_b
+STRINGLN XOR(^): $res / EXPECT: 6
+
+// Bitwise NOT (~)
+// ~0 = -1 (in 2's complement)
+VAR zero = 0
+res = ~zero
+STRINGLN NOT(~): $res / EXPECT: -1
+
+// ------------------------------------------
+// 4. SHIFT OPERATIONS (LOGICAL VS ARITHMETIC)
+// ------------------------------------------
+STRINGLN [4. Shifts]
+
+// Left Shift (<<)
+// 1 << 31 = -2147483648 (The sign bit gets set)
+VAR one = 1
+res = one << 31
+STRINGLN LSL(<<): $res / EXPECT: -2147483648
+
+// Arithmetic Right Shift (>>, Sign-Extends)
+// -4 (11...100) >> 1 = -2 (11...110)
+VAR neg_four = -4
+res = neg_four >> 1
+STRINGLN ASR(>>): $res / EXPECT: -2
+
+// Logical Right Shift (LSR, Zero-Extends)
+// -1 (All 1s) LSR 1 = Max Int (011...111) -> 2147483647
+VAR neg_one = -1
+res = LSR(neg_one, 1)
+STRINGLN LSR(Unsigned): $res / EXPECT: 2147483647
+
+// ------------------------------------------
+// 5. LOGICAL OPERATORS
+// ------------------------------------------
+STRINGLN [5. Logic Gates]
+
+// AND (&&) - Returns 1 if both non-zero
+VAR true_val = 100
+VAR false_val = 0
+res = true_val && true_val
+STRINGLN LogicAND(T&&T): $res / EXPECT: 1
+res = true_val && false_val
+STRINGLN LogicAND(T&&F): $res / EXPECT: 0
+
+// OR (||) - Returns 1 if either non-zero
+res = false_val || true_val
+STRINGLN LogicOR(F||T): $res / EXPECT: 1
+
+// NOT (!) - Inverts truthiness
+res = !true_val
+STRINGLN LogicNOT(!T): $res / EXPECT: 0
+res = !false_val
+STRINGLN LogicNOT(!F): $res / EXPECT: 1
+
+// ------------------------------------------
+// 6. UNSIGNED COMPARISONS & MATH
+// ------------------------------------------
+STRINGLN [6. Unsigned Ops]
+
+// Signed Comparison: -1 is LESS than 10
+VAR s_cmp = -1 < 10
+STRINGLN Signed(-1 < 10): $s_cmp / EXPECT: 1
+
+// Unsigned Comparison: -1 is MAX_UINT (4,294,967,295)
+// So -1 is GREATER than 10 in unsigned math.
+// ULT(-1, 10) should be 0 (False)
+VAR u_cmp = ULT(-1, 10)
+STRINGLN Unsigned(-1 < 10): $u_cmp / EXPECT: 0
+
+// Unsigned Greater Than
+// UGT(-1, 10) should be 1 (True)
+u_cmp = UGT(-1, 10)
+STRINGLN Unsigned(-1 > 10): $u_cmp / EXPECT: 1
+
+// Unsigned Division (UDIV)
+// -1 (MAX_UINT) / 2 = 2,147,483,647
+res = UDIV(-1, 2)
+STRINGLN UDIV(-1 / 2): $res / EXPECT: 2147483647
+
+// ------------------------------------------
+// 7. AUGMENTED ASSIGNMENTS
+// ------------------------------------------
+STRINGLN [7. Augmented Assign]
+
+VAR counter = 10
+counter += 5
+STRINGLN (+=): $counter / EXPECT: 15
+counter *= 2
+STRINGLN (*=): $counter / EXPECT: 30
+counter -= 30
+STRINGLN (-=): $counter / EXPECT: 0
+
+STRINGLN_BLOCK
+------------------------------------------
+Tests Complete.
+------------------------------------------
+END_STRINGLN

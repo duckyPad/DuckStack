@@ -6,7 +6,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4)));
+uint8_t bin_buf[BIN_BUF_SIZE] __attribute__((aligned(4))); // 0x0000 to 0xf7ff
+uint8_t pgv_buf[PGV_BUF_SIZE] __attribute__((aligned(4))); // 0xfc00 to 0xfdff
+uint8_t memIO_buf[MEMIO_BUF_SIZE] __attribute__((aligned(4))); // 0xfe00 to 0xffff
+
 uint32_t defaultdelay;
 uint32_t defaultchardelay;
 uint32_t charjitter;
@@ -16,7 +19,6 @@ uint8_t epilogue_actions;
 uint8_t allow_abort;
 uint8_t kb_led_status;
 uint8_t disable_autorepeat;
-uint32_t pgv_buf[PGV_COUNT];
 int16_t utc_offset_minutes;
 const uint8_t dsvm_version = 2;
 static jmp_buf jmpbuf;
@@ -320,13 +322,6 @@ uint8_t read_byte(uint16_t addr)
   return bin_buf[addr];
 }
 
-void write_byte(uint16_t addr, uint8_t value)
-{
-  if(addr >= BIN_BUF_SIZE)
-    longjmp(jmpbuf, EXE_ILLEGAL_ADDR);
-  bin_buf[addr] = value;
-}
-
 void stack_write_fp_rel(my_stack* ms, int16_t offset, uint32_t value)
 {
   if (offset & 0x03)
@@ -515,8 +510,8 @@ uint32_t memread_u32(uint16_t addr)
     read_bytes_safe(addr, &result, sizeof(uint32_t));
     return result;
   }
-  if (is_pgv(addr))
-    return pgv_buf[get_gv_index(addr)];
+  // if (is_pgv(addr))
+  //   return pgv_buf[get_gv_index(addr)];
   if (addr == _DEFAULTDELAY)
 	  return defaultdelay;
   if (addr == _DEFAULTCHARDELAY)
@@ -584,11 +579,11 @@ void memwrite_u32(uint16_t addr, uint32_t value)
 {
   if (addr <= USER_VAR_END_ADDRESS_INCLUSIVE)
     write_bytes_safe(addr, &value, sizeof(uint32_t));
-  else if (is_pgv(addr))
-  {
-    pgv_buf[get_gv_index(addr)] = value;
-    DS_SET_BITS(epilogue_actions, EPI_SAVE_PGV);
-  }
+  // else if (is_pgv(addr))
+  // {
+  //   pgv_buf[get_gv_index(addr)] = value;
+  //   DS_SET_BITS(epilogue_actions, EPI_SAVE_PGV);
+  // }
   else if (addr == _DEFAULTDELAY)
 	  defaultdelay = value;
   else if (addr == _DEFAULTCHARDELAY)
@@ -806,7 +801,9 @@ int32_t random_int32_between(int32_t lower, int32_t upper)
 void execute_instruction(exe_context* exe)
 {
   uint16_t curr_pc = exe->this_pc;
-  uint8_t opcode = read_byte(curr_pc);
+  uint32_t opcode = 0;
+  read_bytes_safe(curr_pc, &opcode, 1);
+  opcode &= 0xff;
   uint8_t instruction_size_bytes = inst_size_lookup(opcode);
   uint32_t payload = 0;
   exe->next_pc += instruction_size_bytes;

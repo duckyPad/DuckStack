@@ -7,6 +7,7 @@
 
 //--------------
 
+#define BUF_PADDING 8
 #define EXE_BIN_START_ADDRESS 0x0
 #define STACK_BASE_ADDR 0xEFFF
 #define STACK_MOAT_BYTES 16
@@ -24,9 +25,12 @@
 #define PGV_COUNT 32
 #define PGV_BYTE_WIDTH 4
 #define PGV_END_ADDRESS_INCLUSIVE (PGV_START_ADDRESS + PGV_BYTE_WIDTH * PGV_COUNT - 1)
+#define PGV_BUF_SIZE (PGV_END_ADDRESS_INCLUSIVE - PGV_START_ADDRESS + BUF_PADDING)
 
 #define INTERAL_VAR_START_ADDRESS 0xFE00
 #define INTERAL_VAR_BYTE_WIDTH 4
+
+#define MEMIO_BUF_SIZE (MEM_END_ADDR - INTERAL_VAR_START_ADDRESS + BUF_PADDING)
 
 #define MEM_END_ADDR 0xFFFF
 #define _UNUSED MEM_END_ADDR
@@ -35,8 +39,7 @@
 #define MAX_INSTRUCTION_LEN 5
 
 // ----------
-#define BIN_BUF_OVERFLOW 8
-#define BIN_BUF_SIZE (SCRATCH_MEM_END_ADDRESS_INCLUSIVE+BIN_BUF_OVERFLOW)
+#define BIN_BUF_SIZE (SCRATCH_MEM_END_ADDRESS_INCLUSIVE+BUF_PADDING)
 // ----------
 
 #define EXE_OK 0
@@ -113,11 +116,6 @@ typedef struct
 #define EPI_SAVE_PGV 0x10
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-
-extern uint8_t bin_buf[BIN_BUF_SIZE];
-extern uint8_t allow_abort;
-extern uint8_t kb_led_status;
-extern uint32_t pgv_buf[PGV_COUNT];
 
 #define MAKESTR_VAR_BOUNDARY_IMM (0x1f)
 #define MAKESTR_VAR_BOUNDARY_REL (0x1e)
