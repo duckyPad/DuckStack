@@ -34,30 +34,8 @@ This VM is currently **under beta test** and not ready for public use yet!
     - [Stack Set-up](#stack-set-up)
     - [Arguments / Locals](#arguments--locals)
     - [Stack Unwinding](#stack-unwinding)
+- [Standalone Compiler](#standalone-compiler)
 - [Questions or Comments?](#questions-or-comments)
-
-## How to Use
-
-### Compile
-
-* Download / clone this repo
-* Prepare a duckyScript source file `test.txt`
-	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.html)
-* In `ds_compiler` directory, run:
-
-`python3 ./dsvm_make_bytecode.py test.txt test.dsb`
-
-### Execute
-
-A minimal C-based VM is provided. Based on real duckyPad firmware, but uses placeholders for hardware commands.
-
-----
-
-In `ds_c_vm` folder, run `python3 ./compile.py` to compile the source. (Or write your own Makefile)
-
-Run the VM: `./main test.dsb`
-
-Set `PRINT_DEBUG` to 1 in `main.h` for execution and stack trace.
 
 ## Architecture Overview
 
@@ -418,35 +396,34 @@ At end of a function, `return_value` is on TOS.
 ||...|
 |`FP ->`|Base (`EFFF`)|
 
+## Standalone Compiler
+
+Normally, duckyScript compilation is taken care of in the [configurator](https://github.com/duckyPad/duckyPad-Configurator).
+
+But of course you can also try a standalone version below.
+
+### Compile
+
+* Download / clone this repo
+* Prepare a duckyScript source file `test.txt`
+	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.html)
+* In `ds_compiler` directory, run:
+
+`python3 ./dsvm_make_bytecode.py test.txt test.dsb`
+
+### Execute
+
+A minimal C-based VM is provided. Based on real duckyPad firmware, but uses placeholders for hardware commands.
+
+----
+
+In `ds_c_vm` folder, run `python3 ./compile.py` to compile the source. (Or write your own Makefile)
+
+Run the VM: `./main test.dsb`
+
+Set `PRINT_DEBUG` to 1 in `main.h` for execution and stack trace.
+
+
 ## Questions or Comments?
 
 Please feel free to [open an issue](https://github.com/dekuNukem/duckstack/issues), ask in the [official duckyPad discord](https://discord.gg/4sJCBx5), or email `dekuNukem`@`gmail`.`com`!
-
-## To mention in doc
-
-* Hardware RNG
-	* Test in both bluetooth and wired more
-* How new GOTO_PROFILE works
-
-## Mentioned
-
-HIDTX
-mouse side buttons
-bluetooth 6KRO
-* Mild optimisations, smaller code size.
-* MOUSE_SCROLL
-* PUSH8
-* difference between signed and unsigned ops?
-* `FUN` and `END_FUN`
-* print format specifiers
-* new duckyscript random commands
-* AugAssign operator `+=, -=, etc`
-* RANDINT() function
-* PUTS() function
-* `THEN` no longer required
-
-* built-in functions
-	* POKE8() and PEEK8()
-	* RANDCHR(chr_info)
-
-* `_STR_PRINT_FORMAT` and `_STR_PRINT_PADDING` removed
