@@ -1,9 +1,9 @@
 DEFINE OLED_WIDTH 128
 DEFINE OLED_HEIGHT 128
 DEFINE SCALE_FACTOR 10
-DEFINE GRAVITY 3
-DEFINE JUMP_STRENGTH -30
-DEFINE FRAME_DELAY 25
+DEFINE GRAVITY 2
+DEFINE JUMP_STRENGTH -20
+DEFINE FRAME_DURATION 25
 
 // ------ bird ------
 DEFINE BIRD_START_X 20
@@ -118,8 +118,16 @@ FUN wall_update()
 END_FUN
 
 FUN game_over()
+    VAR i = 0
+    WHILE i < 3
+        SWC_FILL 64 64 64
+        DELAY 250
+        SWC_FILL 0 0 0
+        DELAY 250
+        i += 1
+    END_WHILE
+    SWC_FILL 64 0 0
     OLED_CLEAR
-    // OLED_RECT 10 30 110 100 0
     OLED_CURSOR 0 40
     OLED_CPRINT Game Over!
     OLED_CURSOR 0 55
@@ -128,6 +136,7 @@ FUN game_over()
     OLED_CPRINT Press any key
     OLED_UPDATE
     _BLOCKING_READKEY
+    SWC_RESET 99
     HALT
 END_FUN
 
@@ -175,6 +184,7 @@ END_FUN
 wall_init()
 
 WHILE 1
+    VAR frame_start = _TIME_MS
     OLED_CLEAR
 
     // Input handling
@@ -192,5 +202,8 @@ WHILE 1
     OLED_CURSOR 110 5
     OLED_PRINT $score
     OLED_UPDATE
-    DELAY FRAME_DELAY
+    VAR next_frame = frame_start + FRAME_DURATION
+    WHILE _TIME_MS < next_frame
+        PASS
+    END_WHILE
 END_WHILE
