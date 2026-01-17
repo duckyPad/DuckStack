@@ -14,49 +14,58 @@ VAR bird_y_scaled = BIRD_START_Y * SCALE_FACTOR
 
 // ------- walls -------
 DEFINE WALL_THICKNESS_PIXELS 6
-// off screen
 DEFINE WALL_START_POS_X 150
 DEFINE DEFAULT_WALL_SPACING 40
 DEFINE WALL_RESET_THRESHOLD_SCALED (-1 * WALL_THICKNESS_PIXELS * SCALE_FACTOR)
-DEFINE WALL_SPACING_VARIANCE_PIXELS 5
+DEFINE WALL_SPACING_VARIANCE_PIXELS 3
 DEFINE DEFAULT_WALL_GAP_SIZE 40
 DEFINE DEFAULT_WALL_Y (OLED_HEIGHT/2)
 
+DEFINE WALL_GAP_SIZE_MIN 35
+DEFINE WALL_GAP_SIZE_MAX 50
+DEFINE WALL_GAP_Y_LOWER_POS_MIN (WALL_GAP_SIZE_MAX+5)
+DEFINE WALL_GAP_Y_LOWER_POS_MAX (OLED_HEIGHT-10)
+
+DEFINE WALL_OBJ_SIZE 6
+DEFINE WALL_OBJ_OFFSET_X_POS_SCALED 0
+DEFINE WALL_OBJ_OFFSET_GAP_Y_POS 2
+DEFINE WALL_OBJ_OFFSET_GAP_SIZE 4
+
+DEFINE WALL_1_OBJ_ADDR 0xF400
+DEFINE WALL_2_OBJ_ADDR (WALL_1_OBJ_ADDR + WALL_OBJ_SIZE)
+DEFINE WALL_3_OBJ_ADDR (WALL_2_OBJ_ADDR + WALL_OBJ_SIZE)
+DEFINE WALL_4_OBJ_ADDR (WALL_3_OBJ_ADDR + WALL_OBJ_SIZE)
+
 VAR wall_scroll_speed_scaled = 15
-
-VAR wall_1_x_scaled = 0
-VAR wall_1_gap_y = DEFAULT_WALL_Y
-VAR wall_1_gap_size = DEFAULT_WALL_GAP_SIZE
-
-VAR wall_2_x_scaled = 0
-VAR wall_2_gap_y = DEFAULT_WALL_Y
-VAR wall_2_gap_size = DEFAULT_WALL_GAP_SIZE
-
-VAR wall_3_x_scaled = 0
-VAR wall_3_gap_y = DEFAULT_WALL_Y
-VAR wall_3_gap_size = DEFAULT_WALL_GAP_SIZE
-
-VAR wall_4_x_scaled = 0
-VAR wall_4_gap_y = DEFAULT_WALL_Y
-VAR wall_4_gap_size = DEFAULT_WALL_GAP_SIZE
+VAR score = 0
 
 FUN debug_reset()
     bird_y_scaled = BIRD_START_Y * SCALE_FACTOR
     bird_velocity_y = 0
-    // Reset wall to start on death/reset
-    // wall_1_x_scaled = WALL_START_POS_X * SCALE_FACTOR
 END_FUN
 
 FUN wall_init()
-    // Initialize wall position in Scaled Units
-    wall_1_x_scaled = WALL_START_POS_X * SCALE_FACTOR
-    wall_2_x_scaled = wall_1_x_scaled + DEFAULT_WALL_SPACING * SCALE_FACTOR
-    wall_3_x_scaled = wall_2_x_scaled + DEFAULT_WALL_SPACING * SCALE_FACTOR
-    wall_4_x_scaled = wall_3_x_scaled + DEFAULT_WALL_SPACING * SCALE_FACTOR
-    shuffle_wall_gap()
+    POKE16(WALL_1_OBJ_ADDR+WALL_OBJ_OFFSET_X_POS_SCALED, WALL_START_POS_X*SCALE_FACTOR+DEFAULT_WALL_SPACING*SCALE_FACTOR*0)
+    POKE16(WALL_1_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_Y_POS, DEFAULT_WALL_Y)
+    POKE16(WALL_1_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_SIZE, DEFAULT_WALL_GAP_SIZE)
+
+    POKE16(WALL_2_OBJ_ADDR+WALL_OBJ_OFFSET_X_POS_SCALED, WALL_START_POS_X*SCALE_FACTOR+DEFAULT_WALL_SPACING*SCALE_FACTOR*1)
+    POKE16(WALL_2_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_Y_POS, DEFAULT_WALL_Y)
+    POKE16(WALL_2_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_SIZE, DEFAULT_WALL_GAP_SIZE)
+
+    POKE16(WALL_3_OBJ_ADDR+WALL_OBJ_OFFSET_X_POS_SCALED, WALL_START_POS_X*SCALE_FACTOR+DEFAULT_WALL_SPACING*SCALE_FACTOR*2)
+    POKE16(WALL_3_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_Y_POS, DEFAULT_WALL_Y)
+    POKE16(WALL_3_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_SIZE, DEFAULT_WALL_GAP_SIZE)
+
+    POKE16(WALL_4_OBJ_ADDR+WALL_OBJ_OFFSET_X_POS_SCALED, WALL_START_POS_X*SCALE_FACTOR+DEFAULT_WALL_SPACING*SCALE_FACTOR*3)
+    POKE16(WALL_4_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_Y_POS, DEFAULT_WALL_Y)
+    POKE16(WALL_4_OBJ_ADDR+WALL_OBJ_OFFSET_GAP_SIZE, DEFAULT_WALL_GAP_SIZE)
 END_FUN
 
-FUN draw_wall(left_edge_pos, wall_gap_y_lower, wall_gap_size)
+FUN draw_wall(wall_obj_addr)
+    VAR left_edge_pos = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_X_POS_SCALED) / SCALE_FACTOR
+    VAR wall_gap_y_lower = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_Y_POS)
+    VAR wall_gap_size = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_SIZE)
     VAR right_edge_pos = left_edge_pos + WALL_THICKNESS_PIXELS
     
     // Bounds checking to prevent drawing off-screen (which might wrap or error)
@@ -80,75 +89,108 @@ FUN draw_wall(left_edge_pos, wall_gap_y_lower, wall_gap_size)
     OLED_RECT left_edge_pos wall_gap_y_lower-wall_gap_size right_edge_pos 0 1
 END_FUN
 
-FUN shuffle_wall_gap()
-    wall_1_gap_y = RANDINT(WALL_GAP_SIZE_MIN, WALL_GAP_SIZE_MAX)
-    wall_2_gap_y = RANDINT(WALL_GAP_SIZE_MIN, WALL_GAP_SIZE_MAX)
-    wall_3_gap_y = RANDINT(WALL_GAP_SIZE_MIN, WALL_GAP_SIZE_MAX)
-    wall_4_gap_y = RANDINT(WALL_GAP_SIZE_MIN, WALL_GAP_SIZE_MAX)
-    wall_1_gap_y = RANDINT(WALL_GAP_Y_LOWER_POS_MIN, WALL_GAP_Y_LOWER_POS_MAX)
-    wall_2_gap_y = RANDINT(WALL_GAP_Y_LOWER_POS_MIN, WALL_GAP_Y_LOWER_POS_MAX)
-    wall_3_gap_y = RANDINT(WALL_GAP_Y_LOWER_POS_MIN, WALL_GAP_Y_LOWER_POS_MAX)
-    wall_4_gap_y = RANDINT(WALL_GAP_Y_LOWER_POS_MIN, WALL_GAP_Y_LOWER_POS_MAX)
-END_FUN
-
-FUN move_wall(wall_x_scaled)
+FUN move_wall(wall_obj_addr)
+    VAR wall_x_scaled = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_X_POS_SCALED)
     wall_x_scaled -= wall_scroll_speed_scaled
     IF wall_x_scaled <= WALL_RESET_THRESHOLD_SCALED
-        shuffle_wall_gap()
-        RETURN (WALL_START_POS_X + RANDINT(-WALL_SPACING_VARIANCE_PIXELS, WALL_SPACING_VARIANCE_PIXELS)) * SCALE_FACTOR
+        POKE16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_Y_POS, RANDINT(WALL_GAP_Y_LOWER_POS_MIN, WALL_GAP_Y_LOWER_POS_MAX))
+        POKE16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_SIZE, RANDINT(WALL_GAP_SIZE_MIN, WALL_GAP_SIZE_MAX))
+        // wall_x_scaled = (WALL_START_POS_X + RANDINT(-WALL_SPACING_VARIANCE_PIXELS, WALL_SPACING_VARIANCE_PIXELS)) * SCALE_FACTOR
+        wall_x_scaled = WALL_START_POS_X * SCALE_FACTOR
+        score += 1
+        IF score % 3 == 0
+            wall_scroll_speed_scaled += 1
+        END_IF
     END_IF
-    RETURN wall_x_scaled
+    POKE16(wall_obj_addr+WALL_OBJ_OFFSET_X_POS_SCALED, wall_x_scaled)
 END_FUN
 
-DEFINE WALL_GAP_SIZE_MIN 30
-DEFINE WALL_GAP_SIZE_MAX 50
-DEFINE WALL_GAP_Y_LOWER_POS_MIN (WALL_GAP_SIZE_MAX+5)
-DEFINE WALL_GAP_Y_LOWER_POS_MAX (OLED_HEIGHT-1)
-
 FUN wall_update()
-    wall_1_x_scaled = move_wall(wall_1_x_scaled)
-    wall_2_x_scaled = move_wall(wall_2_x_scaled)
-    wall_3_x_scaled = move_wall(wall_3_x_scaled)
-    wall_4_x_scaled = move_wall(wall_4_x_scaled)
-    draw_wall(wall_1_x_scaled / SCALE_FACTOR, wall_1_gap_y, wall_1_gap_size)
-    draw_wall(wall_2_x_scaled / SCALE_FACTOR, wall_2_gap_y, wall_2_gap_size)
-    draw_wall(wall_3_x_scaled / SCALE_FACTOR, wall_3_gap_y, wall_3_gap_size)
-    draw_wall(wall_4_x_scaled / SCALE_FACTOR, wall_4_gap_y, wall_4_gap_size)
+    move_wall(WALL_1_OBJ_ADDR)
+    move_wall(WALL_2_OBJ_ADDR)
+    move_wall(WALL_3_OBJ_ADDR)
+    move_wall(WALL_4_OBJ_ADDR)
+
+    draw_wall(WALL_1_OBJ_ADDR)
+    draw_wall(WALL_2_OBJ_ADDR)
+    draw_wall(WALL_3_OBJ_ADDR)
+    draw_wall(WALL_4_OBJ_ADDR)
+END_FUN
+
+FUN game_over()
+    OLED_CLEAR
+    // OLED_RECT 10 30 110 100 0
+    OLED_CURSOR 0 40
+    OLED_CPRINT Game Over!
+    OLED_CURSOR 0 55
+    OLED_CPRINT Score: $score
+    OLED_CURSOR 0 75
+    OLED_CPRINT Press any key
+    OLED_UPDATE
+    _BLOCKING_READKEY
+    HALT
+END_FUN
+
+FUN check_wall_collision(wall_obj_addr)
+    // Calculate wall horizontal bounds
+    VAR wall_left_x = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_X_POS_SCALED) / SCALE_FACTOR
+    VAR wall_right_x = wall_left_x + WALL_THICKNESS_PIXELS
+
+    // Check 1: Is the bird's X (pixel origin) inside the wall's X range?
+    IF (BIRD_START_X >= wall_left_x) && (BIRD_START_X <= wall_right_x)
+        
+        // Get gap dimensions
+        VAR gap_floor_y = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_Y_POS)
+        VAR gap_size = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_SIZE)
+        VAR gap_ceiling_y = gap_floor_y - gap_size
+        
+        VAR bird_pixel_y = bird_y_scaled / SCALE_FACTOR
+
+        // Check 2: Is the bird's Y (pixel origin) hitting the solid parts?
+        // Hit bottom pipe OR Hit top pipe
+        IF (bird_pixel_y >= gap_floor_y) || (bird_pixel_y <= gap_ceiling_y)
+            game_over()
+        END_IF
+    END_IF
+END_FUN
+
+FUN bird_update()
+    bird_velocity_y += GRAVITY
+    bird_y_scaled += bird_velocity_y
+    VAR bird_draw_y = bird_y_scaled / SCALE_FACTOR
+    OLED_CIRCLE BIRD_START_X bird_draw_y BIRD_RADIUS 1
+
+    // collision detection, floor and ceiling
+    IF (bird_draw_y <= (BIRD_RADIUS*2)) || (bird_draw_y >= OLED_HEIGHT)
+        game_over()
+    END_IF
+
+    check_wall_collision(WALL_1_OBJ_ADDR)
+    check_wall_collision(WALL_2_OBJ_ADDR)
+    check_wall_collision(WALL_3_OBJ_ADDR)
+    check_wall_collision(WALL_4_OBJ_ADDR)
+
 END_FUN
 
 wall_init()
 
 WHILE 1
+    OLED_CLEAR
+
     // Input handling
     VAR key = _READKEY
     IF key > 0
         bird_velocity_y = JUMP_STRENGTH
     END_IF
-
-    OLED_CLEAR
-    // Draw floor/ceiling
+    
     OLED_LINE 0 0 127 0
     OLED_LINE 0 127 127 127
-    
-    // Calculate bird draw position
-    VAR bird_draw_y = bird_y_scaled / SCALE_FACTOR
-    VAR max_height_scaled = OLED_HEIGHT * SCALE_FACTOR
-    
-    // Collision/Reset logic
-    IF (bird_draw_y <= (BIRD_RADIUS*2)) || (bird_y_scaled >= max_height_scaled)
-        debug_reset()
-    END_IF
-    
-    OLED_CIRCLE BIRD_START_X bird_draw_y BIRD_RADIUS 1
-    
-    // Update and draw walls
-    wall_update()
-    
-    OLED_UPDATE
-    
-    // Physics update
-    bird_velocity_y = bird_velocity_y + GRAVITY
-    bird_y_scaled = bird_y_scaled + bird_velocity_y
 
+    bird_update()
+
+    wall_update()
+    OLED_CURSOR 110 5
+    OLED_PRINT $score
+    OLED_UPDATE
     DELAY FRAME_DELAY
 END_WHILE
