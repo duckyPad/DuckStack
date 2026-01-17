@@ -130,9 +130,9 @@ FUN game_over()
     OLED_CLEAR
     OLED_CURSOR 0 40
     OLED_CPRINT Game Over!
-    OLED_CURSOR 0 55
+    OLED_CURSOR 0 60
     OLED_CPRINT Score: $score
-    OLED_CURSOR 0 75
+    OLED_CURSOR 0 80
     OLED_CPRINT Press any key
     OLED_UPDATE
     _BLOCKING_READKEY
@@ -141,18 +141,14 @@ FUN game_over()
 END_FUN
 
 FUN check_wall_collision(wall_obj_addr)
-    // Calculate wall horizontal bounds
     VAR wall_left_x = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_X_POS_SCALED) / SCALE_FACTOR
     VAR wall_right_x = wall_left_x + WALL_THICKNESS_PIXELS
 
     // Check 1: Is the bird's X (pixel origin) inside the wall's X range?
     IF (BIRD_START_X >= wall_left_x) && (BIRD_START_X <= wall_right_x)
-        
-        // Get gap dimensions
         VAR gap_floor_y = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_Y_POS)
         VAR gap_size = PEEK16(wall_obj_addr+WALL_OBJ_OFFSET_GAP_SIZE)
         VAR gap_ceiling_y = gap_floor_y - gap_size
-        
         VAR bird_pixel_y = bird_y_scaled / SCALE_FACTOR
 
         // Check 2: Is the bird's Y (pixel origin) hitting the solid parts?

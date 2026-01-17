@@ -218,8 +218,8 @@ Binary as in **involving two operands**.
 |`OLED_CLR`|`77`/`0x4d`|**OLED Clear**|
 |`OLED_REST`|`78`/`0x4e`| **OLED Restore**|
 |`OLED_LINE`|`79`/`0x4f`|**OLED Draw Line**<br>Pop **FOUR** items<br>`x1, y1, x2, y2`<br>Draw single-pixel line in-between|
-|`OLED_RECT`|`80`/`0x50`|**OLED Draw Rectangle**<br>Pop **FIVE** items<br>`fill, x1, y1, x2, y2`<br>Draw rectangle between two points<br>Fill if `fill` is non-zero|
-|`OLED_CIRC`|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`fill, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>Fill if `fill` is non-zero|
+|`OLED_RECT`|`80`/`0x50`|**OLED Draw Rectangle**<br>Pop **FIVE** items<br>`opt, x1, y1, x2, y2`<br>Draw rectangle between two points<br>`opt`Bit 0: Fill, Bit 1: Color|
+|`OLED_CIRC`|`81`/`0x51`|**OLED Draw Circle**<br>Pop **FOUR** items<br>`opt, radius, x, y`<br>Draw circle with `radius` at `(x,y)`<br>`opt`Bit 0: Fill, Bit 1: Color|
 |`BCLR`|`82`/`0x52`|**Clear switch event queue**|
 |`SKIPP`|`83`/`0x53`| **Skip Profile**<br>Pop **ONE** item as `n`<br>If `n` is **positive**, go to **next** profile<br>If `n` is **negative**, go to **prev** profile|
 |`GOTOP`|`84`/`0x54`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If resolves into an **integer `n`**<br>Go to `n`th profile.<br>Otherwise jump to profile name|
