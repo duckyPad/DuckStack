@@ -44,6 +44,8 @@ duckStack uses **32-bit** variables, arithmetics, and stack width.
 Addressing is **16-bit**, executable 64KB max.
 
 * Single **Data Stack**
+* Flat memory map
+* Byte-addressed
 * Program Counter (PC)
 	* 16-bit byte-addressed
 * Stack Pointer (SP)
@@ -52,10 +54,7 @@ Addressing is **16-bit**, executable 64KB max.
 * Frame Pointer (FP)
 	* Points to current function base frame
 
-### Memory Map
-
-* Flat memory map
-* Byte-addressed
+### Memory Map: **duckyPad Pro (2024)**
 
 |Address|Purpose|Size|Comment|`PEEK` and<br>`POKE`-able|
 |:-:|:--:|:--:|:--:|:--:|
@@ -64,7 +63,7 @@ Addressing is **16-bit**, executable 64KB max.
 |`F400`<br>`F7FF`|Scratch<br>Memory|1024 Bytes|General-purpose|✅|
 |`F800`<br>`FBFF`|Reserved|1024 Bytes||❌|
 |`FC00`<br>`FDFF`|Persistent<br>Global<br>Variables|512 Bytes<br>4 Bytes/Entry<br>128 Entries|Non-volatile Data<br>Saved on SD card|✅|
-|`FE00`<br>`FEFF`|VM<br>Reserved<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries|Read/Adjust<br>VM Settings|❌|
+|`FE00`<br>`FEFF`|VM<br>Internal<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries|Read/Adjust<br>VM Settings|❌|
 |`FF00`<br>`FFFF`|Memory-<br>Mapped IO|256 Bytes||✅|
 
 * Binary executable is loaded at `0x0`
@@ -72,6 +71,24 @@ Addressing is **16-bit**, executable 64KB max.
 	* Each item **4 bytes long**
 	* In actual implementation, SP can be **4-byte aligned** for better performance.
 * Smaller executable allows larger stack, vise versa.
+
+### Memory Map: **duckyPad (2020)**
+
+|Address|Purpose|Size|Comment|`PEEK` and<br>`POKE`-able|
+|:-:|:--:|:--:|:--:|:--:|
+|`0000`<br>`DFFF`|Binary Executable|57344 Bytes||❌|
+|`E000`<br>`EFFF`|Data Stack|4096 Bytes|Grows towards<br>**smaller address**|❌|
+|`F000`<br>`F0FF`|User-defined<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries|ZI Data|✅|
+|`....`|Unused|||❌|
+|`F400`<br>`F4FF`|Scratch<br>Memory|256 Bytes|General-purpose|✅|
+|`....`|Unused|||❌|
+|`FC00`<br>`FC7F`|Persistent<br>Global<br>Variables|128 Bytes<br>4 Bytes/Entry<br>32 Entries|Non-volatile Data<br>Saved on SD card|✅|
+|`....`|Unused|||❌|
+|`FE00`<br>`FE7F`|VM<br>Internal<br>Variables|128 Bytes<br>4 Bytes/Entry<br>32 Entries|Read/Adjust<br>VM Settings|❌|
+|`....`|Unused|||❌|
+
+* Similar to duckyPad Pro
+	* Just with less usable space due to limited RAM
 
 ## Instruction Set
 
