@@ -4,11 +4,11 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 [duckyPad](https://dekunukem.github.io/duckyPad-Pro/doc/landing.html) uses it for HID macro scripting.
 
-## ⚠️⚠️ UNDER BETA TEST ⚠️⚠️
+## ⚠️ UNDER BETA TEST ⚠️
 
-This VM is currently **under beta test** and not ready for public use yet!
+This VM is currently **under public beta test**!
 
-[More info here](https://github.com/dekuNukem/duckyPad-Pro/blob/dsvm2/doc/beta_test.md)
+* [More info here](https://github.com/dekuNukem/duckyPad-Pro/blob/dsvm2/doc/beta_test.md).
 
 ## Features
 
@@ -439,7 +439,6 @@ In `ds_c_vm` folder, run `python3 ./compile.py` to compile the source. (Or write
 Run the VM: `./main test.dsb`
 
 Set `PRINT_DEBUG` to 1 in `main.h` for execution and stack trace.
-
 
 ## Questions or Comments?
 

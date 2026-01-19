@@ -1,1 +1,10 @@
-VAR foo = 'u'
+FUN fib(n)
+    IF n <= 1
+        RETURN n
+    END_IF
+    RETURN fib(n - 1) + fib(n - 2)
+END_FUN
+
+STRING Testing Fibonacci 3: 
+VAR fib_res = fib(3)
+STRING result: $fib_res
