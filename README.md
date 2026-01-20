@@ -6,9 +6,9 @@ DuckStack is a simple **stack-based bytecode VM** for executing compiled **ducky
 
 ## ⚠️ UNDER BETA TEST ⚠️
 
-This VM is currently **under public beta test**!
+This VM is currently **under public beta test**
 
-* [More info here](https://github.com/dekuNukem/duckyPad-Pro/blob/dsvm2/doc/beta_test.md).
+* [More info here](https://github.com/dekuNukem/duckyPad-Pro/blob/dsvm2/doc/beta_test.md)
 
 ## Features
 
@@ -105,7 +105,7 @@ Addressing is **16-bit**, executable 64KB max.
 	* Positive: Towards larger address / Base of Stack
 	* Negative: Towards smaller address / Top of Stack (TOS)
 
-|Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-2|
+|Name|Inst.<br>Size|Opcode<br>Byte 0|Comment|Payload<br>Byte 1-4|
 |:-:|:-:|:-:|:-:|:-:|
 |`NOP`|1|`0`/`0x0` |Do nothing|None|
 |`PUSHC16`|3|`1`/`0x1` |Push **unsigned 16-bit (0-65535)** constant on stack<br>For negative numbers, push abs then use `USUB`.|2 Bytes:<br>`CONST_LSB`<br>`CONST_MSB` |
@@ -131,9 +131,10 @@ Addressing is **16-bit**, executable 64KB max.
 
 ### Memory Access
 
+* All **single-byte** instructions
+
 #### PEEK Instructions
 
-* All **single-byte** instructions
 * Pop **ONE** item off TOS as `ADDR`
 	* Then...
 
@@ -147,7 +148,6 @@ Addressing is **16-bit**, executable 64KB max.
 
 #### POKE Instructions
 
-* All **single-byte** instructions
 * Pop **TWO** item off TOS
 	* First `ADDR`, then `VAL`
 	* Then...
@@ -249,10 +249,10 @@ Binary as in **involving two operands**.
 
 The following commands involves user-provided strings:
 
-* `STRING`
-* `STRINGLN`
+* `STRING`/ `STRINGLN`
 * `OLED_PRINT` / `OLED_CPRINT`
 * `GOTO_PROFILE`
+* `PUTS()`
 
 Strings are **zero-terminated** and appended at the **end of the binary executable**.
 
