@@ -421,7 +421,7 @@ But of course you can also try a standalone version below.
 
 ### Compile
 
-* Download / clone this repo
+* [Download / clone this repo](https://github.com/duckyPad/DuckStack)
 * Prepare a duckyScript source file `test.txt`
 	* Learn More: [Writing duckyScript](https://dekunukem.github.io/duckyPad-Pro/doc/duckyscript_info.html)
 * In `ds_compiler` directory, run:
