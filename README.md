@@ -20,22 +20,14 @@ This VM is currently **under public beta test**
 
 ## Table of Contents
 
-- [How to Use](#how-to-use)
-    - [Compile](#compile)
-    - [Execute](#execute)
 - [Architecture Overview](#architecture-overview)
-    - [Memory Map](#memory-map)
+    - [Memory Maps](#memory-map-duckypad-pro-2024)
 - [Instruction Set](#instruction-set)
-    - [CPU Instructions](#cpu-instructions)
-    - [Binary Operators](#binary-operators)
-    - [Unary Operators](#unary-operators)
-    - [duckyScript Commands](#duckyscript-commands)
+- [String Encoding](#string-encoding)
+- [Printing Variables](#printing-variables)
+- [Run-time Exceptions](#run-time-exceptions)
 - [Calling Convention](#calling-convention)
-    - [Stack Set-up](#stack-set-up)
-    - [Arguments / Locals](#arguments--locals)
-    - [Stack Unwinding](#stack-unwinding)
 - [Standalone Compiler](#standalone-compiler)
-- [Questions or Comments?](#questions-or-comments)
 
 ## Architecture Overview
 
