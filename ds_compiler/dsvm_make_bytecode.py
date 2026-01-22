@@ -31,7 +31,6 @@ new opcode values
 single stack
 32 bit stack width and arithmetics
 a lot more look at notes
-
 """
 DS_VM_VERSION = 2
 print_asm = False

@@ -1,10 +1,9 @@
-FUN fib(n)
-    IF n <= 1
-        RETURN n
-    END_IF
-    RETURN fib(n - 1) + fib(n - 2)
-END_FUN
+VAR foo = RANDINT(0, 10)
 
-STRING Testing Fibonacci 3: 
-VAR fib_res = fib(3)
-STRING result: $fib_res
+IF foo >= 8
+    // do nothing
+ELSE IF foo >= 5
+    foo *= 2
+ELSE
+    foo += 10
+END_IF
