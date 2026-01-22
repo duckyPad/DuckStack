@@ -34,7 +34,7 @@ def ensure_valid_python_blocks(lines):
     
     for i, line in enumerate(lines):
         fixed_lines.append(line)
-        clean_content = line.content.split('#')[0].strip()
+        clean_content = line.content.rstrip() # line.content.split('#')[0].strip()
         
         if clean_content.endswith(':'):
             current_indent = line.indent_level
