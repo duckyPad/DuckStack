@@ -23,7 +23,7 @@ def replace_DEFINE_once(pgm_line, def_dict):
     for key in def_dict_list_longest_first:
         value = str(def_dict[key])
         pattern = r'\b' + re.escape(key) + r'\b'
-        pgm_line, sub_count = re.subn(pattern, value, pgm_line)
+        pgm_line, sub_count = re.subn(pattern, lambda _: value, pgm_line)
         if sub_count > 0:
             break
     return pgm_line

@@ -1,9 +1,9 @@
-VAR foo = RANDINT(0, 10)
+DEFINE PATH C:\user
 
-IF foo >= 8
-    // do nothing
-ELSE IF foo >= 5
-    foo *= 2
-ELSE
-    foo += 10
+VAR a = 0
+VAR b = 0
+VAR c = 0
+
+IF a & b & c
+    STRING PATH
 END_IF
