@@ -566,7 +566,7 @@ def compile_to_bin(rdict):
     for key in user_strings_dict:
         output_bin_array += key
     if len(output_bin_array) > MAX_BIN_SIZE:
-        raise ValueError("Binary size too large")
+        raise ValueError(f"Bin size too large!\nThis: {len(output_bin_array)}, Max: {MAX_BIN_SIZE}")
     return output_bin_array
 
 def flip_import_line_number(import_dict):
