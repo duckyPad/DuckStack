@@ -4,6 +4,6 @@ VAR a = 0
 VAR b = 0
 VAR c = 0
 
-IF a & b & c
+IF a & b & c & a & b & c
     STRING PATH
 END_IF
