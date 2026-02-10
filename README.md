@@ -213,10 +213,10 @@ Binary as in **involving two operands**.
 |`SWCF`|`69`/`0x45`| **Switch Color Fill**<br>Pop **THREE** items<br>`Red, Green, Blue`<br>Set ALL LED color to the RGB value|
 |`SWCC`|`70`/`0x46`| **Switch Color Change**<br>Pop **FOUR** item<br>`N, Red, Green, Blue`<br>Set N-th switch to the RGB value<br>If N is 0, set current switch.|
 |`SWCR`|`71`/`0x47`| **Switch Color Reset**<br>Pop **ONE** item<br>If value is 0, reset color of current key<br>If value is between 1 and 20, reset color of that key<br>If value is 99, reset color of all keys.|
-|`STR`|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`|None||
+|`STR`|`72`/`0x48`|**Type String**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`|
 |`STRLN`|`73`/`0x49`|**Type Line**<br>Pop **ONE** item as `ADDR`<br>Print zero-terminated<br>string at `ADDR`<br>**Press ENTER at end**|
-|`OLED_CUSR`|`74`/`0x4a`|**OLED Set Cursor**<br>Pop **TWO** items: `x` then `y`||
-|`OLED_PRNT`|`75`/`0x4b`|**OLED Print**<br>Pop **TWO** items: `OPTIONS` then `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED<br>`OPTIONS` Bit 0: If set, print center-aligned.|None|
+|`OLED_CUSR`|`74`/`0x4a`|**OLED Set Cursor**<br>Pop **TWO** items: `x` then `y`|
+|`OLED_PRNT`|`75`/`0x4b`|**OLED Print**<br>Pop **TWO** items: `OPTIONS` then `ADDR`<br>Print zero-terminated<br>string at `ADDR` to OLED<br>`OPTIONS` Bit 0: If set, print center-aligned.|
 |`OLED_UPDE`|`76`/`0x4c`|**OLED Update**|
 |`OLED_CLR`|`77`/`0x4d`|**OLED Clear**|
 |`OLED_REST`|`78`/`0x4e`| **OLED Restore**|
@@ -228,7 +228,7 @@ Binary as in **involving two operands**.
 |`GOTOP`|`84`/`0x54`| **Goto Profile**<br>Pop **ONE** item as `ADDR`<br>Retrieve zero-terminated string at `ADDR`<br>If resolves into an **integer `n`**<br>Go to `n`th profile.<br>Otherwise jump to profile name|
 |`SLEEP`|`85`/`0x55`| **Sleep**<br>Put duckyPad to sleep<br>Terminates execution|
 |`RANDCHR`|`86`/`0x56`| **Random Character**<br>Pop **ONE** item as bitmask.<br>Bit 0: Letter Lowercase<br>Bit 1: Letter Uppercase<br>Bit 2: Digits<br>Bit 3: Symbols<br>Bit 8: Type via Keyboard<br>Bit 9: OLED Print-at-cursor|
-|`PUTS`|`87`/`0x57` |**Print String**<br>Pop **ONE** item off TOS<br>------<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 29: OLED Print-at-cursor<br>Bit 30: OLED Print-Center-Aligned<br>Bit 31: Type via Keyboard<br>Print string starting from `ADDR`<br>------<br>If `n=0`, print until zero-termination.<br>Else, print max `n` chars (or until `\0`).<br>|None|
+|`PUTS`|`87`/`0x57` |**Print String**<br>Pop **ONE** item off TOS<br>------<br>Bit 0-15: `ADDR`<br>Bit 16-23: `n`<br>Bit 29: OLED Print-at-cursor<br>Bit 30: OLED Print-Center-Aligned<br>Bit 31: Type via Keyboard<br>Print string starting from `ADDR`<br>------<br>If `n=0`, print until zero-termination.<br>Else, print max `n` chars (or until `\0`).<br>|
 |`HIDTX`|`88`/`0x59`| Pop **ONE** item off TOS as `ADDR`<br>Read **9 bytes** from `ADDR`<br>Construct & send raw HID message<br>[See `HIDTX()` in duckyScript doc](https://github.com/dekuNukem/duckyPad-Pro/blob/master/doc/duckyscript_info.md#hidtxaddr)|
 
 ## String Encoding
