@@ -669,6 +669,23 @@ def print_bin_output(binarr):
     print()
     print()
 
+
+def compile_duckyscript(file_path):
+    with open(file_path, "r", encoding="utf-8") as text_file:
+        source_content = text_file.read()
+
+    text_listing = source_content.splitlines(keepends=True)
+    program_listing = []
+    
+    for index, line in enumerate(text_listing):
+        line = line.rstrip("\r\n")
+        program_listing.append(ds_line(line, index + 1))
+
+    comp_result = make_dsb_no_exception(
+        program_listing, should_print=True, remove_unused_func=True
+    )
+    return comp_result, source_content
+
 # --------------------------
 
 if __name__ == "__main__":
