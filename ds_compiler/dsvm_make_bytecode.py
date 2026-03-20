@@ -669,22 +669,24 @@ def print_bin_output(binarr):
     print()
     print()
 
-
-def compile_duckyscript(file_path):
-    with open(file_path, "r", encoding="utf-8") as text_file:
-        source_content = text_file.read()
-
-    text_listing = source_content.splitlines(keepends=True)
-    program_listing = []
+def compile_duckyscript_from_str(script_content: str, should_print: bool = False):
+    text_listing = script_content.splitlines(keepends=True)
     
-    for index, line in enumerate(text_listing):
-        line = line.rstrip("\r\n")
-        program_listing.append(ds_line(line, index + 1))
+    program_listing = [
+        ds_line(line.rstrip("\r\n"), index + 1) 
+        for index, line in enumerate(text_listing)
+    ]
 
     comp_result = make_dsb_no_exception(
-        program_listing, should_print=True, remove_unused_func=True
+        program_listing, should_print=should_print, remove_unused_func=True
     )
-    return comp_result, source_content
+    return comp_result, script_content
+
+
+def compile_duckyscript(file_path: str):
+    with open(file_path, "r", encoding="utf-8") as text_file:
+        # Pass the file content to the string compiler, overriding should_print
+        return compile_duckyscript_from_str(text_file.read(), should_print=True)
 
 # --------------------------
 
