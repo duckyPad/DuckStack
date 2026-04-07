@@ -65,16 +65,9 @@ Addressing is **16-bit**, executable 64KB max.
 |`0000`<br>`DFFF`|Binary Executable|57344 Bytes||❌|
 |`E000`<br>`EFFF`|Data Stack|4096 Bytes|Grows towards<br>**smaller address**|❌|
 |`F000`<br>`F0FF`|User-defined<br>Global<br>Variables|256 Bytes<br>4 Bytes/Entry<br>64 Entries|ZI Data|✅|
-|`....`|Unused|||❌|
 |`F400`<br>`F4FF`|Scratch<br>Memory|256 Bytes|General-purpose|✅|
-|`....`|Unused|||❌|
 |`FC00`<br>`FC7F`|Persistent<br>Global<br>Variables|128 Bytes<br>4 Bytes/Entry<br>32 Entries|Non-volatile Data<br>Saved on SD card|✅|
-|`....`|Unused|||❌|
 |`FE00`<br>`FE7F`|VM<br>Internal<br>Variables|128 Bytes<br>4 Bytes/Entry<br>32 Entries|Read/Adjust<br>VM Settings|❌|
-|`....`|Unused|||❌|
-
-* Similar to duckyPad Pro
-	* Just with less usable space due to limited RAM
 
 ## Instruction Set
 
@@ -322,7 +315,7 @@ When calling a function: **`foo(a, b, c)`**
 Caller then executes `CALL` instruction, which:
 
 * Constructs a 32b value `frame_info`
-	* Top 16b: `current_FP`
+	* Top 16b: `return_FP`
 	* Bottom 16b: `return_address`
 * Pushes `frame_info` to TOS
 * Sets **FP** to TOS
