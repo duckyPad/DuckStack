@@ -55,7 +55,7 @@ Addressing is **16-bit**, executable 64KB max.
 * Stack grows from `0xEFFF` towards **smaller address**
 	* Each item **4 bytes long**
 	* In actual implementation, SP can be **4-byte aligned** for better performance.
-* Smaller executable allows larger stack, vise versa.
+* Smaller executable allows larger stack, vice versa.
 
 ### Memory Map: **duckyPad (2020)**
 
@@ -105,7 +105,7 @@ Addressing is **16-bit**, executable 64KB max.
 |`RANDINT`|1|`16`/`0x10` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push a **SIGNED** random number inbetween (**inclusive**) on TOS|None|
 |`RANDUINT`|1|`17`/`0x11` |Pop **TWO** item off TOS<br>First `Upper`, then `Lower`.<br>Push an **UNSIGNED** random number inbetween (**inclusive**) on TOS|None|
 |`PUSHC32`|5|`18`/`0x12` |Push **32-bit** constant on stack|4 Bytes<br>`CONST_LSB`<br>`CONST_B1`<br>`CONST_B2`<br>`CONST_MSB`|
-|`PUSHC8`|2|`19`/`0x13 |Push **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
+|`PUSHC8`|2|`19`/`0x13` |Push **unsigned 8-bit (0-255)** constant on stack<br>For negative numbers, push abs then use `USUB`.|1 Byte|
 |`VMVER`|3|`255`/`0xff`| VM Version Check<br>Abort if mismatch |2 Bytes:<br>`VM_VER`<br>`Reserved`|
 
 ### Memory Access
