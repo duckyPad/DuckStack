@@ -53,9 +53,10 @@ Addressing is **16-bit**, executable 64KB max.
 
 * Binary executable is loaded at `0x0`
 * Stack grows from `0xEFFF` towards **smaller address**
-	* Each item **4 bytes long**
-	* In actual implementation, SP can be **4-byte aligned** for better performance.
-* Smaller executable allows larger stack, vice versa.
+    * Each stack item **4 bytes long**
+    * SP can be **4-byte aligned** for better performance.
+* Smaller executable allows larger stack, vise versa.
+* Over/underflow are checked before every push/pop.
 
 ### Memory Map: **duckyPad (2020)**
 
