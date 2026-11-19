@@ -274,7 +274,7 @@ STRING Count is: $foo%02x
 ```
 ```
 3    PUSHC16   255   0xff          ;VAR foo = 255
-6    POPI      63488 0xf800        ;VAR foo = 255
+6    POPI      61440 0xf000        ;VAR foo = 255
 9    PUSHC16   14    0xe           ;STRING Count is: $foo%02x
 12   STR                           ;STRING Count is: $foo%02x
 13   HALT                          
